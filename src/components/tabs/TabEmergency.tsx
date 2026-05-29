@@ -3,7 +3,7 @@ import { useStore, Phase } from '../../store';
 import { 
   AlertTriangle, Check, CheckCircle2, Clock, 
   Play, FastForward, Activity, RotateCcw, 
-  Syringe, Pause, X, Menu, Wind, Heart, Users, ChevronDown
+  Syringe, Pause, X, Menu, Wind, Heart, Users, ChevronDown, Waves
 } from 'lucide-react';
 
 const TEAM_TASKS = [
