@@ -37,9 +37,9 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
       title: 'Dukungan Pengembangan',
       subtitle: 'saweria.co/rizqanfahlevvi',
       desc: 'Aplikasi ini dibuat gratis untuk membantu tenaga kesehatan. Dukung pengembangan lebih lanjut melalui platform Saweria secara sukarela.',
-      badge: 'DUKUGAN MANDIRI',
+      badge: 'DUKUNGAN MANDIRI',
       bgClass: 'bg-gradient-to-br from-amber-600 to-yellow-500 text-white',
-      btnLabel: 'Salin saweria.co',
+      btnLabel: 'Buka Saweria',
       icon: Baby,
       tab: 'link' as const
     }
@@ -47,8 +47,7 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
 
   const handleSlideAction = (slide: typeof slides[number]) => {
     if (slide.tab === 'link') {
-      navigator.clipboard.writeText('https://saweria.co/rizqanfahlevvi');
-      alert('Link Saweria berhasil disalin! Terima kasih atas dukungan Anda.');
+      window.open('https://saweria.co/rizqanfahlevvi', '_blank', 'noopener,noreferrer');
     } else {
       onNavigate(slide.tab);
     }
@@ -66,7 +65,7 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
           </div>
           
           <h1 className="text-3xl md:text-[40px] font-black tracking-tight leading-none text-slate-900 dark:text-white flex items-center gap-2">
-            <span className="text-rose-600 dark:text-rose-500">Resneo</span>Helper
+            <span className="text-rose-600 dark:text-rose-500">ResNeo</span>Helper
           </h1>
           
           <p className="text-xs md:text-sm text-slate-505 dark:text-slate-400 max-w-2xl leading-relaxed">
@@ -75,7 +74,7 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
 
           <div className="flex items-center gap-2 pt-1.5">
             <a 
-              href="https://linkedin.com" 
+              href="http://linkedin.com/in/rizqanfahlevvi/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/70 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-slate-850 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]"
