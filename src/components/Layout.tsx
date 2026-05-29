@@ -249,25 +249,24 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </span>
         </button>
 
-        {/* Spacer & FAB Tengah ("Mulai Resusitasi") - Aligned on the exact same baseline, just larger */}
-        <button
-          onClick={() => {
-            onTabChange('emergency');
-            setMoreMenuOpen(false);
-          }}
-          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
-            activeTab === 'emergency' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
-        >
-          <div className={`w-14 h-14 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_5px_15px_rgba(239,68,68,0.35)] mb-1 transition-all duration-300 active:scale-95 group ${
-            activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 border-2 border-slate-50 dark:border-[#0B132B]' : ''
-          }`}>
-            <Activity className={`w-6.5 h-6.5 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
-          </div>
-          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'emergency' ? 'font-black' : 'font-semibold'}`}>
+        {/* Spacer & FAB Tengah ("Mulai Resusitasi") - Raksasa & Menonjol */}
+        <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5">
+          <button
+            onClick={() => {
+              onTabChange('emergency');
+              setMoreMenuOpen(false);
+            }}
+            title="Mulai Resusitasi"
+            className={`w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
+              activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 ring-4 ring-red-500/25' : ''
+            }`}
+          >
+            <Activity className={`w-8 h-8 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
+          </button>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'emergency' ? 'font-black text-rose-600 dark:text-rose-455' : 'font-semibold text-slate-500 dark:text-slate-400'}`}>
             Resus
           </span>
-        </button>
+        </div>
 
         {/* Tab 3: Stabilisasi NICU */}
         <button

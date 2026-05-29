@@ -21,6 +21,10 @@ interface TabScoresProps {
 }
 
 export default function TabScores({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabScoresProps) {
+  // Navigation & Accordion States
+  const [activeScoreView, setActiveScoreView] = useState<'menu' | 'apgar' | 'downe' | 'thomson' | 'ballard'>('menu');
+  const [expandedMinutes, setExpandedMinutes] = useState<Record<number, boolean>>({ 1: true, 5: true });
+
   // APGAR State
   const [apgarEvals, setApgarEvals] = useState<ApgarEval[]>([
     { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
@@ -31,6 +35,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     const nextMinute = apgarEvals.length === 2 ? 10 : apgarEvals.length === 3 ? 15 : 20;
     if (nextMinute <= 20) {
       setApgarEvals([...apgarEvals, { minute: nextMinute, appearance: null, pulse: null, grimace: null, activity: null, respiration: null }]);
+      setExpandedMinutes(prev => ({ ...prev, [nextMinute]: true }));
     }
   };
 
@@ -91,12 +96,12 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const thomsonTotal = getThomsonTotal();
 
   // DOWNE State
-  const downeParams = [
-    { id: 'freq', label: 'Frekuensi Napas', opts: ['< 60x/menit', '60-80x/menit', '> 80x/menit'] },
-    { id: 'retraction', label: 'Retraksi', opts: ['Tidak Ada', 'Ringan', 'Berat'] },
-    { id: 'cyanosis', label: 'Sianosis', opts: ['Tidak Ada', 'Hilang dgn O2', 'Menetap walau O2'] },
-    { id: 'airEntry', label: 'Air Entry', opts: ['Baik / Bilateral', 'Menurun', 'Tidak Terdengar'] },
-    { id: 'grunting', label: 'Merintih', opts: ['Tidak Ada', 'Dengar dgn Stetoskop', 'Dengar Tanpa Alat'] }
+  const downeDetails = [
+    { id: 'freq', label: 'Frekuensi Napas', opts: [{val: 0, desc: '< 60 x/m'}, {val: 1, desc: '60-80 x/m'}, {val: 2, desc: '> 80 x/m'}] },
+    { id: 'retraction', label: 'Retraksi', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Ringan'}, {val: 2, desc: 'Berat/dalam'}] },
+    { id: 'cyanosis', label: 'Sianosis', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Hilang dgn O2'}, {val: 2, desc: 'Menetap walau dgn O2'}] },
+    { id: 'airEntry', label: 'Air Entry', opts: [{val: 0, desc: 'Bilateral baik'}, {val: 1, desc: 'Menurun ringan'}, {val: 2, desc: 'Sangat minimal'}] },
+    { id: 'grunting', label: 'Merintih', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Hanya dgn stetoskop'}, {val: 2, desc: 'Terdengar tanpa alat'}] }
   ];
   const [downe, setDowne] = useState<Record<string, number | null>>({});
 
@@ -274,261 +279,399 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     { key: 'respiration', name: 'Respiration (Usaha Napas)', opts: [{val: 0, desc: 'Tidak ada'}, {val: 1, desc: 'Lambat/merintih'}, {val: 2, desc: 'Menangis kuat'}] },
   ];
 
-  const downeDetails = [
-    { id: 'freq', label: 'Frekuensi Napas', opts: [{val: 0, desc: '< 60 x/m'}, {val: 1, desc: '60-80 x/m'}, {val: 2, desc: '> 80 x/m'}] },
-    { id: 'retraction', label: 'Retraksi', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Ringan'}, {val: 2, desc: 'Berat/dalam'}] },
-    { id: 'cyanosis', label: 'Sianosis', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Hilang dgn O2'}, {val: 2, desc: 'Menetap walau dgn O2'}] },
-    { id: 'airEntry', label: 'Air Entry', opts: [{val: 0, desc: 'Bilateral baik'}, {val: 1, desc: 'Menurun ringan'}, {val: 2, desc: 'Sangat minimal'}] },
-    { id: 'grunting', label: 'Merintih', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Hanya dgn stetoskop'}, {val: 2, desc: 'Terdengar tanpa alat'}] }
-  ];
+  const RenderBackButton = () => (
+    <button 
+      onClick={() => setActiveScoreView('menu')}
+      className="mb-6 inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-black transition-all hover:-translate-x-0.5 active:scale-95 shadow-sm"
+    >
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+      </svg>
+      Kembali ke Menu Utama Skoring
+    </button>
+  );
 
   return (
-    <div className="animate-in fade-in duration-300 relative pb-28">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-        <Calculator className="w-7 h-7 text-indigo-400" />
-        Sistem Penilaian Neonatus (Scoring)
-      </h2>
-
-      <div className="space-y-6">
-        {/* 1. INTERACTIVE APGAR SCORE */}
-        <div className="glass-card rounded-2xl overflow-hidden">
-          <div className="bg-indigo-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10">
-            <h3 className="font-bold text-lg">Skor APGAR Interaktif</h3>
+    <div className="animate-in fade-in duration-300 relative pb-36">
+      
+      {/* 0. DASHBOARD SELECTION MENU */}
+      {activeScoreView === 'menu' && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Calculator className="w-7 h-7 text-indigo-400" />
+              Sistem Penilaian &amp; Kalkulator Neonatus
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pilih modul penilaian klinis terstandar di bawah ini untuk memulai evaluasi pasien.</p>
           </div>
-          <div className="p-4 md:p-5 space-y-6">
-            {apgarEvals.map((ev, idx) => {
-              const { total, complete } = getApgarTotal(ev);
-              return (
-                <div key={ev.minute} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 shadow-md shadow-slate-200/40 dark:shadow-none animate-in fade-in">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-bold bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1 rounded-full text-sm uppercase tracking-wider">
-                      Menit ke-{ev.minute}
-                    </span>
-                    <span className={`text-xl font-mono font-bold ${complete ? (total >= 7 ? 'text-emerald-400' : total >= 4 ? 'text-amber-400' : 'text-rose-500') : 'text-slate-500'}`}>
-                      {complete ? `${total} / 10` : '-- / 10'}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {apgarDetails.map(param => (
-                      <div key={param.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 w-48">{param.name}</span>
-                         <div className="flex gap-1.5 flex-1 items-stretch min-h-[4rem]">
-                          {param.opts.map(opt => (
-                            <DetailedScoreOption 
-                              key={opt.val} 
-                              val={opt.val} 
-                              current={ev[param.key as keyof ApgarEval]} 
-                              onClick={() => updateApgar(idx, param.key as keyof ApgarEval, opt.val)}
-                              desc={opt.desc}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {apgarEvals.length < 5 && (
-              <button 
-                onClick={addApgarEval}
-                className="w-full bg-white dark:bg-white/5 border border-dashed border-indigo-300 dark:border-indigo-500/50 text-indigo-650 dark:text-indigo-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-indigo-455 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-sm"
-              >
-                <Plus className="w-5 h-5" />
-                Tambah Evaluasi {apgarEvals.length === 2 ? '10' : apgarEvals.length === 3 ? '15' : '20'} Menit Berikutnya
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 2. DOWNE SCORE */}
-        <div className="glass-card rounded-2xl overflow-hidden">
-          <div className="bg-sky-600 p-4 text-white border-b border-slate-201 dark:border-white/10">
-            <h3 className="font-bold text-lg">Downe Score (Evaluasi Sesak)</h3>
-          </div>
-          <div className="p-4 md:p-5">
-            <div className="space-y-5 mb-6">
-              {downeDetails.map(param => (
-                <div key={param.id} className="flex flex-col gap-2">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{param.label}</span>
-                  <div className="flex gap-1.5 items-stretch min-h-[4rem]">
-                    {param.opts.map(opt => (
-                      <DetailedScoreOption 
-                        key={opt.val} 
-                        val={opt.val} 
-                        desc={opt.desc} 
-                        current={downe[param.id] ?? null} 
-                        onClick={() => setDowne({...downe, [param.id]: opt.val})}
-                        activeColor="bg-slate-700 border-slate-600"
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-xl border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm hover:shadow-md transition-shadow">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Total Skor Downe</span>
-              <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white">{downeTotal}</span>
-            </div>
-
-            {downeTotal > 6 && (
-              <div className="bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/50 text-rose-900 dark:text-rose-200 p-4 rounded-xl shadow-lg shadow-rose-500/20 animate-pulse flex items-start gap-3">
-                <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5 text-rose-600 dark:text-rose-300" />
-                <div>
-                  <h4 className="font-bold text-lg leading-tight uppercase tracking-wide">🚨 Skor Downe &gt; 6</h4>
-                  <p className="mt-1 font-semibold text-sm leading-relaxed text-rose-800 dark:text-rose-100">
-                    Kriteria Gagal CPAP Terpenuhi! Siapkan tim untuk tindakan Intubasi ETT + VTP!
-                  </p>
-                </div>
+            {/* Card 1: APGAR */}
+            <div 
+              onClick={() => setActiveScoreView('apgar')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 rounded">
+                  Skor APGAR
+                </span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Evaluasi Bugar Neonatus</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Menilai Appearance, Pulse, Grimace, Activity, dan Respiration pada menit ke-1, 5, dan 10 pasca lahir.
+                </p>
               </div>
-            )}
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>STATUS: {apgarEvals.some(ev => getApgarTotal(ev).complete) ? "Telah Diisi" : "Belum Diisi"}</span>
+                <span className="text-indigo-500 dark:text-indigo-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka Alat →</span>
+              </div>
+            </div>
+
+            {/* Card 2: DOWNE */}
+            <div 
+              onClick={() => setActiveScoreView('downe')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-sky-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-sky-100 dark:bg-sky-955 text-sky-700 dark:text-sky-400 rounded">
+                  Skor Downe
+                </span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Evaluasi Distres Pernapasan</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Mengukur frekuensi napas, retraksi, sianosis, air entry, dan grunting untuk skrining sesak napas.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>SKOR SAAT INI: {downeTotal}</span>
+                <span className="text-sky-500 dark:text-sky-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka Alat →</span>
+              </div>
+            </div>
+
+            {/* Card 3: THOMSON */}
+            <div 
+              onClick={() => setActiveScoreView('thomson')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-amber-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-955 text-amber-700 dark:text-amber-400 rounded">
+                  Skor Thomson
+                </span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Screener HIE (Asfiksia)</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Menilai derajat ensefalopati hipoksik iskemik pada bayi baru lahir berdasarkan respons neurologis.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>SKOR SAAT INI: {thomsonTotal}</span>
+                <span className="text-amber-500 dark:text-amber-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka Alat →</span>
+              </div>
+            </div>
+
+            {/* Card 4: BALLARD */}
+            <div 
+              onClick={() => setActiveScoreView('ballard')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-emerald-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded">
+                  Ballard Score
+                </span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Kematangan Usia Gestasi</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Menilai kematangan fisik dan neuromuskular untuk memprediksi usia kehamilan bayi baru lahir.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>ESTIMASI: {ballardTotal > -12 ? `${estimatedGestationalAge.toFixed(1)} Mgg` : "Belum Diisi"}</span>
+                <span className="text-emerald-500 dark:text-emerald-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka Alat →</span>
+              </div>
+            </div>
+
           </div>
         </div>
+      )}
 
-        {/* 3. THOMSON SCORE */}
-        <div className="glass-card rounded-2xl overflow-hidden">
-          <div className="bg-amber-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10">
-            <h3 className="font-bold text-lg">Skor Thomson (Screener HIE - Ensefalopati Hipoksik Iskemik)</h3>
-          </div>
-          <div className="p-4 md:p-5">
-            <div className="flex flex-col gap-4 mb-6">
-              {thomsonDetails.map(param => (
-                <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-3 md:p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none flex flex-col md:flex-row md:items-center gap-3 md:gap-6 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                  <span className="text-xs md:text-sm font-bold uppercase text-slate-500 dark:text-slate-400 md:w-48 shrink-0">{param.label}</span>
-                  
-                  {/* Desktop View: Button Group */}
-                  <div className="hidden md:flex gap-2 flex-1 items-stretch min-h-[4rem]">
-                    {param.opts.map(opt => (
-                      <DetailedScoreOption 
-                        key={opt.val} 
-                        val={opt.val} 
-                        desc={opt.desc}
-                        current={thomson[param.id] ?? null} 
-                        onClick={() => setThomson({...thomson, [param.id]: opt.val})} 
-                        activeColor="bg-amber-600 border-amber-500 shadow-amber-500/30" 
-                      />
-                    ))}
-                  </div>
-
-                  {/* Mobile View: Select Dropdown */}
-                  <div className="block md:hidden relative">
-                    <select 
-                      className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 transition-all"
-                      value={thomson[param.id] ?? ""}
-                      onChange={(e) => setThomson({...thomson, [param.id]: e.target.value !== "" ? parseInt(e.target.value) : null})}
+      {/* 1. INTERACTIVE APGAR SCORE VIEW */}
+      {activeScoreView === 'apgar' && (
+        <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+          <RenderBackButton />
+          
+          <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-indigo-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white">Skor APGAR Interaktif</h3>
+            </div>
+            <div className="p-4 md:p-5 space-y-4">
+              {apgarEvals.map((ev, idx) => {
+                const { total, complete } = getApgarTotal(ev);
+                const isExpanded = !!expandedMinutes[ev.minute];
+                return (
+                  <div key={ev.minute} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm animate-in fade-in transition-all">
+                    
+                    {/* Collapsible Accordion Header */}
+                    <div 
+                      onClick={() => setExpandedMinutes({...expandedMinutes, [ev.minute]: !isExpanded})}
+                      className="flex justify-between items-center cursor-pointer select-none pb-2 border-b border-slate-100 dark:border-slate-800/80"
                     >
-                      <option value="" disabled>-- Pilih Skor --</option>
-                      {param.opts.map(opt => (
-                        <option key={opt.val} value={opt.val}>
-                          Skor {opt.val}: {opt.desc}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400">
-                      <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-bold bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1 rounded-full text-xs uppercase tracking-wider leading-none">
+                          Menit ke-{ev.minute}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 hidden sm:inline">
+                          {isExpanded ? '▲ Klik untuk menciutkan' : '▼ Klik untuk mengisi'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-base font-mono font-bold ${complete ? (total >= 7 ? 'text-emerald-500' : total >= 4 ? 'text-amber-500' : 'text-rose-500') : 'text-slate-400'}`}>
+                          {complete ? `Skor: ${total} / 10` : 'Belum Lengkap'}
+                        </span>
+                        <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-xl border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm hover:shadow-md transition-shadow">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Total Skor Thomson</span>
-              <span className="text-2xl font-mono font-bold text-amber-600 dark:text-amber-400">{thomsonTotal}</span>
-            </div>
+                    
+                    {/* Collapsible Accordion Body */}
+                    {isExpanded && (
+                      <div className="space-y-4 pt-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {apgarDetails.map(param => (
+                          <div key={param.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                             <span className="text-xs font-bold text-slate-655 dark:text-slate-350 w-44">{param.name}</span>
+                             <div className="flex gap-1.5 flex-1 items-stretch min-h-[3.5rem]">
+                              {param.opts.map(opt => (
+                                <DetailedScoreOption 
+                                  key={opt.val} 
+                                  val={opt.val} 
+                                  current={ev[param.key as keyof ApgarEval]} 
+                                  onClick={() => updateApgar(idx, param.key as keyof ApgarEval, opt.val)}
+                                  desc={opt.desc}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-            {thomsonTotal >= 5 && (
-              <div className="bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 p-4 rounded-xl animate-in zoom-in duration-300 flex items-start gap-3">
-                <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <h4 className="font-bold text-lg leading-tight uppercase tracking-wide">⚠️ Indikasi HIE {thomsonTotal >= 11 ? 'Berat' : 'Sedang'}</h4>
-                  <p className="mt-1 font-semibold text-sm leading-relaxed text-amber-800 dark:text-amber-100">
-                    Skor Thomson {thomsonTotal} (&ge; 5). Segera cek Tab Advanced Tx untuk kriteria Terapi Hipotermia (Cooling) sebelum usia 6 jam!
-                  </p>
-                </div>
-              </div>
-            )}
+                  </div>
+                );
+              })}
+              
+              {apgarEvals.length < 5 && (
+                <button 
+                  onClick={addApgarEval}
+                  className="w-full bg-white dark:bg-white/5 border border-dashed border-indigo-300 dark:border-indigo-500/50 text-indigo-650 dark:text-indigo-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-indigo-455 py-3.5 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-sm text-xs"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Evaluasi {apgarEvals.length === 2 ? '10' : apgarEvals.length === 3 ? '15' : '20'} Menit Berikutnya
+                </button>
+              )}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* 4. NEW BALLARD SCORE */}
-        <div className="glass-card rounded-2xl overflow-hidden">
-          <div className="bg-emerald-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10">
-            <h3 className="font-bold text-lg">Skor New Ballard (Penilaian Usia Gestasi)</h3>
-          </div>
-          <div className="p-4 md:p-5">
-            
-            <div className="mb-6">
-              <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Neuromuskular (Neuromuscular Maturity)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                  { id: 'posture', label: 'Postur Tubuh (Posture)', min: 0, max: 4 },
-                  { id: 'squareWindow', label: 'Sudut Pergelangan (Square Window)', min: -1, max: 4 },
-                  { id: 'armRecoil', label: 'Pemantulan Lengan (Arm Recoil)', min: 0, max: 4 },
-                  { id: 'popliteal', label: 'Sudut Popliteal (Popliteal Angle)', min: -1, max: 5 },
-                  { id: 'scarf', label: 'Tanda Scarf (Scarf Sign)', min: -1, max: 4 },
-                  { id: 'heelEar', label: 'Tumit ke Telinga (Heel to Ear)', min: -1, max: 4 }
-                ].map(param => (
-                  <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-3 uppercase tracking-wider">{param.label}</span>
-                    <div className="flex gap-1.5 flex-1 items-stretch min-h-[4rem]">
-                      {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
-                        <DetailedScoreOption
-                          key={val}
-                          val={val}
-                          current={ballardN[param.id] ?? null}
-                          onClick={() => setBallardN({...ballardN, [param.id]: val})}
-                          svg={<BallardSVGs type={param.id} val={val} />}
-                          activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30"
+      {/* 2. DOWNE SCORE VIEW */}
+      {activeScoreView === 'downe' && (
+        <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+          <RenderBackButton />
+          
+          <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-sky-600 p-4 text-white border-b border-slate-200 dark:border-white/10">
+              <h3 className="font-bold text-lg text-white">Downe Score (Evaluasi Sesak)</h3>
+            </div>
+            <div className="p-4 md:p-5">
+              <div className="space-y-5 mb-6">
+                {downeDetails.map(param => (
+                  <div key={param.id} className="flex flex-col gap-2">
+                    <span className="text-xs font-bold text-slate-650 dark:text-slate-350">{param.label}</span>
+                    <div className="flex gap-1.5 items-stretch min-h-[3.5rem]">
+                      {param.opts.map(opt => (
+                        <DetailedScoreOption 
+                          key={opt.val} 
+                          val={opt.val} 
+                          desc={opt.desc} 
+                          current={downe[param.id] ?? null} 
+                          onClick={() => setDowne({...downe, [param.id]: opt.val})}
+                          activeColor="bg-slate-700 border-slate-600"
                         />
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div>
-              <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Fisik (Physical Maturity)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  { id: 'skin', label: 'Kulit (Skin)', min: -1, max: 5 },
-                  { id: 'lanugo', label: 'Lanugo (Rambut Halus)', min: -1, max: 4 },
-                  { id: 'plantar', label: 'Permukaan Plantar (Plantar Surface)', min: -1, max: 4 },
-                  { id: 'breast', label: 'Payudara (Breast)', min: -1, max: 4 },
-                  { id: 'eyeEar', label: 'Mata / Telinga (Eye / Ear)', min: -1, max: 4 },
-                  { id: 'genitals', label: 'Alat Kelamin (Genitalia)', min: -1, max: 4 }
-                ].map(param => (
-                  <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">{param.label}</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
-                        <CompactScoreOption key={val} val={val} current={ballardP[param.id] ?? null} onClick={() => setBallardP({...ballardP, [param.id]: val})} activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30" />
+              <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-xl border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm hover:shadow-md transition-shadow">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Total Skor Downe</span>
+                <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white">{downeTotal}</span>
+              </div>
+
+              {downeTotal > 6 && (
+                <div className="bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-500/50 text-rose-900 dark:text-rose-200 p-4 rounded-xl shadow-lg shadow-rose-500/20 animate-pulse flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5 text-rose-600 dark:text-rose-300" />
+                  <div>
+                    <h4 className="font-bold text-lg leading-tight uppercase tracking-wide">🚨 Skor Downe &gt; 6</h4>
+                    <p className="mt-1 font-semibold text-sm leading-relaxed text-rose-800 dark:text-rose-100">
+                      Kriteria Gagal CPAP Terpenuhi! Siapkan tim untuk tindakan Intubasi ETT + VTP!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. THOMSON SCORE VIEW */}
+      {activeScoreView === 'thomson' && (
+        <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+          <RenderBackButton />
+          
+          <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-amber-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10">
+              <h3 className="font-bold text-lg text-white">Skor Thomson (Screener HIE - Ensefalopati Hipoksik Iskemik)</h3>
+            </div>
+            <div className="p-4 md:p-5">
+              <div className="flex flex-col gap-4 mb-6">
+                {thomsonDetails.map(param => (
+                  <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-3 md:p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none flex flex-col md:flex-row md:items-center gap-3 md:gap-6 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    <span className="text-xs md:text-sm font-bold uppercase text-slate-500 dark:text-slate-400 md:w-48 shrink-0">{param.label}</span>
+                    
+                    {/* Desktop View: Button Group */}
+                    <div className="hidden md:flex gap-2 flex-1 items-stretch min-h-[3.5rem]">
+                      {param.opts.map(opt => (
+                        <DetailedScoreOption 
+                          key={opt.val} 
+                          val={opt.val} 
+                          desc={opt.desc}
+                          current={thomson[param.id] ?? null} 
+                          onClick={() => setThomson({...thomson, [param.id]: opt.val})} 
+                          activeColor="bg-amber-600 border-amber-500 shadow-amber-500/30" 
+                        />
                       ))}
+                    </div>
+
+                    {/* Mobile View: Select Dropdown */}
+                    <div className="block md:hidden relative">
+                      <select 
+                        className="w-full appearance-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 dark:text-slate-200 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 transition-all"
+                        value={thomson[param.id] ?? ""}
+                        onChange={(e) => setThomson({...thomson, [param.id]: e.target.value !== "" ? parseInt(e.target.value) : null})}
+                      >
+                        <option value="" disabled>-- Pilih Skor --</option>
+                        {param.opts.map(opt => (
+                          <option key={opt.val} value={opt.val}>
+                            Skor {opt.val}: {opt.desc}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 dark:text-slate-400">
+                        <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+              
+              <div className="flex justify-between items-center bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-xl border border-slate-200/60 dark:border-white/5 mb-4 shadow-sm hover:shadow-md transition-shadow">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Total Skor Thomson</span>
+                <span className="text-2xl font-mono font-bold text-amber-600 dark:text-amber-400">{thomsonTotal}</span>
+              </div>
 
-            <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-5 text-center shadow-inner">
-              <span className="block font-bold text-emerald-800 dark:text-emerald-300 text-sm uppercase tracking-wider mb-1">Estimasi Usia Kehamilan (Ballard)</span>
-              <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                {ballardTotal > -12 ? estimatedGestationalAge.toFixed(1) : '--'} <span className="text-lg">Minggu</span>
-              </span>
-              <span className="block text-emerald-600 dark:text-emerald-500 text-xs mt-2 font-medium">
-                Total Skor Ballard: {ballardTotal}
-              </span>
+              {thomsonTotal >= 5 && (
+                <div className="bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 p-4 rounded-xl animate-in zoom-in duration-300 flex items-start gap-3">
+                  <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-405" />
+                  <div>
+                    <h4 className="font-bold text-lg leading-tight uppercase tracking-wide">⚠️ Indikasi HIE {thomsonTotal >= 11 ? 'Berat' : 'Sedang'}</h4>
+                    <p className="mt-1 font-semibold text-sm leading-relaxed text-amber-800 dark:text-amber-100">
+                      Skor Thomson {thomsonTotal} (&ge; 5). Segera rujuk dan observasi terapi pendinginan pasif/aktif!
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-
           </div>
         </div>
+      )}
 
-      </div>
+      {/* 4. NEW BALLARD SCORE VIEW */}
+      {activeScoreView === 'ballard' && (
+        <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+          <RenderBackButton />
+          
+          <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-emerald-600/80 backdrop-blur-md p-4 text-white border-b border-slate-200 dark:border-white/10">
+              <h3 className="font-bold text-lg text-white">Skor New Ballard (Penilaian Usia Gestasi)</h3>
+            </div>
+            <div className="p-4 md:p-5">
+              
+              <div className="mb-6">
+                <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Neuromuskular</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { id: 'posture', label: 'Postur Tubuh (Posture)', min: 0, max: 4 },
+                    { id: 'squareWindow', label: 'Sudut Pergelangan (Square Window)', min: -1, max: 4 },
+                    { id: 'armRecoil', label: 'Pemantulan Lengan (Arm Recoil)', min: 0, max: 4 },
+                    { id: 'popliteal', label: 'Sudut Popliteal (Popliteal Angle)', min: -1, max: 5 },
+                    { id: 'scarf', label: 'Tanda Scarf (Scarf Sign)', min: -1, max: 4 },
+                    { id: 'heelEar', label: 'Tumit ke Telinga (Heel to Ear)', min: -1, max: 4 }
+                  ].map(param => (
+                    <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-3 uppercase tracking-wider">{param.label}</span>
+                      <div className="flex gap-1.5 flex-1 items-stretch min-h-[3.5rem]">
+                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
+                          <DetailedScoreOption
+                            key={val}
+                            val={val}
+                            current={ballardN[param.id] ?? null}
+                            onClick={() => setBallardN({...ballardN, [param.id]: val})}
+                            svg={<BallardSVGs type={param.id} val={val} />}
+                            activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Fisik</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { id: 'skin', label: 'Kulit (Skin)', min: -1, max: 5 },
+                    { id: 'lanugo', label: 'Lanugo (Rambut Halus)', min: -1, max: 4 },
+                    { id: 'plantar', label: 'Permukaan Plantar', min: -1, max: 4 },
+                    { id: 'breast', label: 'Payudara (Breast)', min: -1, max: 4 },
+                    { id: 'eyeEar', label: 'Mata / Telinga (Eye / Ear)', min: -1, max: 4 },
+                    { id: 'genitals', label: 'Alat Kelamin (Genitalia)', min: -1, max: 4 }
+                  ].map(param => (
+                    <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-2">{param.label}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
+                          <CompactScoreOption key={val} val={val} current={ballardP[param.id] ?? null} onClick={() => setBallardP({...ballardP, [param.id]: val})} activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30" />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-5 text-center shadow-inner">
+                <span className="block font-bold text-emerald-800 dark:text-emerald-300 text-sm uppercase tracking-wider mb-1">Estimasi Usia Kehamilan (Ballard)</span>
+                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                  {ballardTotal > -12 ? estimatedGestationalAge.toFixed(1) : '--'} <span className="text-lg">Minggu</span>
+                </span>
+                <span className="block text-emerald-600 dark:text-emerald-500 text-xs mt-2 font-medium">
+                  Total Skor Ballard: {ballardTotal}
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-
