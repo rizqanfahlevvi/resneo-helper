@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 
@@ -13,7 +13,7 @@ interface LayoutProps {
 }
 
 const TABS = [
-  { id: 'home', label: 'Beranda', icon: Baby },
+  { id: 'home', label: 'Beranda', icon: Home },
   { id: 'emergency', label: 'Alur Resusitasi', icon: Activity },
   { id: 'scores', label: 'Skor & Kalkulator', icon: ClipboardList },
   { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope },
@@ -176,7 +176,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       )}
 
       {/* Mobile Bottom Navigation (< md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[78px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-center px-1 pb-safe pt-1 z-50 transition-all shadow-[0_-4px_25px_rgba(0,0,0,0.06)] dark:shadow-none">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[88px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-end px-1 pb-[18px] pt-1.5 z-50 transition-all shadow-[0_-4px_25px_rgba(0,0,0,0.06)] dark:shadow-none">
         
         {/* Tab 1: Beranda */}
         <button
@@ -184,12 +184,12 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             onTabChange('home');
             setMoreMenuOpen(false);
           }}
-          className={`flex flex-col items-center justify-center py-1.5 px-1 flex-1 min-w-0 transition-all ${
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
             activeTab === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
           }`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'home' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <Baby className="w-5.5 h-5.5" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'home' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <Home className="w-6 h-6" />
           </div>
           <span className={`text-[10px] tracking-tight truncate ${activeTab === 'home' ? 'font-black' : 'font-semibold'}`}>
             Beranda
@@ -202,12 +202,12 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             onTabChange('scores');
             setMoreMenuOpen(false);
           }}
-          className={`flex flex-col items-center justify-center py-1.5 px-1 flex-1 min-w-0 transition-all ${
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
             activeTab === 'scores' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
           }`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'scores' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <ClipboardList className="w-5.5 h-5.5" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'scores' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <ClipboardList className="w-6 h-6" />
           </div>
           <span className={`text-[10px] tracking-tight truncate ${activeTab === 'scores' ? 'font-black' : 'font-semibold'}`}>
             Skoring
@@ -215,20 +215,20 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         </button>
 
         {/* Spacer & FAB Tengah ("Mulai Resusitasi") */}
-        <div className="flex-1 flex justify-center relative min-w-[4.5rem] h-full">
+        <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full">
           <button
             onClick={() => {
               onTabChange('emergency');
               setMoreMenuOpen(false);
             }}
             title="Mulai Resusitasi"
-            className={`w-16 h-16 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex flex-col items-center justify-center text-white shadow-[0_5px_18px_rgba(239,68,68,0.45)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
+            className={`w-16 h-16 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex flex-col items-center justify-center text-white shadow-[0_6px_20px_rgba(239,68,68,0.45)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
               activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 ring-2 ring-red-500/30' : ''
             }`}
           >
             <Activity className={`w-7 h-7 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
           </button>
-          <span className="text-[10px] font-black text-rose-650 dark:text-rose-455 uppercase tracking-widest absolute bottom-2.5 text-center leading-none">
+          <span className="text-[10px] font-black text-rose-650 dark:text-rose-455 uppercase tracking-widest leading-none mb-0.5">
             Resus
           </span>
         </div>
@@ -239,12 +239,12 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             onTabChange('advanced');
             setMoreMenuOpen(false);
           }}
-          className={`flex flex-col items-center justify-center py-1.5 px-1 flex-1 min-w-0 transition-all ${
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
             activeTab === 'advanced' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
           }`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'advanced' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <Stethoscope className="w-5.5 h-5.5" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'advanced' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <Stethoscope className="w-6 h-6" />
           </div>
           <span className={`text-[10px] tracking-tight truncate ${activeTab === 'advanced' ? 'font-black' : 'font-semibold'}`}>
             NICU
@@ -255,12 +255,12 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         <div className="flex-1 flex justify-center min-w-0 h-full relative">
           <button
             onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 w-full transition-all ${
+            className={`flex flex-col items-center justify-end w-full transition-all ${
               moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
             }`}
           >
-            <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-              <MoreHorizontal className="w-5.5 h-5.5" />
+            <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+              <MoreHorizontal className="w-6 h-6" />
             </div>
             <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'font-black' : 'font-semibold'}`}>
               Lainnya
@@ -269,7 +269,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
           {/* Floated Collapsible Popover Menu */}
           {moreMenuOpen && (
-            <div className="absolute bottom-[84px] right-3 bg-white/95 dark:bg-slate-900/98 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-2xl p-2.5 z-[60] min-w-[170px] flex flex-col gap-1.5 animate-in slide-in-from-bottom-3 duration-200 origin-bottom-right">
+            <div className="absolute bottom-[88px] right-3 bg-white/95 dark:bg-slate-900/98 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-2xl p-2.5 z-[60] min-w-[170px] flex flex-col gap-1.5 animate-in slide-in-from-bottom-3 duration-200 origin-bottom-right">
               <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 block border-b border-slate-100 dark:border-slate-800 mb-1 leading-none">
                 Akses Tambahan
               </span>
