@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 
@@ -26,6 +26,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [showAdrenalinPopup, setShowAdrenalinPopup] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime } = useStore();
   const showFab = phase !== 'preparation' && phase !== 'routine_care';
@@ -98,7 +99,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 relative flex flex-col h-full overflow-y-auto pb-20 md:pb-0 scroll-smooth">
+      <main className="flex-1 relative flex flex-col h-full overflow-y-auto pb-32 md:pb-6 scroll-smooth">
         {/* Top Bar / Mobile & Desktop Sticky Header */}
         <header className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md p-4 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-900/80 flex items-center justify-between transition-all duration-300">
           
@@ -161,33 +162,153 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </button>
         </header>
         
-        <div className="p-4 md:p-5 lg:p-6 max-w-[1600px] mx-auto w-full h-full">
+        <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full h-full">
           {children}
         </div>
       </main>
 
+      {/* Backdrop for Mobile Collapsible Menu "Lainnya" */}
+      {moreMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-xs md:hidden animate-in fade-in"
+          onClick={() => setMoreMenuOpen(false)}
+        />
+      )}
+
       {/* Mobile Bottom Navigation (< md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[60px] bg-white/90 dark:bg-slate-950/95 border-t border-slate-200 dark:border-slate-900/80 flex justify-around items-center px-2 pb-safe z-50 transition-all">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id as TabType)}
-              className={`flex flex-col items-center justify-center p-2 min-w-[5.5rem] transition-all relative overflow-hidden ${
-                isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300'
-              }`}
-            >
-              <div className={`px-4 py-1.5 rounded-full mb-1 transition-all duration-300 ${isActive ? 'bg-indigo-50 dark:bg-indigo-500/20 shadow-sm dark:shadow-[0_0_12px_rgba(99,102,241,0.2)] border border-indigo-100 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px] text-indigo-600 dark:text-indigo-300' : 'stroke-2'}`} />
-              </div>
-              <span className={`text-[10px] tracking-tight ${isActive ? 'font-bold text-indigo-600 dark:text-indigo-200' : 'font-medium'}`}>
-                {tab.label}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[66px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-center px-1 pb-safe z-50 transition-all shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-none">
+        
+        {/* Tab 1: Beranda */}
+        <button
+          onClick={() => {
+            onTabChange('home');
+            setMoreMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center py-2 px-1 flex-1 min-w-0 transition-all ${
+            activeTab === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'home' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <Baby className="w-5 h-5" />
+          </div>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'home' ? 'font-bold' : 'font-medium'}`}>
+            Beranda
+          </span>
+        </button>
+
+        {/* Tab 2: Skor & Kalkulator */}
+        <button
+          onClick={() => {
+            onTabChange('scores');
+            setMoreMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center py-2 px-1 flex-1 min-w-0 transition-all ${
+            activeTab === 'scores' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'scores' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <ClipboardList className="w-5 h-5" />
+          </div>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'scores' ? 'font-bold' : 'font-medium'}`}>
+            Skoring
+          </span>
+        </button>
+
+        {/* Spacer & FAB Tengah ("Mulai Resusitasi") */}
+        <div className="flex-1 flex justify-center relative min-w-[4rem] h-full">
+          <button
+            onClick={() => {
+              onTabChange('emergency');
+              setMoreMenuOpen(false);
+            }}
+            title="Mulai Resusitasi"
+            className={`w-14 h-14 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex flex-col items-center justify-center text-white shadow-[0_4px_16px_rgba(239,68,68,0.4)] absolute top-[-18px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
+              activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 ring-2 ring-red-500/30' : ''
+            }`}
+          >
+            <Activity className={`w-6 h-6 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
+          </button>
+          <span className="text-[9px] font-black text-rose-650 dark:text-rose-450 uppercase tracking-wider absolute bottom-1.5 text-center leading-none">
+            Resus
+          </span>
+        </div>
+
+        {/* Tab 3: Stabilisasi NICU */}
+        <button
+          onClick={() => {
+            onTabChange('advanced');
+            setMoreMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center py-2 px-1 flex-1 min-w-0 transition-all ${
+            activeTab === 'advanced' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${activeTab === 'advanced' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <Stethoscope className="w-5 h-5" />
+          </div>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'advanced' ? 'font-bold' : 'font-medium'}`}>
+            NICU
+          </span>
+        </button>
+
+        {/* Tab 4: Lainnya (Collapsible Popover) */}
+        <div className="flex-1 flex justify-center min-w-0 h-full relative">
+          <button
+            onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+            className={`flex flex-col items-center justify-center py-2 px-1 w-full transition-all ${
+              moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            <div className={`px-3 py-1.5 rounded-full mb-0.5 transition-all duration-300 ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+              <MoreHorizontal className="w-5 h-5" />
+            </div>
+            <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'font-bold' : 'font-medium'}`}>
+              Lainnya
+            </span>
+          </button>
+
+          {/* Floated Collapsible Popover Menu */}
+          {moreMenuOpen && (
+            <div className="absolute bottom-[74px] right-3 bg-white/95 dark:bg-slate-900/98 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-2xl p-2.5 z-[60] min-w-[170px] flex flex-col gap-1.5 animate-in slide-in-from-bottom-3 duration-200 origin-bottom-right">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 block border-b border-slate-100 dark:border-slate-800 mb-1 leading-none">
+                Akses Tambahan
               </span>
-            </button>
-          );
-        })}
+              
+              {/* Collapsible item 1: Materi & Teori */}
+              <button
+                onClick={() => {
+                  onTabChange('theory');
+                  setMoreMenuOpen(false);
+                }}
+                className={`w-full text-left font-bold text-xs px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 ${
+                  activeTab === 'theory' 
+                    ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' 
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850'
+                }`}
+              >
+                <FileText className="w-4 h-4 text-slate-450 shrink-0" />
+                Materi & Teori
+              </button>
+
+              {/* Collapsible item 2: Pustaka & Referensi */}
+              <button
+                onClick={() => {
+                  onTabChange('references');
+                  setMoreMenuOpen(false);
+                }}
+                className={`w-full text-left font-bold text-xs px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 ${
+                  activeTab === 'references' 
+                    ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' 
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850'
+                }`}
+              >
+                <BookOpen className="w-4 h-4 text-slate-450 shrink-0" />
+                Pustaka & Referensi
+              </button>
+            </div>
+          )}
+        </div>
+
       </nav>
 
       {/* Floating Action Button (FAB) - Visible only after timer starts on Mobile */}
