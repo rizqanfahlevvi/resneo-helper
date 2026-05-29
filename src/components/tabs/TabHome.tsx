@@ -12,7 +12,7 @@ import {
   BookOpen, 
   Layers 
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced') => void;
@@ -44,6 +44,15 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
       tab: 'link' as const
     }
   ];
+
+  // Auto-switch carousel slides every 5 seconds (resetting timer on manual navigation)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [activeSlide, slides.length]);
 
   const handleSlideAction = (slide: typeof slides[number]) => {
     if (slide.tab === 'link') {
@@ -105,7 +114,19 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
         
         {/* Left Column: Intersecting Interactive Hero Slider Container */}
         <div className="lg:col-span-1 min-h-[220px] md:min-h-[260px] flex flex-col">
-          <div className={`flex-1 rounded-2xl p-6 ${slides[activeSlide].bgClass} shadow-lg relative overflow-hidden flex flex-col justify-between group transition-all duration-500`}>
+          <div 
+            onClick={() => handleSlideAction(slides[activeSlide])}
+            className={`flex-1 rounded-2xl p-6 ${slides[activeSlide].bgClass} shadow-lg relative overflow-hidden flex flex-col justify-between group transition-all duration-500 cursor-pointer hover:scale-[1.01] hover:shadow-xl`}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleSlideAction(slides[activeSlide]);
+              }
+            }}
+            aria-label={`${slides[activeSlide].title}: ${slides[activeSlide].subtitle}`}
+          >
             {/* Blurry glow */}
             <div className="absolute top-0 right-0 -translate-y-6 translate-x-6 w-32 h-32 bg-white/10 blur-xl rounded-full" />
             
@@ -134,14 +155,26 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
               </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-3">
-              <button
-                onClick={() => handleSlideAction(slides[activeSlide])}
-                className="w-full bg-white text-slate-900 hover:bg-slate-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5"
-              >
-                {slides[activeSlide].btnLabel}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+            <div className="mt-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
+              {slides[activeSlide].tab === 'link' ? (
+                <a
+                  href="https://saweria.co/rizqanfahlevvi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-white text-slate-900 hover:bg-slate-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5 text-center decoration-none"
+                >
+                  {slides[activeSlide].btnLabel}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              ) : (
+                <button
+                  onClick={() => handleSlideAction(slides[activeSlide])}
+                  className="w-full bg-white text-slate-900 hover:bg-slate-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5"
+                >
+                  {slides[activeSlide].btnLabel}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
 
               {/* Slider Dots */}
               <div className="flex justify-center gap-1.5 self-center pt-1.5">
