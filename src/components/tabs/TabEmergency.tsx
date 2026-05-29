@@ -53,6 +53,7 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   const [lungCondition, setLungCondition] = useState<'normal' | 'rds' | 'mas'>('normal');
   const [vtpElapsed, setVtpElapsed] = useState(0);
   const [vtpAudioEnabled, setVtpAudioEnabled] = useState(false);
+  const [vtpBeatStage, setVtpBeatStage] = useState<number>(0);
   const [copied, setCopied] = useState(false);
 
   // Phase Compressions States
@@ -195,33 +196,41 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     let intervalId: NodeJS.Timeout;
 
     if (phase === 'compressions' && audioEnabled) {
-      const audioCtx = getAudioCtx();
-      
-      // Attempt to resume AudioContext if it's suspended
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+      try {
+        const audioCtx = getAudioCtx();
+        
+        // Attempt to resume AudioContext if it's suspended
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+
+        let beatCount = 0;
+        const playBeep = (isVent: boolean) => {
+          try {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = isVent ? 'square' : 'sine';
+            oscillator.frequency.value = isVent ? 600 : 1000;
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+          } catch (e) {
+            console.warn("Metronome sound blocked", e);
+          }
+        };
+
+        intervalId = setInterval(() => {
+          const isVent = beatCount % 4 === 3;
+          playBeep(isVent);
+          beatCount++;
+        }, 500);
+      } catch (e) {
+        console.warn("Audio Context blocked", e);
       }
-
-      let beatCount = 0;
-      const playBeep = (isVent: boolean) => {
-        if (!audioCtx) return;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = isVent ? 'square' : 'sine';
-        oscillator.frequency.value = isVent ? 600 : 1000;
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.1);
-      };
-
-      intervalId = setInterval(() => {
-        const isVent = beatCount % 4 === 3;
-        playBeep(isVent);
-        beatCount++;
-      }, 500);
     }
 
     return () => {
@@ -234,38 +243,54 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     let intervalId: NodeJS.Timeout;
 
     if (phase === 'vtp' && vtpAudioEnabled) {
-      const audioCtx = getAudioCtx();
+      try {
+        const audioCtx = getAudioCtx();
 
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-
-      let beatCount = 0;
-      const playBeep = (freq: number, duration: number) => {
-        if (!audioCtx) return;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.value = freq;
-        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + duration);
-      };
-
-      intervalId = setInterval(() => {
-        const stage = beatCount % 3;
-        if (stage === 0) {
-          // Squeeze (Pompa) - High Beep
-          playBeep(880, 0.18);
-        } else {
-          // Release (Lepas) - Low Beep
-          playBeep(440, 0.08);
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
         }
-        beatCount++;
-      }, 500);
+
+        let beatCount = 0;
+        const playBeep = (freq: number, duration: number) => {
+          try {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.value = freq;
+            gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+          } catch (e) {
+            console.warn("Metronome VTP sound blocked", e);
+          }
+        };
+
+        intervalId = setInterval(() => {
+          const stage = beatCount % 3;
+          setVtpBeatStage(stage);
+          if (stage === 0) {
+            // Squeeze (Pompa) - High Beep
+            playBeep(880, 0.18);
+          } else {
+            // Release (Lepas) - Low Beep
+            playBeep(440, 0.08);
+          }
+          beatCount++;
+        }, 500);
+      } catch (e) {
+        console.warn("VTP Audio Context blocked", e);
+        // Fallback: even if audio is blocked/unsupported, keep updating VTP visual breathing guide!
+        let beatCount = 0;
+        intervalId = setInterval(() => {
+          const stage = beatCount % 3;
+          setVtpBeatStage(stage);
+          beatCount++;
+        }, 500);
+      }
     }
 
     return () => {
