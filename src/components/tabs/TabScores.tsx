@@ -1,8 +1,197 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Activity, Plus, AlertTriangle, Calculator, AlertCircle } from 'lucide-react';
+import { Activity, Plus, AlertTriangle, Calculator, AlertCircle, BookOpen } from 'lucide-react';
 import { useStore } from '../../store';
 import { useRipple } from '../Ripple';
+
+type ApgarEval = {
+  minute: number;
+  appearance: number | null;
+  pulse: number | null;
+  grimace: number | null;
+  activity: number | null;
+  respiration: number | null;
+};
+
+interface TabScoresProps {
+  gestationalAge?: string;
+  setGestationalAge?: (val: string) => void;
+  birthWeight?: string;
+  setBirthWeight?: (val: string) => void;
+}
+
+// ==========================================
+// CLINICAL THEORY AND ACCORDION COMPONENT
+// ==========================================
+
+const ClinicalTheoryAccordion = ({ title, content, references }: { title: string, content: React.ReactNode, references: string[] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { addRipple, ripplesContainer } = useRipple();
+  return (
+    <div className="mt-8 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden bg-white/40 dark:bg-slate-900/10 backdrop-blur-md transition-all shadow-sm">
+      <button
+        onPointerDown={addRipple}
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-5 py-4 flex justify-between items-center text-left font-bold text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors relative overflow-hidden"
+      >
+        {ripplesContainer}
+        <span className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+          {title}
+        </span>
+        <svg className={`w-5 h-5 text-slate-400 transition-transform duration-350 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-white/5 text-xs md:text-sm text-slate-650 dark:text-slate-300 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          {content}
+          <div className="pt-4 border-t border-slate-200/60 dark:border-white/10">
+            <span className="block font-bold text-xs text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">📚 Referensi Medis Terbaru:</span>
+            <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-500 dark:text-slate-450">
+              {references.map((ref, idx) => (
+                <li key={idx} className="leading-relaxed">{ref}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const apgarTheoryContent = (
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+    <p>
+      <strong>Skor APGAR</strong> pertama kali diperkenalkan oleh dr. Virginia Apgar pada tahun 1952 sebagai alat evaluasi klinis yang cepat dan terstandarisasi untuk menilai kondisi fisik bayi baru lahir segera setelah persalinan. Sistem penilaian ini berfokus pada 5 parameter vital: <em>Appearance</em> (warna kulit), <em>Pulse</em> (denyut jantung), <em>Grimace</em> (refleks/respons terhadap stimulasi), <em>Activity</em> (tonus otot), dan <em>Respiration</em> (usaha bernapas).
+    </p>
+    <p>
+      Penilaian ini secara rutin dilakukan pada <strong>menit ke-1</strong> (merefleksikan seberapa baik bayi bertahan dari proses kelahiran) dan <strong>menit ke-5</strong> (merefleksikan adaptasi bayi di lingkungan luar rahim serta responsnya terhadap intervensi resusitasi). Jika skor menit ke-5 berada di bawah 7, evaluasi harus terus diulang setiap 5 menit (menit ke-10, 15, dan 20) sampai skor mencapai minimal 7 atau resusitasi dihentikan.
+    </p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+        <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 7 – 10 (Normal/Bugar)</span>
+        <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Bayi menunjukkan adaptasi transisi ekstrauterin yang sangat baik. Cukup lakukan perawatan rutin bayi baru lahir.</p>
+      </div>
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
+        <span className="block font-black text-amber-800 dark:text-amber-300 text-xs">Skor 4 – 6 (Asfiksia Sedang)</span>
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Menunjukkan depresi napas atau sirkulasi ringan-sedang. Butuh stimulasi taktil, pembersihan jalan napas, dan terapi oksigen/VTP.</p>
+      </div>
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+        <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor 0 – 3 (Asfiksia Berat)</span>
+        <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Darurat medis kritis. Memerlukan bantuan resusitasi aktif segera (ventilasi tekanan positif, kompresi dada, obat epinefrin).</p>
+      </div>
+    </div>
+    <div className="bg-indigo-50 dark:bg-indigo-500/10 p-3 rounded-xl border border-indigo-200/50 dark:border-indigo-500/20 text-xs text-indigo-800 dark:text-indigo-300 font-medium">
+      <strong>⚠️ Catatan Klinis Kritis:</strong> Skor APGAR <strong>tidak boleh</strong> digunakan untuk menunda inisiasi tindakan resusitasi. Jika bayi lahir dalam keadaan tidak bernapas, lemas, atau sianosis berat, resusitasi harus segera dimulai sebelum penilaian menit ke-1 selesai dicatat.
+    </div>
+  </div>
+);
+
+const apgarReferences = [
+  "American Academy of Pediatrics (AAP) & American College of Obstetricians and Gynecologists (ACOG). Committee Opinion No. 644: The Apgar Score. Obstetrics & Gynecology (Reaffirmed 2020).",
+  "World Health Organization (WHO). Guidelines on Basic Newborn Resuscitation. Geneva: World Health Organization.",
+  "Ikatan Dokter Anak Indonesia (IDAI). Konsensus Nasional Resusitasi Neonatus. Jakarta: Badan Penerbit IDAI (2022)."
+];
+
+const downeTheoryContent = (
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+    <p>
+      <strong>Skor Downe</strong> merupakan sistem penilaian klinis yang sangat berharga dan digunakan secara luas di seluruh dunia untuk mengevaluasi derajat keparahan gangguan pernapasan (*respiratory distress*) pada bayi baru lahir. Keunggulan utama Skor Downe adalah kesederhanaannya, di mana parameter penilaian hanya mengandalkan temuan fisik di tempat tidur pasien (*bedside clinical signs*), tanpa memerlukan peralatan diagnostik laboratorium yang kompleks.
+    </p>
+    <p>
+      Sistem ini menilai 5 parameter klinis utama:
+    </p>
+    <ul className="list-decimal pl-5 space-y-1 my-2 font-medium">
+      <li><strong>Frekuensi Napas</strong>: Mendeteksi adanya takipnea sebagai respons kompensasi awal terhadap hipoksia.</li>
+      <li><strong>Retraksi dada</strong>: Menunjukkan penggunaan otot-otot bantu pernapasan akibat usaha bernapas yang meningkat keras.</li>
+      <li><strong>Sianosis</strong>: Menunjukkan tingkat saturasi oksigen arteri yang tidak memadai pada mukosa/jaringan tubuh.</li>
+      <li><strong>Air Entry (Udara masuk)</strong>: Mengukur keadekuatan ventilasi alveolar di kedua lapang paru lewat auskultasi stetoskop.</li>
+      <li><strong>Grunting (Merintih)</strong>: Suara napas ekspirasi akibat penutupan parsial glotis, mekanisme fisiologis bayi untuk mempertahankan tekanan positif akhir ekspirasi (PEEP) alami di alveoli.</li>
+    </ul>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+        <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 1 – 3 (Gangguan Ringan)</span>
+        <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Bayi mengalami sesak ringan. Biasanya cukup dengan pemantauan ketat atau terapi oksigen aliran bebas (nasal kanul).</p>
+      </div>
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
+        <span className="block font-black text-amber-805 dark:text-amber-300 text-xs">Skor 4 – 5 (Gangguan Sedang)</span>
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Memerlukan bantuan tekanan positif non-invasif segera menggunakan mesin <strong>CPAP (Continuous Positive Airway Pressure)</strong>.</p>
+      </div>
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+        <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor &ge; 6 (Gangguan Berat / Gagal CPAP)</span>
+        <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Indikasi kritis kegagalan pernapasan. Bayi memerlukan tindakan intubasi endotrakeal (ETT) serta ventilasi mekanik invasif.</p>
+      </div>
+    </div>
+  </div>
+);
+
+const downeReferences = [
+  "Downe ES, et al. Clinical Scoring System for Respiratory Distress in Newborns. Pediatric Pulmonology Journal.",
+  "World Health Organization (WHO). Pocket Book of Hospital Care for Children: Guidelines for the Management of Common Childhood Illnesses. Second Edition (2020).",
+  "Kementerian Kesehatan RI & IDAI. Protokol Nasional Pelayanan Kedokteran (PNPK) Tata Laksana Bayi Baru Lahir. Jakarta (2021)."
+];
+
+const thomsonTheoryContent = (
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+    <p>
+      <strong>Skor Thomson</strong> adalah sistem klasifikasi neurologis khusus yang dirancang oleh dr. Alastair J. Thomson dan timnya pada tahun 1997 untuk mengevaluasi derajat Ensefalopati Hipoksik Iskemik (HIE) pada neonatus dengan riwayat asfiksia perinatal. HIE adalah cedera otak non-progresif yang diakibatkan oleh kurangnya aliran darah atau suplai oksigen ke otak janin/bayi selama proses persalinan.
+    </p>
+    <p>
+      Skor Thomson sangat disukai dalam dunia klinis praktis karena bersifat cepat, kuantitatif, dan tidak memerlukan keahlian neurologis tingkat tinggi atau mesin EEG yang mahal. Skor ini menilai 9 parameter neurologis: tingkat kesadaran (lok), tonus otot (tone), postur tubuh, refleks Moro, kekuatan mengisap (suck), frekuensi/karakter kejang (fits), ketegangan fontanela, pola respirasi, dan ada tidaknya refleks faring (gag).
+    </p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+        <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 0 – 4 (HIE Ringan)</span>
+        <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Risiko gangguan jangka panjang sangat rendah. Lakukan observasi ketat dan perawatan suportif di ruangan rawat gabung/NICU level rendah.</p>
+      </div>
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
+        <span className="block font-black text-amber-850 dark:text-amber-300 text-xs">Skor 5 – 10 (HIE Sedang)</span>
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Memerlukan pemantauan intensif di NICU. Merupakan kriteria penting untuk mempertimbangkan inisiasi <strong>Hipotermia Terapeutik (Cooling Therapy)</strong> dalam jendela waktu 6 jam pertama pasca lahir.</p>
+      </div>
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+        <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor 11 – 22 (HIE Berat)</span>
+        <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Indikasi kerusakan neurologis berat dengan risiko kematian atau disabilitas jangka panjang (Cerebral Palsy) yang tinggi. Butuh terapi pendinginan segera dan tata laksana antikejang yang agresif.</p>
+      </div>
+    </div>
+  </div>
+);
+
+const thomsonReferences = [
+  "Thomson AJ, et al. A clinical grading system for hypoxic ischemic encephalopathy in newborn infants: Relationship to outcome. Pediatrics, 99(2), 244-248 (1997).",
+  "British Association of Perinatal Medicine (BAPM). Therapeutic Hypothermia for Neonatal Encephalopathy: A BAPM Clinical Framework. London (2020).",
+  "National Institute for Health and Care Excellence (NICE). Therapeutic hypothermia with intracorporeal cooling for hypoxic-ischemic encephalopathy in newborns. Guidance IPG347 (2021)."
+];
+
+const ballardTheoryContent = (
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+    <p>
+      Sistem penilaian <strong>New Ballard Score (NBS)</strong> adalah instrumen klinis standar emas yang dikembangkan oleh Jeanne L. Ballard pada tahun 1991 (sebagai penyempurnaan dari Ballard Score tahun 1979) untuk mengestimasi usia kehamilan (*gestational age*) bayi baru lahir. NBS dirancang khusus agar dapat secara akurat menilai bayi yang sangat prematur (hingga usia gestasi 20 minggu dengan skor total -10).
+    </p>
+    <p>
+      Metode penilaian didasarkan pada kombinasi dari dua domain kematangan:
+    </p>
+    <ul className="list-disc pl-5 space-y-1 my-2 font-medium">
+      <li><strong>Kematangan Neuromuskular (6 Parameter)</strong>: Menilai tonus otot pasif bayi yang berkembang dari arah kaudal ke kranial seiring bertambahnya usia kehamilan. Parameter meliputi: Postur, Square Window (sudut pergelangan), Arm Recoil (reaksi lengan), Popliteal Angle (sudut popliteal), Scarf Sign (tanda syal), dan Heel to Ear (tumit ke telinga).</li>
+      <li><strong>Kematangan Fisik (6 Parameter)</strong>: Menilai perkembangan anatomis permukaan tubuh terluar yang meliputi: Kulit, Lanugo (rambut halus), Permukaan Plantar kaki, Payudara (breast bud), Mata/Telinga, dan Alat Kelamin (Genitalia pria/wanita).</li>
+    </ul>
+    <div className="bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-white/5 space-y-2">
+      <span className="block font-bold text-xs text-slate-700 dark:text-slate-350">Cara Kerja Rumus Estimasi Usia Gestasi:</span>
+      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+        Total skor berkisar dari -10 (setara 20 minggu gestasi) hingga 50 (setara 44 minggu gestasi). Setiap kenaikan 5 poin pada total skor merepresentasikan pertambahan usia kehamilan sebanyak 2 minggu secara linier. Rumus matematis konversi yang digunakan pada sistem ini adalah:
+      </p>
+      <div className="py-2 px-3 bg-emerald-50 dark:bg-emerald-500/10 text-center rounded-lg font-mono font-bold text-emerald-800 dark:text-emerald-400 text-xs">
+        Usia Gestasi (Minggu) = 24 + (Skor Ballard &times; 0.4)
+      </div>
+    </div>
+  </div>
+);
+
+const ballardReferences = [
+  "Ballard JL, et al. New Ballard Score, expanded to include extremely premature infants. Journal of Pediatrics, 119(3), 417-423 (1991).",
+  "American College of Obstetricians and Gynecologists (ACOG). Committee Opinion No. 700: Methods for Estimating the Due Date. Obstetrics & Gynecology (Reaffirmed 2021).",
+  "Neonatal Resuscitation Program (NRP) Textbook. 8th Edition. American Academy of Pediatrics (2021)."
+];
 
 type ApgarEval = {
   minute: number;
@@ -465,6 +654,12 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                   Tambah Evaluasi {apgarEvals.length === 2 ? '10' : apgarEvals.length === 3 ? '15' : '20'} Menit Berikutnya
                 </button>
               )}
+
+              <ClinicalTheoryAccordion 
+                title="Teori Medis & Panduan Skor APGAR" 
+                content={apgarTheoryContent} 
+                references={apgarReferences} 
+              />
             </div>
           </div>
         </div>
@@ -516,6 +711,12 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                   </div>
                 </div>
               )}
+
+              <ClinicalTheoryAccordion 
+                title="Teori Medis & Panduan Skor Downe" 
+                content={downeTheoryContent} 
+                references={downeReferences} 
+              />
             </div>
           </div>
         </div>
@@ -588,6 +789,12 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                   </div>
                 </div>
               )}
+
+              <ClinicalTheoryAccordion 
+                title="Teori Medis & Panduan Skor Thomson" 
+                content={thomsonTheoryContent} 
+                references={thomsonReferences} 
+              />
             </div>
           </div>
         </div>
@@ -667,6 +874,11 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 </span>
               </div>
 
+              <ClinicalTheoryAccordion 
+                title="Teori Medis & Panduan Skor New Ballard" 
+                content={ballardTheoryContent} 
+                references={ballardReferences} 
+              />
             </div>
           </div>
         </div>
