@@ -250,23 +250,26 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         </button>
 
         {/* Spacer & FAB Tengah ("Mulai Resusitasi") - Raksasa & Menonjol */}
-        <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5">
-          <button
-            onClick={() => {
-              onTabChange('emergency');
-              setMoreMenuOpen(false);
-            }}
-            title="Mulai Resusitasi"
-            className={`w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
-              activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 ring-4 ring-red-500/25' : ''
-            }`}
-          >
-            <Activity className={`w-8 h-8 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
-          </button>
-          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'emergency' ? 'font-black text-rose-600 dark:text-rose-455' : 'font-semibold text-slate-500 dark:text-slate-400'}`}>
-            Resus
-          </span>
-        </div>
+        {activeTab !== 'emergency' ? (
+          <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5 animate-in fade-in duration-300">
+            <button
+              onClick={() => {
+                onTabChange('emergency');
+                setMoreMenuOpen(false);
+              }}
+              title="Mulai Resusitasi"
+              className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group"
+            >
+              <Activity className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
+            </button>
+            <span className="text-[10px] tracking-tight truncate font-semibold text-slate-500 dark:text-slate-400">
+              Resus
+            </span>
+          </div>
+        ) : (
+          /* Empty spacer to keep navigation tabs perfectly aligned without jumping */
+          <div className="flex-1 min-w-[4.5rem] h-full" />
+        )}
 
         {/* Tab 3: Stabilisasi NICU */}
         <button

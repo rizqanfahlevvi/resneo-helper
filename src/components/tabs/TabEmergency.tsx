@@ -387,38 +387,53 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               </div>
             </div>
             
-            {/* Dynamic SpO2 Target Tracker Dropdown */}
-            <details className="relative z-50 group">
-              <summary className="bg-black/20 hover:bg-black/30 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/10 cursor-pointer list-none flex items-center gap-2 transition-colors outline-none focus:ring-2 focus:ring-white/50 [&::-webkit-details-marker]:hidden">
-                <Activity className="w-3.5 h-3.5 text-white opacity-90 hidden sm:block" />
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white opacity-90">
-                  SpO2<span className="hidden sm:inline"> Target</span>
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-white opacity-70 group-open:rotate-180 transition-transform" />
-              </summary>
-              <div className="absolute top-full right-0 mt-2 bg-slate-900 border border-slate-700 shadow-2xl rounded-xl p-4 z-50 min-w-[260px] sm:min-w-[280px]">
-                <h4 className="text-white text-xs font-bold mb-3 uppercase tracking-wider border-b border-slate-700 pb-2">Target SpO2 Preduktal</h4>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs font-medium text-white/80">
-                  {[
-                    { label: '1 Menit', min: 0, max: 60, target: '60-70%' },
-                    { label: '2 Menit', min: 61, max: 120, target: '65-85%' },
-                    { label: '3 Menit', min: 121, max: 180, target: '70-90%' },
-                    { label: '4 Menit', min: 181, max: 240, target: '75-90%' },
-                    { label: '5 Menit', min: 241, max: 300, target: '80-90%' },
-                    { label: '10 Menit', min: 301, max: 600, target: '85-90%' },
-                    { label: '>15 Menit', min: 601, max: Infinity, target: '90-95%' }
-                  ].map((item, idx) => {
-                    const isActive = elapsedTime >= item.min && elapsedTime <= item.max;
-                    return (
-                      <div key={idx} className={`flex justify-between items-center rounded px-2 py-1 transition-colors ${isActive ? 'bg-[#c6ff00] text-slate-900 font-bold shadow-[0_0_10px_rgba(198,255,0,0.4)] scale-105' : ''}`}>
-                        <span>{item.label}</span>
-                        <span>{item.target}</span>
-                      </div>
-                    );
-                  })}
+            <div className="flex items-center gap-2 relative z-50">
+              {/* Dynamic SpO2 Target Tracker Dropdown */}
+              <details className="relative group">
+                <summary className="bg-black/20 hover:bg-black/30 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/10 cursor-pointer list-none flex items-center gap-2 transition-colors outline-none focus:ring-2 focus:ring-white/50 [&::-webkit-details-marker]:hidden">
+                  <Activity className="w-3.5 h-3.5 text-white opacity-90 hidden sm:block" />
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white opacity-90">
+                    SpO2<span className="hidden sm:inline"> Target</span>
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-white opacity-70 group-open:rotate-180 transition-transform" />
+                </summary>
+                <div className="absolute top-full right-0 mt-2 bg-slate-900 border border-slate-700 shadow-2xl rounded-xl p-4 z-50 min-w-[260px] sm:min-w-[280px]">
+                  <h4 className="text-white text-xs font-bold mb-3 uppercase tracking-wider border-b border-slate-700 pb-2">Target SpO2 Preduktal</h4>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs font-medium text-white/80">
+                    {[
+                      { label: '1 Menit', min: 0, max: 60, target: '60-70%' },
+                      { label: '2 Menit', min: 61, max: 120, target: '65-85%' },
+                      { label: '3 Menit', min: 121, max: 180, target: '70-90%' },
+                      { label: '4 Menit', min: 181, max: 240, target: '75-90%' },
+                      { label: '5 Menit', min: 241, max: 300, target: '80-90%' },
+                      { label: '10 Menit', min: 301, max: 600, target: '85-90%' },
+                      { label: '>15 Menit', min: 601, max: Infinity, target: '90-95%' }
+                    ].map((item, idx) => {
+                      const isActive = elapsedTime >= item.min && elapsedTime <= item.max;
+                      return (
+                        <div key={idx} className={`flex justify-between items-center rounded px-2 py-1 transition-colors ${isActive ? 'bg-[#c6ff00] text-slate-900 font-bold shadow-[0_0_10px_rgba(198,255,0,0.4)] scale-105' : ''}`}>
+                          <span>{item.label}</span>
+                          <span>{item.target}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </details>
+              </details>
+
+              {/* Force Done / Stop Button */}
+              <button
+                onClick={() => {
+                  setIsTimerRunning(false);
+                  addLog("Resusitasi diakhiri secara paksa oleh klinisi.");
+                  setPhase('completed');
+                }}
+                className="bg-black/25 hover:bg-black/40 border border-white/20 hover:border-white/30 text-white font-bold px-3 py-2 rounded-xl text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5 text-white" />
+                <span>Akhiri Resus</span>
+              </button>
+            </div>
           </div>
           
           {/* Global Adrenalin Countdown */}
