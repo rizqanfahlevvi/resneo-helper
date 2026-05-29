@@ -45,6 +45,36 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
     }
   ];
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance in pixels
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Next slide
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    } else if (isRightSwipe) {
+      // Prev slide
+      setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    }
+  };
+
   // Auto-switch carousel slides every 5 seconds (resetting timer on manual navigation)
   useEffect(() => {
     const timer = setInterval(() => {
@@ -116,6 +146,9 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
         <div className="lg:col-span-1 min-h-[220px] md:min-h-[260px] flex flex-col">
           <div 
             onClick={() => handleSlideAction(slides[activeSlide])}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
             className={`flex-1 rounded-2xl p-6 ${slides[activeSlide].bgClass} shadow-lg relative overflow-hidden flex flex-col justify-between group transition-all duration-500 cursor-pointer hover:scale-[1.01] hover:shadow-xl`}
             role="button"
             tabIndex={0}

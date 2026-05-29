@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { TabType } from '../types';
 import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
@@ -30,6 +30,21 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
+  const [clockStr, setClockStr] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const hrs = now.getHours().toString().padStart(2, '0');
+      const mins = now.getMinutes().toString().padStart(2, '0');
+      const secs = now.getSeconds().toString().padStart(2, '0');
+      setClockStr(`${hrs}:${mins}:${secs}`);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime } = useStore();
   const showFab = phase !== 'preparation' && phase !== 'routine_care';
 
@@ -185,13 +200,23 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             </div>
           )}
 
-          {/* Right Section: Theme Toggle Button */}
-          <button 
-            onClick={toggleTheme}
-            className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-750 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-bold shadow-sm"
-          >
-            {theme === 'dark' ? <><Sun className="w-4 h-4 text-amber-500 dark:text-amber-300" /> <span className="hidden sm:inline">Mode Terang</span></> : <><Moon className="w-4 h-4 text-indigo-600" /> <span className="hidden sm:inline">Mode Gelap</span></>}
-          </button>
+          {/* Right Section: Live Digital Clock & Theme Toggle Button */}
+          <div className="flex items-center gap-2">
+            {/* Real-time Ticking Clock */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold font-mono shadow-sm">
+              <svg className="w-3.5 h-3.5 text-indigo-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{clockStr || '--:--:--'}</span>
+            </div>
+
+            <button 
+              onClick={toggleTheme}
+              className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-750 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-bold shadow-sm"
+            >
+              {theme === 'dark' ? <><Sun className="w-4 h-4 text-amber-500 dark:text-amber-300" /> <span className="hidden sm:inline">Mode Terang</span></> : <><Moon className="w-4 h-4 text-indigo-600" /> <span className="hidden sm:inline">Mode Gelap</span></>}
+            </button>
+          </div>
         </header>
         
         <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full h-full">

@@ -36,7 +36,11 @@ export const useStore = create<ResneoStore>((set) => ({
   addLog: (elapsed, message) => {
     const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
     const secs = (elapsed % 60).toString().padStart(2, '0');
-    const timeStr = `[${mins}:${secs}]`;
+    const now = new Date();
+    const hrs = now.getHours().toString().padStart(2, '0');
+    const minsReal = now.getMinutes().toString().padStart(2, '0');
+    const secsReal = now.getSeconds().toString().padStart(2, '0');
+    const timeStr = `[${mins}:${secs} | ${hrs}:${minsReal}:${secsReal}]`;
     set((state) => ({ clinicalLog: [...state.clinicalLog, { time: timeStr, message }] }));
   },
   clearLog: () => set({ clinicalLog: [] }),
