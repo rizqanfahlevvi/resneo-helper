@@ -1469,6 +1469,20 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                       </button>
                    </div>
                 )}
+                
+                {/* Always show Akhiri Resusitasi button at the bottom of the reference card */}
+                <hr className="border-slate-100 dark:border-slate-800 my-1" />
+                <button 
+                  onClick={() => {
+                      setIsTimerRunning(false);
+                      addLog("Resusitasi diakhiri secara paksa oleh klinisi via panel referensi desktop.");
+                      setPhase('completed');
+                  }}
+                  className="w-full bg-red-650 hover:bg-red-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
+                >
+                  <X className="w-4 h-4 text-white" />
+                  Akhiri Resusitasi
+                </button>
              </div>
           </div>
         </div>
