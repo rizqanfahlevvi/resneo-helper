@@ -27,6 +27,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const [showAdrenalinPopup, setShowAdrenalinPopup] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime } = useStore();
   const showFab = phase !== 'preparation' && phase !== 'routine_care';
@@ -42,10 +43,32 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0B132B] overflow-hidden text-slate-900 dark:text-slate-100 relative transition-colors duration-300">
-      {/* Desktop Sidebar (> md) */}
-      <aside className={`hidden md:flex flex-col shrink-0 border-r border-slate-200 dark:border-slate-900 bg-white/95 dark:bg-slate-950/90 backdrop-blur-md z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-64'}`}>
+      {/* Backdrop for Mobile Sidebar Drawer */}
+      {mobileSidebarOpen && (
         <div 
-          className={`pb-2 border-b border-transparent cursor-pointer hover:opacity-80 transition-opacity ${sidebarCollapsed ? 'p-4 flex justify-center' : 'p-6'}`}
+          className="fixed inset-0 z-45 bg-slate-950/40 backdrop-blur-xs md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Drawer (Mobile & Desktop) */}
+      <aside className={`flex flex-col shrink-0 border-r border-slate-200 dark:border-slate-900 bg-white/95 dark:bg-slate-950/90 backdrop-blur-md z-50 md:z-20 transition-all duration-300 
+        fixed inset-y-0 left-0 w-64 md:relative md:translate-x-0 
+        ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${sidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
+        
+        {/* Mobile Sidebar Close Button */}
+        <div className="md:hidden p-4 flex justify-end pb-0">
+          <button 
+            onClick={() => setMobileSidebarOpen(false)}
+            className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div 
+          className={`pb-2 border-b border-transparent cursor-pointer hover:opacity-80 transition-opacity ${sidebarCollapsed ? 'p-4 flex justify-center' : 'p-6 pt-2 md:p-6'}`}
           onClick={() => onTabChange('home' as any)}
         >
           {sidebarCollapsed ? (
@@ -67,7 +90,10 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             return (
               <button
                 key={tab.id}
-                onClick={() => onTabChange(tab.id as TabType)}
+                onClick={() => {
+                  onTabChange(tab.id as TabType);
+                  setMobileSidebarOpen(false);
+                }}
                 title={sidebarCollapsed ? tab.label : undefined}
                 className={`w-full flex items-center transition-all duration-300 text-sm font-semibold relative overflow-hidden group ${
                   sidebarCollapsed 
@@ -103,16 +129,25 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         {/* Top Bar / Mobile & Desktop Sticky Header */}
         <header className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md p-4 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-900/80 flex items-center justify-between transition-all duration-300">
           
-          {/* Mobile View Header Content */}
-          <div 
-            className="md:hidden cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onTabChange('home' as any)}
-          >
-            <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-              <Baby className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              Resneo Helper
-            </h1>
-            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold ml-7">Panduan Protokol Medis</p>
+          {/* Mobile View Header Content with Hamburger Menu */}
+          <div className="md:hidden flex items-center gap-2">
+            <button 
+              onClick={() => setMobileSidebarOpen(true)}
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all shadow-sm"
+              title="Buka Menu Sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div 
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => onTabChange('home' as any)}
+            >
+              <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
+                <Baby className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
+                Resneo Helper
+              </h1>
+              <p className="text-[9px] text-indigo-650 dark:text-indigo-400 uppercase tracking-widest font-extrabold mt-0.5">Panduan Medis</p>
+            </div>
           </div>
 
           {/* Desktop/Tablet View Header Content (Sticky Bar Controls) */}
@@ -214,24 +249,25 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </span>
         </button>
 
-        {/* Spacer & FAB Tengah ("Mulai Resusitasi") */}
-        <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full">
-          <button
-            onClick={() => {
-              onTabChange('emergency');
-              setMoreMenuOpen(false);
-            }}
-            title="Mulai Resusitasi"
-            className={`w-16 h-16 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex flex-col items-center justify-center text-white shadow-[0_6px_20px_rgba(239,68,68,0.45)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group ${
-              activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 ring-2 ring-red-500/30' : ''
-            }`}
-          >
-            <Activity className={`w-7 h-7 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
-          </button>
-          <span className="text-[10px] font-black text-rose-650 dark:text-rose-455 uppercase tracking-widest leading-none mb-0.5">
+        {/* Spacer & FAB Tengah ("Mulai Resusitasi") - Aligned on the exact same baseline, just larger */}
+        <button
+          onClick={() => {
+            onTabChange('emergency');
+            setMoreMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
+            activeTab === 'emergency' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          <div className={`w-14 h-14 bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_5px_15px_rgba(239,68,68,0.35)] mb-1 transition-all duration-300 active:scale-95 group ${
+            activeTab === 'emergency' ? 'scale-105 from-rose-500 to-red-650 border-2 border-slate-50 dark:border-[#0B132B]' : ''
+          }`}>
+            <Activity className={`w-6.5 h-6.5 text-white group-hover:scale-110 transition-transform ${activeTab === 'emergency' ? 'animate-pulse' : ''}`} />
+          </div>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'emergency' ? 'font-black' : 'font-semibold'}`}>
             Resus
           </span>
-        </div>
+        </button>
 
         {/* Tab 3: Stabilisasi NICU */}
         <button
