@@ -45,7 +45,20 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
     return () => clearInterval(interval);
   }, []);
 
-  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime } = useStore();
+  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, addLog } = useStore();
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isTimerRunning && phase !== 'completed' && phase !== 'preparation') {
+        e.preventDefault();
+        e.returnValue = 'Apakah Anda yakin ingin meninggalkan halaman? Skenario resusitasi sedang aktif.';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isTimerRunning, phase]);
+
   const showFab = phase !== 'preparation' && phase !== 'routine_care';
 
   const bwNum = parseInt(birthWeight || '0') || 0;
@@ -224,18 +237,9 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         </div>
       </main>
 
-      {/* Backdrop for Mobile Collapsible Menu "Lainnya" */}
-      {moreMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-xs md:hidden animate-in fade-in"
-          onClick={() => setMoreMenuOpen(false)}
-        />
-      )}
-
       {/* Mobile Bottom Navigation (< md) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[88px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-end px-1 pb-[18px] pt-1.5 z-50 transition-all shadow-[0_-4px_25px_rgba(0,0,0,0.06)] dark:shadow-none">
         
-        {/* Tab 1: Beranda */}
         <button
           onClick={() => {
             onTabChange('home');
@@ -253,7 +257,6 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </span>
         </button>
 
-        {/* Tab 2: Skor & Kalkulator */}
         <button
           onClick={() => {
             onTabChange('scores');
@@ -271,7 +274,6 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </span>
         </button>
 
-        {/* Spacer & FAB Tengah ("Mulai Resusitasi") - Raksasa & Menonjol */}
         {activeTab !== 'emergency' ? (
           <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5 animate-in fade-in duration-300">
             <button
@@ -280,7 +282,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                 setMoreMenuOpen(false);
               }}
               title="Mulai Resusitasi"
-              className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] active:scale-95 transition-all z-50 group"
+              className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] transition-all z-50 group"
             >
               <Activity className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
             </button>
@@ -289,11 +291,25 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             </span>
           </div>
         ) : (
-          /* Empty spacer to keep navigation tabs perfectly aligned without jumping */
-          <div className="flex-1 min-w-[4.5rem] h-full" />
+          <button
+            onClick={() => {
+              if (window.confirm("Apakah Anda yakin ingin mengakhiri sesi resusitasi ini? Semua log tindakan akan disimpan.")) {
+                setIsTimerRunning(false);
+                addLog("Resusitasi diakhiri secara paksa oleh klinisi melalui tombol navigasi bawah.");
+                setPhase('completed');
+              }
+            }}
+            className="flex flex-col items-center justify-end flex-1 min-w-0 transition-all text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+          >
+            <div className="px-3 py-1.5 rounded-full mb-1 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-900 transition-all">
+              <X className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+            </div>
+            <span className="text-[10px] tracking-tight truncate font-semibold">
+              Akhiri
+            </span>
+          </button>
         )}
 
-        {/* Tab 3: Stabilisasi NICU */}
         <button
           onClick={() => {
             onTabChange('advanced');
@@ -311,65 +327,47 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </span>
         </button>
 
-        {/* Tab 4: Lainnya (Collapsible Popover) */}
-        <div className="flex-1 flex justify-center min-w-0 h-full relative">
-          <button
-            onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-            className={`flex flex-col items-center justify-end w-full transition-all ${
-              moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
-            }`}
-          >
-            <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-              <MoreHorizontal className="w-6 h-6" />
-            </div>
-            <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen || activeTab === 'theory' || activeTab === 'references' ? 'font-black' : 'font-semibold'}`}>
-              Lainnya
-            </span>
-          </button>
-
-          {/* Floated Collapsible Popover Menu */}
-          {moreMenuOpen && (
-            <div className="absolute bottom-[88px] right-3 bg-white/95 dark:bg-slate-900/98 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-2xl p-2.5 z-[60] min-w-[170px] flex flex-col gap-1.5 animate-in slide-in-from-bottom-3 duration-200 origin-bottom-right">
-              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2.5 py-1 block border-b border-slate-100 dark:border-slate-800 mb-1 leading-none">
-                Akses Tambahan
-              </span>
-              
-              {/* Collapsible item 1: Materi & Teori */}
-              <button
-                onClick={() => {
-                  onTabChange('theory');
-                  setMoreMenuOpen(false);
-                }}
-                className={`w-full text-left font-bold text-xs px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 ${
-                  activeTab === 'theory' 
-                    ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' 
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850'
-                }`}
-              >
-                <FileText className="w-4 h-4 text-slate-450 shrink-0" />
-                Materi & Teori
-              </button>
-
-              {/* Collapsible item 2: Pustaka & Referensi */}
-              <button
-                onClick={() => {
-                  onTabChange('references');
-                  setMoreMenuOpen(false);
-                }}
-                className={`w-full text-left font-bold text-xs px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 ${
-                  activeTab === 'references' 
-                    ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400' 
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850'
-                }`}
-              >
-                <BookOpen className="w-4 h-4 text-slate-450 shrink-0" />
-                Pustaka & Referensi
-              </button>
-            </div>
-          )}
-        </div>
-
+        <button
+          onClick={() => {
+            setMoreMenuOpen(!moreMenuOpen);
+          }}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
+            moreMenuOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${moreMenuOpen ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+            <MoreHorizontal className="w-6 h-6" />
+          </div>
+          <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen ? 'font-black' : 'font-semibold'}`}>
+            Lainnya
+          </span>
+        </button>
       </nav>
+
+      {/* Mobile Sidebar Collapsible Menu Drawers (Menu "Lainnya" options) */}
+      {moreMenuOpen && (
+        <div className="fixed bottom-[94px] left-4 right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-3xl p-5 z-50 flex flex-col gap-3 shadow-2xl animate-in slide-in-from-bottom-5 duration-300 md:hidden">
+          <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase block mb-1">Menu Lainnya</span>
+          <button 
+            onClick={() => {
+              onTabChange('theory');
+              setMoreMenuOpen(false);
+            }}
+            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
+          >
+            <FileText className="w-5 h-5 text-indigo-500" /> Materi &amp; Teori Medis
+          </button>
+          <button 
+            onClick={() => {
+              onTabChange('references');
+              setMoreMenuOpen(false);
+            }}
+            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
+          >
+            <BookOpen className="w-5 h-5 text-emerald-500" /> Pustaka &amp; Referensi
+          </button>
+        </div>
+      )}
 
       {/* Floating Action Button (FAB) - Visible only after timer starts on Mobile */}
       {showFab && (
@@ -448,10 +446,21 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
              <div className="p-5 space-y-4">
                {bwKg > 0 ? (
                  <>
-                  <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Berat Badan</span>
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{bwKg} kg</span>
-                  </div>
+                   <div className="bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                     <label className="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1.5">
+                       Edit Berat Lahir (Gram)
+                     </label>
+                     <div className="flex gap-2">
+                       <input
+                         type="number"
+                         placeholder="Contoh: 3000"
+                         value={birthWeight || ''}
+                         onChange={(e) => setBirthWeight && setBirthWeight(e.target.value)}
+                         className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-mono text-xs leading-tight text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                       />
+                       <span className="self-center font-bold text-xs text-slate-500 shrink-0">Gram</span>
+                     </div>
+                   </div>
                   <div>
                     <span className="block text-xs font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">Dosis IV/IO (1:10.000)</span>
                     <div className="text-xl font-bold tracking-tight text-red-600 dark:text-red-400 shadow-sm">{adrenalinMin} - {adrenalinMax} mL</div>

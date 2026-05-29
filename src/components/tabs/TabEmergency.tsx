@@ -56,6 +56,12 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   const [vtpBeatStage, setVtpBeatStage] = useState<number>(0);
   const [copied, setCopied] = useState(false);
 
+  // SpO2 checkboxes state
+  const [achievedTargets, setAchievedTargets] = useState<Record<number, boolean>>({});
+
+  // Compressions beat stage state
+  const [compBeatStage, setCompBeatStage] = useState<number>(0);
+
   // Phase Compressions States
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [compressionsStartTime, setCompressionsStartTime] = useState<number | null>(null);
@@ -226,6 +232,7 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
         intervalId = setInterval(() => {
           const isVent = beatCount % 4 === 3;
           playBeep(isVent);
+          setCompBeatStage(beatCount % 4);
           beatCount++;
         }, 500);
       } catch (e) {
@@ -380,11 +387,23 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
   const adrenalinMax = bwKg > 0 ? (0.3 * bwKg).toFixed(2) : '-';
   const volumeExp = bwKg > 0 ? (10 * bwKg).toFixed(1) : '-';
 
-  // Determine Master Timer Color based on Golden Minute Rule
+  // Determine Master Timer Color based on Golden Minute Rule and SpO2 Targets
   let timerBgClass = 'bg-emerald-500 text-white shadow-emerald-500/30';
   let isFlashing = false;
   
-  if (phase === 'initial_steps') {
+  const activeSpo2Idx = [
+    { min: 0, max: 60 },
+    { min: 61, max: 120 },
+    { min: 121, max: 180 },
+    { min: 181, max: 240 },
+    { min: 241, max: 300 },
+    { min: 301, max: 600 },
+    { min: 601, max: Infinity }
+  ].findIndex(item => elapsedTime >= item.min && elapsedTime <= item.max);
+  
+  const isCurrentTargetAchieved = activeSpo2Idx !== -1 && !!achievedTargets[activeSpo2Idx];
+
+  if (phase === 'initial_steps' && !isCurrentTargetAchieved) {
     if (elapsedTime >= 60 && elapsedTime < 75) {
       timerBgClass = 'bg-yellow-400 text-yellow-900 shadow-yellow-400/30';
     } else if (elapsedTime >= 75) {
@@ -423,7 +442,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               </summary>
               <div className="absolute top-full right-0 mt-2 bg-slate-900 border border-slate-700 shadow-2xl rounded-xl p-4 z-50 min-w-[260px] sm:min-w-[280px]">
                 <h4 className="text-white text-xs font-bold mb-3 uppercase tracking-wider border-b border-slate-700 pb-2">Target SpO2 Preduktal</h4>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs font-medium text-white/80">
+                <div className="space-y-2 text-xs font-medium text-white/80">
                   {[
                     { label: '1 Menit', min: 0, max: 60, target: '60-70%' },
                     { label: '2 Menit', min: 61, max: 120, target: '65-85%' },
@@ -435,10 +454,30 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   ].map((item, idx) => {
                     const isActive = elapsedTime >= item.min && elapsedTime <= item.max;
                     return (
-                      <div key={idx} className={`flex justify-between items-center rounded px-2 py-1 transition-colors ${isActive ? 'bg-[#c6ff00] text-slate-900 font-bold shadow-[0_0_10px_rgba(198,255,0,0.4)] scale-105' : ''}`}>
-                        <span>{item.label}</span>
-                        <span>{item.target}</span>
-                      </div>
+                      <label 
+                        key={idx} 
+                        className={`flex justify-between items-center rounded-xl px-3 py-2 border transition-all cursor-pointer ${
+                          isActive 
+                            ? 'bg-[#c6ff00] border-[#c6ff00]/40 text-slate-900 font-bold shadow-[0_0_12px_rgba(198,255,0,0.45)]' 
+                            : 'bg-slate-800/60 border-slate-700 hover:bg-slate-800 text-white/90'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <input 
+                            type="checkbox" 
+                            checked={!!achievedTargets[idx]} 
+                            onChange={(e) => {
+                              setAchievedTargets(prev => ({ ...prev, [idx]: e.target.checked }));
+                              if (e.target.checked) {
+                                addLog(`Target SpO2 Preduktal ${item.label} (${item.target}) tercapai.`);
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-slate-500 text-indigo-600 focus:ring-0 outline-none cursor-pointer"
+                          />
+                          <span>{item.label}</span>
+                        </div>
+                        <span className={isActive ? 'text-slate-900 font-extrabold' : 'text-slate-400 font-semibold'}>{item.target}</span>
+                      </label>
                     );
                   })}
                 </div>
@@ -652,10 +691,10 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                  </button>
                </div>
             ) : (
-               <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-2">
-                 <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                 <p className="text-amber-200 text-xs font-semibold leading-relaxed">
-                   Jika salah satu "TIDAK", segera potong tali pusat & berikan <strong className="font-bold text-amber-400">Langkah Awal</strong> di pemancar panas.
+               <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-start gap-2">
+                 <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                 <p className="text-amber-800 dark:text-amber-200 text-xs font-semibold leading-relaxed">
+                   Jika salah satu "TIDAK", segera potong tali pusat & berikan <strong className="font-bold text-amber-950 dark:text-amber-450">Langkah Awal</strong> di pemancar panas.
                  </p>
                </div>
             )}
@@ -996,42 +1035,41 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
                   {/* Visual Pulse Metronom VTP (Bouncing Respiration Assist) */}
                   {vtpAudioEnabled && (
-                    <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-5 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center gap-4 mb-6 animate-in zoom-in duration-300">
+                    <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-5 rounded-2xl border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center gap-4 mb-6 animate-in zoom-in duration-300">
                       <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Visual VTP Breathing Guide</span>
                       
-                      <div className="flex items-center justify-center gap-12 py-3 w-full">
-                        {/* Lung Pulse Container */}
-                        <div className="relative flex items-center justify-center">
-                          {/* Pulsing Outer Aura */}
-                          <div 
-                            className={`absolute w-24 h-24 rounded-full transition-all duration-300 blur-xl ${
-                              vtpBeatStage === 0 
-                                ? 'bg-emerald-500/40 scale-125' 
-                                : 'bg-blue-500/10 scale-95'
-                            }`}
-                          />
-                          {/* Inner Circle / Lung Icon */}
-                          <div 
-                            className={`w-20 h-20 rounded-full border-3 flex items-center justify-center transition-all duration-150 ease-out z-10 ${
-                              vtpBeatStage === 0 
-                                ? 'bg-gradient-to-br from-emerald-500 to-teal-500 border-emerald-400 text-white scale-120 shadow-[0_0_25px_rgba(16,185,129,0.5)]' 
-                                : 'bg-slate-100 dark:bg-slate-800 border-slate-350 dark:border-slate-700 text-slate-400 dark:text-slate-500 scale-95'
-                            }`}
-                          >
-                            <Wind className={`w-10 h-10 ${vtpBeatStage === 0 ? 'animate-pulse' : ''}`} />
-                          </div>
+                      <div className="grid grid-cols-3 gap-3 w-full max-w-md py-2">
+                        {/* Step 1: Lepas (1) */}
+                        <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                          vtpBeatStage === 1
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-105'
+                            : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
+                        }`}>
+                          <Waves className={`w-6 h-6 mb-1 ${vtpBeatStage === 1 ? 'animate-pulse' : ''}`} />
+                          <span className="text-xs font-black uppercase tracking-wider">Lepas</span>
+                          <span className="text-[9px] font-bold opacity-80 mt-0.5">Satu</span>
                         </div>
 
-                        {/* Interactive Phase Guide Text */}
-                        <div className="flex flex-col justify-center min-w-[120px]">
-                          <div className={`text-2xl font-black uppercase tracking-wider transition-all duration-150 ${
-                            vtpBeatStage === 0 ? 'text-emerald-500 scale-110' : 'text-slate-400 dark:text-slate-500 scale-95'
-                          }`}>
-                            {vtpBeatStage === 0 ? '💨 POMPA' : '💨 LEPAS'}
-                          </div>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                            {vtpBeatStage === 0 ? 'Tekan Kantung' : vtpBeatStage === 1 ? 'Lepas Kantung (1)' : 'Lepas Kantung (2)'}
-                          </div>
+                        {/* Step 2: Lepas (2) */}
+                        <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                          vtpBeatStage === 2
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-105'
+                            : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
+                        }`}>
+                          <Waves className={`w-6 h-6 mb-1 ${vtpBeatStage === 2 ? 'animate-pulse' : ''}`} />
+                          <span className="text-xs font-black uppercase tracking-wider">Lepas</span>
+                          <span className="text-[9px] font-bold opacity-80 mt-0.5">Dua</span>
+                        </div>
+
+                        {/* Step 3: Pompa */}
+                        <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                          vtpBeatStage === 0
+                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-[0_0_25px_rgba(16,185,129,0.7)] scale-105'
+                            : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
+                        }`}>
+                          <Wind className={`w-6 h-6 mb-1 ${vtpBeatStage === 0 ? 'animate-bounce' : ''}`} />
+                          <span className="text-xs font-black uppercase tracking-wider">Pompa</span>
+                          <span className="text-[9px] font-bold opacity-80 mt-0.5">Tiga</span>
                         </div>
                       </div>
                     </div>
@@ -1154,12 +1192,48 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                  </div>
                </div>
 
-               <div className="flex justify-center items-center gap-2 text-3xl font-mono font-bold tracking-widest select-none mb-8">
-                 <span className={`${audioEnabled ? 'animate-pulse text-red-500' : 'text-slate-600'}`}>SATU</span>-
-                 <span className={`${audioEnabled ? 'animate-pulse text-red-500 delay-150' : 'text-slate-600'}`}>DUA</span>-
-                 <span className={`${audioEnabled ? 'animate-pulse text-red-500 delay-300' : 'text-slate-600'}`}>TIGA</span>-
-                 <span className={`${audioEnabled ? 'animate-pulse text-blue-400 delay-450' : 'text-slate-600'}`}>POMPA</span>
-               </div>
+                {/* Visual Compression Metronome Guide */}
+                <div className="grid grid-cols-4 gap-2.5 w-full max-w-lg mx-auto py-2 mb-8">
+                  {/* Step 1: SATU */}
+                  <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                    audioEnabled && compBeatStage === 0
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
+                  }`}>
+                    <span className="text-lg font-black tracking-tight leading-none">1</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">Satu</span>
+                  </div>
+
+                  {/* Step 2: DUA */}
+                  <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                    audioEnabled && compBeatStage === 1
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
+                  }`}>
+                    <span className="text-lg font-black tracking-tight leading-none">2</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">Dua</span>
+                  </div>
+
+                  {/* Step 3: TIGA */}
+                  <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                    audioEnabled && compBeatStage === 2
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
+                  }`}>
+                    <span className="text-lg font-black tracking-tight leading-none">3</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">Tiga</span>
+                  </div>
+
+                  {/* Step 4: POMPA */}
+                  <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
+                    audioEnabled && compBeatStage === 3
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_25px_rgba(37,99,235,0.7)] scale-105 font-extrabold shadow-blue-500/50'
+                      : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
+                  }`}>
+                    <span className="text-lg font-black tracking-tight leading-none">💨</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-1.5">Pompa</span>
+                  </div>
+                </div>
                
                {/* Evaluasi 60 detik */}
                <div className="border-t border-slate-200 dark:border-white/10 pt-6">
@@ -1402,17 +1476,17 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {phase === 'post_resuscitation' && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
           <div className="glass-card rounded-2xl shadow-xl overflow-hidden text-slate-900 dark:text-white flex flex-col border-blue-500/30">
-            <div className="p-6 text-center border-b border-blue-500/30 bg-blue-600/10 relative">
+            <div className="p-6 text-center border-b border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-600/10 relative">
               <div className="mx-auto bg-slate-200/50 dark:bg-white/10 w-16 h-16 flex items-center justify-center rounded-full mb-4 shadow-inner border border-slate-300 dark:border-white/20">
-                <Heart className="w-8 h-8 text-blue-400 fill-blue-500/20" />
+                <Heart className="w-8 h-8 text-blue-500 dark:text-blue-400 fill-blue-500/20" />
               </div>
-              <h3 className="font-bold text-2xl tracking-tight mb-1 text-blue-100">Perawatan Pasca Resusitasi</h3>
-              <p className="text-blue-300 text-sm font-medium">Bugar Pasca-Tindakan VTP/CPAP</p>
+              <h3 className="font-bold text-2xl tracking-tight mb-1 text-blue-900 dark:text-blue-100">Perawatan Pasca Resusitasi</h3>
+              <p className="text-blue-600 dark:text-blue-300 text-sm font-semibold">Bugar Pasca-Tindakan VTP/CPAP</p>
             </div>
             
             <div className="bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 p-5 md:p-6">
-              <h4 className="font-bold text-blue-100 mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-blue-400" />
+              <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                 Checklist Evaluasi Lanjut (IDAI)
               </h4>
               

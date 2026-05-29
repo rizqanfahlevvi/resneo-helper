@@ -2,7 +2,7 @@ import { BookText, HeartPulse, Target, BrainCircuit, Activity, Waves } from 'luc
 
 export default function TabTheory() {
   return (
-    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-36">
       
       <div className="flex items-center gap-3 mb-8">
         <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-450 flex items-center justify-center">

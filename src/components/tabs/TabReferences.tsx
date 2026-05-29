@@ -60,7 +60,7 @@ export default function TabReferences() {
   ];
 
   return (
-    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-36">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-450 flex items-center justify-center">
           <BookOpen className="w-6 h-6" />
