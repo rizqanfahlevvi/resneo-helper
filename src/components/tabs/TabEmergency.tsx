@@ -969,6 +969,49 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     </button>
                   </div>
 
+                  {/* Visual Pulse Metronom VTP (Bouncing Respiration Assist) */}
+                  {vtpAudioEnabled && (
+                    <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-5 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center gap-4 mb-6 animate-in zoom-in duration-300">
+                      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Visual VTP Breathing Guide</span>
+                      
+                      <div className="flex items-center justify-center gap-12 py-3 w-full">
+                        {/* Lung Pulse Container */}
+                        <div className="relative flex items-center justify-center">
+                          {/* Pulsing Outer Aura */}
+                          <div 
+                            className={`absolute w-24 h-24 rounded-full transition-all duration-300 blur-xl ${
+                              vtpBeatStage === 0 
+                                ? 'bg-emerald-500/40 scale-125' 
+                                : 'bg-blue-500/10 scale-95'
+                            }`}
+                          />
+                          {/* Inner Circle / Lung Icon */}
+                          <div 
+                            className={`w-20 h-20 rounded-full border-3 flex items-center justify-center transition-all duration-150 ease-out z-10 ${
+                              vtpBeatStage === 0 
+                                ? 'bg-gradient-to-br from-emerald-500 to-teal-500 border-emerald-400 text-white scale-120 shadow-[0_0_25px_rgba(16,185,129,0.5)]' 
+                                : 'bg-slate-100 dark:bg-slate-800 border-slate-350 dark:border-slate-700 text-slate-400 dark:text-slate-500 scale-95'
+                            }`}
+                          >
+                            <Wind className={`w-10 h-10 ${vtpBeatStage === 0 ? 'animate-pulse' : ''}`} />
+                          </div>
+                        </div>
+
+                        {/* Interactive Phase Guide Text */}
+                        <div className="flex flex-col justify-center min-w-[120px]">
+                          <div className={`text-2xl font-black uppercase tracking-wider transition-all duration-150 ${
+                            vtpBeatStage === 0 ? 'text-emerald-500 scale-110' : 'text-slate-400 dark:text-slate-500 scale-95'
+                          }`}>
+                            {vtpBeatStage === 0 ? '💨 POMPA' : '💨 LEPAS'}
+                          </div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                            {vtpBeatStage === 0 ? 'Tekan Kantung' : vtpBeatStage === 1 ? 'Lepas Kantung (1)' : 'Lepas Kantung (2)'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <button 
                     onClick={() => {
                         addLog("LD < 60, Masuk Fase VTP + Kompresi Dada 3:1 (Metronom Aktif)");
@@ -1457,6 +1500,19 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                          <div className="font-extrabold text-sm text-rose-650 dark:text-rose-455 tracking-tight">{(0.5 * bwKg).toFixed(2)} - {(1.0 * bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></div>
                       </div>
 
+                      <div className="grid grid-cols-2 gap-2">
+                         <div className="bg-amber-50 dark:bg-amber-955/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
+                            <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">Dextrose 10% Bolus</span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(2 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
+                            <span className="block text-[8px] text-slate-400 mt-0.5">2 mL/kg (Hipoglikemia)</span>
+                         </div>
+                         <div className="bg-emerald-50 dark:bg-emerald-955/20 rounded-xl p-2.5 border border-emerald-100 dark:border-emerald-900/40">
+                            <span className="block text-[9px] text-emerald-700 dark:text-emerald-400 font-bold uppercase mb-0.5">Meylon / NaBic 4.2%</span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(4 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
+                            <span className="block text-[8px] text-slate-400 mt-0.5">2 mEq/kg (Asidosis)</span>
+                         </div>
+                      </div>
+
                       <button
                         onClick={() => {
                            addLog(`Sidebar: Berikan Adrenalin (${adrenalinMin}-${adrenalinMax} mL)`);
@@ -1577,6 +1633,17 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     <div className="flex justify-between items-center bg-white dark:bg-slate-900 rounded-lg px-2 py-2 mb-2 border border-slate-200 dark:border-slate-700">
                       <span className="text-xs text-slate-600 dark:text-slate-400 font-bold tracking-tight">Adrenalin IV/IO</span>
                       <span className="font-bold text-red-600 dark:text-red-500 text-sm">{bwKg > 0 ? `${adrenalinMin}-${adrenalinMax}` : '-'} <span className="text-[10px] text-slate-400 font-normal">mL</span></span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                        <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Dextrose 10% (2 mL/kg)</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(2 * bwKg).toFixed(1)} mL` : '-'}</span>
+                      </div>
+                      <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                        <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Meylon 4.2% (4 mL/kg)</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(4 * bwKg).toFixed(1)} mL` : '-'}</span>
+                      </div>
                     </div>
 
                     <button 

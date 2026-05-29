@@ -132,35 +132,145 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                 <Info className="w-4 h-4 mr-2" /> Masukkan Gestasi dan Berat Lahir di atas untuk melihat status bayi.
               </div>
             ) : (
-              <div className="animate-in zoom-in-95 duration-300">
-                {status === 'SGA' && (
-                  <div className="bg-orange-50 dark:bg-orange-500/20 border border-orange-200 dark:border-orange-500/50 rounded-xl p-5 shadow-sm text-center">
-                    <span className="inline-block bg-orange-500 text-white font-bold text-lg px-4 py-2 rounded-xl mb-3 shadow-md">
-                      SGA (Small for Gestational Age)
-                    </span>
-                    <p className="text-orange-850 dark:text-orange-200 font-medium">BBL &lt; Persentil 10 kurva Lubchenco</p>
-                    <div className="mt-4 bg-orange-50 dark:bg-orange-600/50 text-orange-900 dark:text-white p-3 rounded-xl flex items-center justify-center gap-2 border border-orange-200 dark:border-orange-500/50">
-                      <AlertTriangle className="w-5 h-5 shrink-0 text-orange-600 dark:text-orange-300 animate-pulse" />
-                      <span className="font-bold text-sm tracking-wide">Waspada ancaman Hipoglikemia Akut dan Hipotermia!</span>
+              <div className="animate-in zoom-in-95 duration-300 flex flex-col md:flex-row gap-6">
+                
+                {/* Visual SVG Chart (Left Column) */}
+                <div className="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 p-4 rounded-2xl shadow-inner flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 self-start">Visualisasi Kurva Lubchenco</span>
+                  
+                  {(() => {
+                    const constrainedGa = Math.max(24, Math.min(42, gaNum));
+                    const constrainedBw = Math.max(0, Math.min(5000, bwNum));
+                    
+                    // Coordinates mapping: Width=400, Height=220
+                    // X-axis: 24w (x=40) to 42w (x=360)
+                    // Y-axis: 0g (y=200) to 5000g (y=20)
+                    const getX = (ga: number) => 40 + ((ga - 24) / 18) * 320;
+                    const getY = (bw: number) => 200 - (bw / 5000) * 180;
+                    
+                    const lubData: Record<number, [number, number]> = {
+                      24: [500, 800], 25: [550, 900], 26: [600, 1000], 27: [650, 1150],
+                      28: [750, 1300], 29: [850, 1500], 30: [1000, 1700], 31: [1150, 1900],
+                      32: [1300, 2150], 33: [1500, 2400], 34: [1700, 2700], 35: [1900, 2950],
+                      36: [2100, 3200], 37: [2300, 3450], 38: [2500, 3700], 39: [2700, 3950],
+                      40: [2850, 4100], 41: [2950, 4250], 42: [3000, 4350]
+                    };
+
+                    // Construct AGA shaded region polygon points
+                    const p90Points = Object.keys(lubData).map(w => {
+                      const week = parseInt(w);
+                      return `${getX(week)},${getY(lubData[week][1])}`;
+                    });
+                    const p10Points = Object.keys(lubData).reverse().map(w => {
+                      const week = parseInt(w);
+                      return `${getX(week)},${getY(lubData[week][0])}`;
+                    });
+                    const polygonPoints = [...p90Points, ...p10Points].join(' ');
+
+                    const dotX = getX(constrainedGa);
+                    const dotY = getY(constrainedBw);
+
+                    return (
+                      <svg width="100%" height="220" viewBox="0 0 400 220" className="text-slate-400 dark:text-slate-500 overflow-visible">
+                        {/* Grid Lines */}
+                        <line x1="40" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+                        <line x1="40" y1="20" x2="40" y2="200" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+                        
+                        {/* Shaded Normal AGA Region */}
+                        <polygon points={polygonPoints} className="fill-emerald-500/10 dark:fill-emerald-500/5 stroke-none" />
+                        
+                        {/* Bounding curves */}
+                        <path d={Object.keys(lubData).map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(parseInt(w))} ${getY(lubData[parseInt(w)][1])}`).join(' ')} fill="none" stroke="rgba(99, 102, 241, 0.45)" strokeWidth="1.5" strokeDasharray="3 3" />
+                        <path d={Object.keys(lubData).map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(parseInt(w))} ${getY(lubData[parseInt(w)][0])}`).join(' ')} fill="none" stroke="rgba(244, 63, 94, 0.45)" strokeWidth="1.5" strokeDasharray="3 3" />
+
+                        {/* Labels & Markers */}
+                        <text x="365" y={getY(4350)} className="text-[8px] fill-indigo-400 font-bold">P90</text>
+                        <text x="365" y={getY(3000)} className="text-[8px] fill-rose-400 font-bold">P10</text>
+
+                        {/* Y-axis markers */}
+                        <text x="12" y="25" className="text-[8px] fill-slate-400 font-bold">5000g</text>
+                        <text x="12" y="110" className="text-[8px] fill-slate-400 font-bold">2500g</text>
+                        <text x="25" y="203" className="text-[8px] fill-slate-400 font-bold">0g</text>
+
+                        {/* X-axis markers */}
+                        <text x="38" y="215" className="text-[8px] fill-slate-400 font-bold">24w</text>
+                        <text x="190" y="215" className="text-[8px] fill-slate-400 font-bold">33w</text>
+                        <text x="348" y="215" className="text-[8px] fill-slate-400 font-bold">42w</text>
+
+                        {/* Patient Dot Indicator */}
+                        <g>
+                          <circle cx={dotX} cy={dotY} r="8" className="fill-indigo-500/35 animate-ping" />
+                          <circle cx={dotX} cy={dotY} r="4.5" className={`${status === 'AGA' ? 'fill-emerald-500' : 'fill-rose-500'} stroke-white stroke-2 shadow-md`} />
+                        </g>
+                      </svg>
+                    );
+                  })()}
+                </div>
+
+                {/* Patient Status Details Card (Right Column) */}
+                <div className="flex-1 flex flex-col justify-center">
+                  {status === 'SGA' && (
+                    <div className="bg-orange-50 dark:bg-orange-500/20 border border-orange-200 dark:border-orange-500/50 rounded-xl p-5 shadow-sm text-center md:text-left h-full flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <span className="inline-block bg-orange-500 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
+                          SGA (Small for Gestational Age)
+                        </span>
+                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white pt-2">Berat Kurang Untuk Masa Kehamilan</h4>
+                        <p className="text-xs text-orange-850 dark:text-orange-200 font-medium leading-relaxed">
+                          Berat badan lahir berada di bawah **Persentil 10** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
+                        </p>
+                      </div>
+                      <div className="mt-4 bg-orange-100/50 dark:bg-orange-600/20 text-orange-950 dark:text-white p-3.5 rounded-xl flex items-start gap-2.5 border border-orange-200 dark:border-orange-500/40">
+                        <AlertTriangle className="w-5 h-5 shrink-0 text-orange-600 dark:text-orange-350 animate-pulse mt-0.5" />
+                        <div className="text-left">
+                          <span className="font-black text-xs block uppercase tracking-wider">Peringatan Klinis</span>
+                          <span className="font-semibold text-[11px] leading-relaxed block mt-0.5">Waspada risiko tinggi terjadi **Hipoglikemia Akut**, Hipotermia berat, dan asfiksia perinatal. Siapkan protokol monitoring GDS rutin!</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {status === 'AGA' && (
-                  <div className="bg-emerald-500/15 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/50 rounded-xl p-5 shadow-sm text-center">
-                    <span className="inline-block bg-emerald-500 text-white font-bold text-lg px-4 py-2 rounded-xl mb-3 shadow-md flex items-center justify-center gap-2 w-fit mx-auto">
-                      <CheckCircle2 className="w-5 h-5" /> AGA (Appropriate for Gestational Age)
-                    </span>
-                    <p className="text-emerald-800 dark:text-emerald-200 font-medium text-sm">BBL 10 - 90 Persentil kurva Lubchenco.</p>
-                  </div>
-                )}
-                {status === 'LGA' && (
-                  <div className="bg-blue-550/15 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/50 rounded-xl p-5 shadow-sm text-center">
-                    <span className="inline-block bg-blue-500 text-white font-bold text-lg px-4 py-2 rounded-xl mb-3 shadow-md">
-                      LGA (Large for Gestational Age)
-                    </span>
-                    <p className="text-blue-800 dark:text-blue-200 font-medium text-sm">BBL &gt; Persentil 90 kurva Lubchenco.</p>
-                  </div>
-                )}
+                  )}
+                  {status === 'AGA' && (
+                    <div className="bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-300/60 dark:border-emerald-500/50 rounded-xl p-5 shadow-sm text-center md:text-left h-full flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <span className="inline-block bg-emerald-500 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
+                          AGA (Appropriate for Gestational Age)
+                        </span>
+                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white pt-2">Berat Sesuai Masa Kehamilan</h4>
+                        <p className="text-xs text-emerald-800 dark:text-emerald-200 font-medium leading-relaxed">
+                          Berat badan lahir berada di rentang normal **Persentil 10 hingga 90** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
+                        </p>
+                      </div>
+                      <div className="mt-4 bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-950 dark:text-emerald-250 p-3.5 rounded-xl flex items-start gap-2.5 border border-emerald-300 dark:border-emerald-500/30">
+                        <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                        <div className="text-left">
+                          <span className="font-black text-xs block uppercase tracking-wider text-emerald-800 dark:text-emerald-400">Rencana Terapi</span>
+                          <span className="font-semibold text-[11px] leading-relaxed block mt-0.5">Pertumbuhan janin sesuai kehamilan. Lanjutkan perawatan rutin bayi baru lahir, inisiasi menyusui dini (IMD), dan pertahankan kehangatan tubuh bayi.</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {status === 'LGA' && (
+                    <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/40 rounded-xl p-5 shadow-sm text-center md:text-left h-full flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <span className="inline-block bg-indigo-550 dark:bg-indigo-650 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
+                          LGA (Large for Gestational Age)
+                        </span>
+                        <h4 className="font-extrabold text-base text-slate-900 dark:text-white pt-2">Berat Lebih Untuk Masa Kehamilan</h4>
+                        <p className="text-xs text-indigo-850 dark:text-indigo-200 font-medium leading-relaxed">
+                          Berat badan lahir berada di atas **Persentil 90** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
+                        </p>
+                      </div>
+                      <div className="mt-4 bg-indigo-100/50 dark:bg-indigo-600/20 text-indigo-950 dark:text-white p-3.5 rounded-xl flex items-start gap-2.5 border border-indigo-250 dark:border-indigo-500/30">
+                        <AlertTriangle className="w-5 h-5 shrink-0 text-indigo-550 dark:text-indigo-400 mt-0.5" />
+                        <div className="text-left">
+                          <span className="font-black text-xs block uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Skrining Metabolik</span>
+                          <span className="font-semibold text-[11px] leading-relaxed block mt-0.5">Pantau gejala **Hipoglikemia Reaktif** (terutama bila ibu menderita Diabetes Melitus). Skrining trauma lahir akibat makrosomia.</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
           </div>
