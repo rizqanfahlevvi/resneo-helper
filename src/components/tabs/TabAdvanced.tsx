@@ -278,10 +278,9 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                           <text x={(getX(37) + 480) / 2} y="11" textAnchor="middle" className="text-[9px] font-black fill-slate-500 dark:fill-slate-400 tracking-widest">TERM</text>
                         </g>
 
-                        {/* Patient Dot Indicator (Dynamic Glowing Dot) */}
+                        {/* Patient Dot Indicator (Static Dot) */}
                         <g>
-                          <circle cx={dotX} cy={dotY} r="9" className="fill-indigo-500/35 dark:fill-indigo-400/35 animate-ping" />
-                          <circle cx={dotX} cy={dotY} r="5" className={`${status === 'AGA' ? 'fill-emerald-500' : 'fill-rose-500'} stroke-white dark:stroke-slate-900 stroke-[2] shadow-lg`} />
+                          <circle cx={dotX} cy={dotY} r="6.5" className={`${status === 'AGA' ? 'fill-emerald-500' : 'fill-rose-500'} stroke-white dark:stroke-slate-900 stroke-[2] shadow-lg`} />
                         </g>
                       </svg>
                     );

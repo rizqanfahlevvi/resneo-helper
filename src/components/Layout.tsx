@@ -75,13 +75,10 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           {sidebarCollapsed ? (
             <Baby className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           ) : (
-            <>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <Baby className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                ResNeo Helper
-              </h1>
-              <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-wider font-semibold ml-7">Panduan Protokol Medis</p>
-            </>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              <Baby className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              ResNeo Helper
+            </h1>
           )}
         </div>
         <nav className={`flex-1 space-y-2 mt-6 ${sidebarCollapsed ? 'px-3' : 'px-4'}`}>
@@ -147,7 +144,6 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                 <Baby className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
                 ResNeo Helper
               </h1>
-              <p className="text-[9px] text-indigo-650 dark:text-indigo-400 uppercase tracking-widest font-extrabold mt-0.5">Panduan Protokol Medis</p>
             </div>
           </div>
 
