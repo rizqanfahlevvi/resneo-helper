@@ -1,0 +1,113 @@
+import { useState, useEffect } from 'react';
+import Layout from './components/Layout';
+import TabEmergency from './components/tabs/TabEmergency';
+import TabScores from './components/tabs/TabScores';
+import TabAdvanced from './components/tabs/TabAdvanced';
+import TabHome from './components/tabs/TabHome';
+import TabReferences from './components/tabs/TabReferences';
+import TabTheory from './components/tabs/TabTheory';
+import { useStore } from './store';
+import { ThemeProvider } from './components/ThemeProvider';
+import { AlertTriangle } from 'lucide-react';
+
+export default function App() {
+  const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
+  // Shared state across tabs
+  const [gestationalAge, setGestationalAge] = useState<string>('');
+  const [birthWeight, setBirthWeight] = useState<string>('');
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'emergency':
+        return <TabEmergency 
+                 gestationalAge={gestationalAge} 
+                 setGestationalAge={setGestationalAge}
+                 birthWeight={birthWeight}
+                 setBirthWeight={setBirthWeight}
+               />;
+      case 'scores':
+        return <TabScores 
+                 gestationalAge={gestationalAge} 
+                 setGestationalAge={setGestationalAge}
+                 birthWeight={birthWeight}
+                 setBirthWeight={setBirthWeight}
+               />;
+      case 'advanced':
+        return <TabAdvanced 
+                 gestationalAge={gestationalAge} 
+                 setGestationalAge={setGestationalAge}
+                 birthWeight={birthWeight}
+                 setBirthWeight={setBirthWeight}
+               />;
+      default:
+        return null; // Handled outside Layout
+    }
+  };
+
+  const showDowneAlert = downeScore > 6 && activeTab !== 'emergency';
+
+  return (
+    <ThemeProvider>
+      {showDowneAlert && (
+        <div className="fixed top-0 left-0 w-full z-50 p-4 animate-in slide-in-from-top-4">
+          <div className="max-w-2xl mx-auto bg-red-600/90 backdrop-blur-md border border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.4)] text-white p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-8 h-8 shrink-0 animate-pulse" />
+              <div className="text-left">
+                <h3 className="font-bold uppercase tracking-wider text-sm">🚨 Peringatan Bedside</h3>
+                <p className="text-red-100 font-medium">Skor Downe &gt; 6. Pasien mengalami Gagal CPAP klinis!</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                setActiveTab('emergency');
+                setPhase('compressions');
+                addLog(elapsedTime, "Peringatan Global: Gagal CPAP (Skor Downe > 6). Diambil alih untuk Intubasi/VTP");
+              }}
+              className="bg-white text-red-700 hover:bg-neutral-100 font-bold px-4 py-2 rounded-xl whitespace-nowrap shadow-sm transition-colors text-sm uppercase tracking-wide border border-transparent hover:border-red-200"
+            >
+              AMBIL ALIH JALUR INTUBASI
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Layout activeTab={activeTab} onTabChange={setActiveTab} birthWeight={birthWeight} setBirthWeight={setBirthWeight}>
+          <div className={activeTab === 'home' ? 'block' : 'hidden'}>
+            <TabHome onNavigate={setActiveTab} />
+          </div>
+          <div className={activeTab === 'emergency' ? 'block' : 'hidden'}>
+            <TabEmergency 
+              gestationalAge={gestationalAge} 
+              setGestationalAge={setGestationalAge}
+              birthWeight={birthWeight}
+              setBirthWeight={setBirthWeight}
+            />
+          </div>
+          <div className={activeTab === 'scores' ? 'block' : 'hidden'}>
+             <TabScores 
+              gestationalAge={gestationalAge} 
+              setGestationalAge={setGestationalAge}
+              birthWeight={birthWeight}
+              setBirthWeight={setBirthWeight}
+            />
+          </div>
+          <div className={activeTab === 'advanced' ? 'block' : 'hidden'}>
+             <TabAdvanced 
+              gestationalAge={gestationalAge} 
+              setGestationalAge={setGestationalAge}
+              birthWeight={birthWeight}
+              setBirthWeight={setBirthWeight}
+            />
+          </div>
+          <div className={activeTab === 'references' ? 'block' : 'hidden'}>
+             <TabReferences />
+          </div>
+          <div className={activeTab === 'theory' ? 'block' : 'hidden'}>
+             <TabTheory />
+          </div>
+        </Layout>
+    </ThemeProvider>
+  );
+}
+
