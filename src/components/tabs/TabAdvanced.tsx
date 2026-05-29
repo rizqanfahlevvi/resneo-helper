@@ -135,72 +135,153 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
               <div className="animate-in zoom-in-95 duration-300 flex flex-col md:flex-row gap-6">
                 
                 {/* Visual SVG Chart (Left Column) */}
-                <div className="flex-1 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 p-4 rounded-2xl shadow-inner flex flex-col items-center justify-center">
+                <div className="flex-1 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-white/10 p-4 rounded-2xl shadow-inner flex flex-col items-center justify-center">
                   <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 self-start">Visualisasi Kurva Lubchenco</span>
                   
                   {(() => {
-                    const constrainedGa = Math.max(24, Math.min(42, gaNum));
-                    const constrainedBw = Math.max(0, Math.min(5000, bwNum));
+                    const constrainedGa = Math.max(24, Math.min(43, gaNum));
+                    const constrainedBw = Math.max(0, Math.min(4600, bwNum));
                     
-                    // Coordinates mapping: Width=400, Height=220
-                    // X-axis: 24w (x=40) to 42w (x=360)
-                    // Y-axis: 0g (y=200) to 5000g (y=20)
-                    const getX = (ga: number) => 40 + ((ga - 24) / 18) * 320;
-                    const getY = (bw: number) => 200 - (bw / 5000) * 180;
+                    // Coordinates mapping: Width=520, Height=510
+                    // X-axis: 24w (x=60) to 43w (x=480) -> width=420
+                    // Y-axis: 0g (y=440) to 4600g (y=50) -> height=390
+                    const getX = (ga: number) => 60 + ((ga - 24) / 19) * 420;
+                    const getY = (bw: number) => 440 - (bw / 4600) * 390;
                     
-                    const lubData: Record<number, [number, number]> = {
-                      24: [500, 800], 25: [550, 900], 26: [600, 1000], 27: [650, 1150],
-                      28: [750, 1300], 29: [850, 1500], 30: [1000, 1700], 31: [1150, 1900],
-                      32: [1300, 2150], 33: [1500, 2400], 34: [1700, 2700], 35: [1900, 2950],
-                      36: [2100, 3200], 37: [2300, 3450], 38: [2500, 3700], 39: [2700, 3950],
-                      40: [2850, 4100], 41: [2950, 4250], 42: [3000, 4350]
+                    const percentiles: Record<number, { p10: number, p25: number, p50: number, p75: number, p90: number }> = {
+                      24: { p10: 480, p25: 580, p50: 700, p75: 820, p90: 950 },
+                      25: { p10: 550, p25: 670, p50: 800, p75: 940, p90: 1100 },
+                      26: { p10: 630, p25: 770, p50: 920, p75: 1080, p90: 1270 },
+                      27: { p10: 720, p25: 880, p50: 1050, p75: 1240, p90: 1460 },
+                      28: { p10: 820, p25: 1000, p50: 1200, p75: 1420, p90: 1670 },
+                      29: { p10: 930, p25: 1140, p50: 1370, p75: 1620, p90: 1900 },
+                      30: { p10: 1060, p25: 1300, p50: 1560, p75: 1840, p90: 2150 },
+                      31: { p10: 1210, p25: 1480, p50: 1770, p75: 2080, p90: 2420 },
+                      32: { p10: 1380, p25: 1680, p50: 2000, p75: 2355, p90: 2710 },
+                      33: { p10: 1570, p25: 1910, p50: 2260, p75: 2650, p90: 3025 },
+                      34: { p10: 1780, p25: 2150, p50: 2540, p75: 2960, p90: 3350 },
+                      35: { p10: 2010, p25: 2410, p50: 2830, p75: 3275, p90: 3680 },
+                      36: { p10: 2250, p25: 2670, p50: 3115, p75: 3580, p90: 3990 },
+                      37: { p10: 2490, p25: 2920, p50: 3385, p75: 3850, p90: 4250 },
+                      38: { p10: 2700, p25: 3135, p50: 3600, p75: 4070, p90: 4440 },
+                      39: { p10: 2870, p25: 3300, p50: 3760, p75: 4210, p90: 4550 },
+                      40: { p10: 2990, p25: 3410, p50: 3875, p75: 4300, p90: 4600 },
+                      41: { p10: 3070, p25: 3480, p50: 3940, p75: 4340, p90: 4625 },
+                      42: { p10: 3110, p25: 3510, p50: 3960, p75: 4350, p90: 4635 },
+                      43: { p10: 3130, p25: 3520, p50: 3970, p75: 4360, p90: 4640 }
                     };
-
-                    // Construct AGA shaded region polygon points
-                    const p90Points = Object.keys(lubData).map(w => {
-                      const week = parseInt(w);
-                      return `${getX(week)},${getY(lubData[week][1])}`;
-                    });
-                    const p10Points = Object.keys(lubData).reverse().map(w => {
-                      const week = parseInt(w);
-                      return `${getX(week)},${getY(lubData[week][0])}`;
-                    });
+                    
+                    const weeks = Array.from({ length: 20 }, (_, i) => 24 + i);
+                    
+                    // Shaded AGA Region (P10 to P90)
+                    const p90Points = weeks.map(w => `${getX(w)},${getY(percentiles[w].p90)}`);
+                    const p10Points = [...weeks].reverse().map(w => `${getX(w)},${getY(percentiles[w].p10)}`);
                     const polygonPoints = [...p90Points, ...p10Points].join(' ');
-
+                    
+                    const p10Path = weeks.map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(w)} ${getY(percentiles[w].p10)}`).join(' ');
+                    const p25Path = weeks.map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(w)} ${getY(percentiles[w].p25)}`).join(' ');
+                    const p50Path = weeks.map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(w)} ${getY(percentiles[w].p50)}`).join(' ');
+                    const p75Path = weeks.map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(w)} ${getY(percentiles[w].p75)}`).join(' ');
+                    const p90Path = weeks.map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(w)} ${getY(percentiles[w].p90)}`).join(' ');
+                    
                     const dotX = getX(constrainedGa);
                     const dotY = getY(constrainedBw);
-
+                    
                     return (
-                      <svg width="100%" height="220" viewBox="0 0 400 220" className="text-slate-400 dark:text-slate-500 overflow-visible">
-                        {/* Grid Lines */}
-                        <line x1="40" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
-                        <line x1="40" y1="20" x2="40" y2="200" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+                      <svg width="100%" height="450" viewBox="0 0 520 510" className="text-slate-400 dark:text-slate-500 overflow-visible font-sans select-none">
+                        
+                        {/* Title inside SVG */}
+                        <text x="60" y="30" className="text-xs font-black fill-slate-800 dark:fill-slate-200 tracking-tight">WEIGHT PERCENTILES (both sexes)</text>
                         
                         {/* Shaded Normal AGA Region */}
                         <polygon points={polygonPoints} className="fill-emerald-500/10 dark:fill-emerald-500/5 stroke-none" />
                         
-                        {/* Bounding curves */}
-                        <path d={Object.keys(lubData).map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(parseInt(w))} ${getY(lubData[parseInt(w)][1])}`).join(' ')} fill="none" stroke="rgba(99, 102, 241, 0.45)" strokeWidth="1.5" strokeDasharray="3 3" />
-                        <path d={Object.keys(lubData).map((w, idx) => `${idx === 0 ? 'M' : 'L'} ${getX(parseInt(w))} ${getY(lubData[parseInt(w)][0])}`).join(' ')} fill="none" stroke="rgba(244, 63, 94, 0.45)" strokeWidth="1.5" strokeDasharray="3 3" />
+                        {/* DENSE GRID LINES */}
+                        {/* Vertical grid lines (every week from 24 to 43) */}
+                        {weeks.map(w => (
+                          <line 
+                            key={`v-${w}`} 
+                            x1={getX(w)} 
+                            y1={50} 
+                            x2={getX(w)} 
+                            y2={440} 
+                            stroke="currentColor" 
+                            strokeWidth="1" 
+                            className="stroke-slate-200 dark:stroke-slate-800"
+                          />
+                        ))}
+                        
+                        {/* Horizontal grid lines (every 200g from 200g to 4600g) */}
+                        {Array.from({ length: 23 }, (_, i) => (i + 1) * 200).map(g => (
+                          <line 
+                            key={`h-${g}`} 
+                            x1={60} 
+                            y1={getY(g)} 
+                            x2={480} 
+                            y2={getY(g)} 
+                            stroke="currentColor" 
+                            strokeWidth="1" 
+                            className="stroke-slate-200 dark:stroke-slate-800"
+                          />
+                        ))}
+                        
+                        {/* Solid Chart Frame Borders */}
+                        <rect x="60" y="50" width="420" height="390" fill="none" stroke="currentColor" strokeWidth="2" className="stroke-slate-700 dark:stroke-slate-500" />
+                        
+                        {/* Preterm / Term Dividing Line */}
+                        <line x1={getX(37)} y1={50} x2={getX(37)} y2={440} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.8" />
+                        <text x={getX(37)} y="45" textAnchor="middle" className="text-[8px] font-black fill-red-500">37 Mgg (Term)</text>
 
-                        {/* Labels & Markers */}
-                        <text x="365" y={getY(4350)} className="text-[8px] fill-indigo-400 font-bold">P90</text>
-                        <text x="365" y={getY(3000)} className="text-[8px] fill-rose-400 font-bold">P10</text>
+                        {/* 5 PERCENTILE CURVES (Solid Professional Curves) */}
+                        <path d={p10Path} fill="none" stroke="#e11d48" strokeWidth="2" className="stroke-rose-600 dark:stroke-rose-500" />
+                        <path d={p25Path} fill="none" stroke="#f59e0b" strokeWidth="1.5" className="stroke-amber-500 dark:stroke-amber-500/80" />
+                        <path d={p50Path} fill="none" stroke="#10b981" strokeWidth="2.2" className="stroke-emerald-600 dark:stroke-emerald-500" />
+                        <path d={p75Path} fill="none" stroke="#6366f1" strokeWidth="1.5" className="stroke-indigo-500 dark:stroke-indigo-500/80" />
+                        <path d={p90Path} fill="none" stroke="#8b5cf6" strokeWidth="2" className="stroke-purple-600 dark:stroke-purple-500" />
+                        
+                        {/* Percentile Boxes at the Right (matching reference style) */}
+                        {[
+                          { val: '90', g: percentiles[41].p90, bg: 'fill-purple-500 dark:fill-purple-600' },
+                          { val: '75', g: percentiles[41].p75, bg: 'fill-indigo-500 dark:fill-indigo-600' },
+                          { val: '50', g: percentiles[41].p50, bg: 'fill-emerald-500 dark:fill-emerald-600' },
+                          { val: '25', g: percentiles[41].p25, bg: 'fill-amber-500 dark:fill-amber-600' },
+                          { val: '10', g: percentiles[41].p10, bg: 'fill-rose-500 dark:fill-rose-600' }
+                        ].map(box => (
+                          <g key={`box-${box.val}`} transform={`translate(${getX(41.4) - 8}, ${getY(box.g) - 6.5})`}>
+                            <rect width="16" height="13" className={`${box.bg} stroke-white dark:stroke-slate-900`} strokeWidth="1" rx="2.5" />
+                            <text x="8" y="9.5" textAnchor="middle" className="text-[8px] font-black fill-white">{box.val}</text>
+                          </g>
+                        ))}
 
-                        {/* Y-axis markers */}
-                        <text x="12" y="25" className="text-[8px] fill-slate-400 font-bold">5000g</text>
-                        <text x="12" y="110" className="text-[8px] fill-slate-400 font-bold">2500g</text>
-                        <text x="25" y="203" className="text-[8px] fill-slate-400 font-bold">0g</text>
+                        {/* Y-axis text labels (every 200g or 400g) */}
+                        {Array.from({ length: 12 }, (_, i) => i * 400).map(g => (
+                          <text key={`yl-${g}`} x="52" y={getY(g) + 3.5} textAnchor="end" className="text-[9px] font-extrabold fill-slate-500 dark:fill-slate-400 font-mono">{g}</text>
+                        ))}
+                        {/* Axis Y Label */}
+                        <text x="18" y="245" textAnchor="middle" transform="rotate(-90, 18, 245)" className="text-[10px] font-black uppercase tracking-wider fill-slate-500 dark:fill-slate-400">Berat Badan (Gram)</text>
 
-                        {/* X-axis markers */}
-                        <text x="38" y="215" className="text-[8px] fill-slate-400 font-bold">24w</text>
-                        <text x="190" y="215" className="text-[8px] fill-slate-400 font-bold">33w</text>
-                        <text x="348" y="215" className="text-[8px] fill-slate-400 font-bold">42w</text>
+                        {/* X-axis text labels (weeks from 24 to 43) */}
+                        {weeks.map(w => (
+                          <text key={`xl-${w}`} x={getX(w)} y="457" textAnchor="middle" className="text-[9px] font-extrabold fill-slate-500 dark:fill-slate-400 font-mono">{w}</text>
+                        ))}
+                        {/* Axis X Label */}
+                        <text x="270" y="475" textAnchor="middle" className="text-[10px] font-black uppercase tracking-wider fill-slate-500 dark:fill-slate-400">Usia Kehamilan / Gestational Age (Minggu)</text>
 
-                        {/* Patient Dot Indicator */}
+                        {/* Segment Labels: PRETERM vs TERM */}
+                        <g transform="translate(0, 488)">
+                          {/* Preterm Zone bar */}
+                          <rect x="60" y="0" width={getX(37) - 60} height="16" fill="none" stroke="currentColor" strokeWidth="1" className="stroke-slate-200 dark:stroke-slate-800" rx="4" />
+                          <text x={(60 + getX(37)) / 2} y="11" textAnchor="middle" className="text-[9px] font-black fill-slate-500 dark:fill-slate-400 tracking-widest">PRETERM</text>
+                          
+                          {/* Term Zone bar */}
+                          <rect x={getX(37)} y="0" width={480 - getX(37)} height="16" fill="none" stroke="currentColor" strokeWidth="1" className="stroke-slate-200 dark:stroke-slate-800" rx="4" />
+                          <text x={(getX(37) + 480) / 2} y="11" textAnchor="middle" className="text-[9px] font-black fill-slate-500 dark:fill-slate-400 tracking-widest">TERM</text>
+                        </g>
+
+                        {/* Patient Dot Indicator (Dynamic Glowing Dot) */}
                         <g>
-                          <circle cx={dotX} cy={dotY} r="8" className="fill-indigo-500/35 animate-ping" />
-                          <circle cx={dotX} cy={dotY} r="4.5" className={`${status === 'AGA' ? 'fill-emerald-500' : 'fill-rose-500'} stroke-white stroke-2 shadow-md`} />
+                          <circle cx={dotX} cy={dotY} r="9" className="fill-indigo-500/35 dark:fill-indigo-400/35 animate-ping" />
+                          <circle cx={dotX} cy={dotY} r="5" className={`${status === 'AGA' ? 'fill-emerald-500' : 'fill-rose-500'} stroke-white dark:stroke-slate-900 stroke-[2] shadow-lg`} />
                         </g>
                       </svg>
                     );

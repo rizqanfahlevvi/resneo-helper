@@ -3,6 +3,7 @@ import { TabType } from '../types';
 import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
+import PwaInstallPrompt from './PwaInstallPrompt';
 
 interface LayoutProps {
   children: ReactNode;
@@ -77,7 +78,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             <>
               <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 <Baby className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                Resneo Helper
+                ResNeo Helper
               </h1>
               <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-wider font-semibold ml-7">Panduan Protokol Medis</p>
             </>
@@ -144,9 +145,9 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             >
               <h1 className="text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
                 <Baby className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
-                Resneo Helper
+                ResNeo Helper
               </h1>
-              <p className="text-[9px] text-indigo-650 dark:text-indigo-400 uppercase tracking-widest font-extrabold mt-0.5">Panduan Medis</p>
+              <p className="text-[9px] text-indigo-650 dark:text-indigo-400 uppercase tracking-widest font-extrabold mt-0.5">Panduan Protokol Medis</p>
             </div>
           </div>
 
@@ -484,6 +485,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
            </div>
         </div>
       )}
+      {activeTab === 'home' && <PwaInstallPrompt />}
 
     </div>
   );
