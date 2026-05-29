@@ -52,6 +52,8 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   const [sribtaMode, setSribtaMode] = useState(false);
   const [lungCondition, setLungCondition] = useState<'normal' | 'rds' | 'mas'>('normal');
   const [vtpElapsed, setVtpElapsed] = useState(0);
+  const [vtpAudioEnabled, setVtpAudioEnabled] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Phase Compressions States
   const [audioEnabled, setAudioEnabled] = useState(false);
@@ -227,6 +229,50 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     };
   }, [phase, audioEnabled]);
 
+  // VTP: Metronome Audio (Squeeze, Release, Release) - 40 breaths per minute (1.5 seconds cycle)
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (phase === 'vtp' && vtpAudioEnabled) {
+      const audioCtx = getAudioCtx();
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      let beatCount = 0;
+      const playBeep = (freq: number, duration: number) => {
+        if (!audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.value = freq;
+        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+      };
+
+      intervalId = setInterval(() => {
+        const stage = beatCount % 3;
+        if (stage === 0) {
+          // Squeeze (Pompa) - High Beep
+          playBeep(880, 0.18);
+        } else {
+          // Release (Lepas) - Low Beep
+          playBeep(440, 0.08);
+        }
+        beatCount++;
+      }, 500);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [phase, vtpAudioEnabled]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
@@ -254,10 +300,24 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     setLungCondition('normal');
     setVtpElapsed(0);
     setAudioEnabled(false);
+    setVtpAudioEnabled(false);
     setCompressionsStartTime(null);
     setCompressionsElapsed(0);
     setAdrenalinDoses([]);
     setAdrenalinElapsed(null);
+  };
+
+  const handleCopyLog = () => {
+    const formattedText = `=== RESNEO HELPER CLINICAL RESUSCITATION LOG ===
+Berat Lahir: ${birthWeight ? birthWeight + ' gram' : '-'} | Usia Gestasi: ${gestationalAge ? gestationalAge + ' minggu' : '-'}
+Total Waktu Skenario: ${formatTime(elapsedTime)}
+
+${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
+================================================`;
+
+    navigator.clipboard.writeText(formattedText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const isAllChecked = 
@@ -885,9 +945,28 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
                     </div>
                   </div>
 
-                  <div className="bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded-xl rounded-l-none mb-6">
-                    <h4 className="font-bold text-amber-500 mb-1">Ritme BVP</h4>
-                    <p className="text-amber-200 text-sm font-mono tracking-tight">"Pompa --- Lepas --- Lepas"</p>
+                  <div className="bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded-xl rounded-l-none mb-6 flex justify-between items-center gap-4">
+                    <div>
+                      <h4 className="font-bold text-amber-500 mb-1">Ritme BVP (VTP)</h4>
+                      <p className="text-amber-200 text-sm font-mono tracking-tight">"Pompa --- Lepas --- Lepas" (40x/menit)</p>
+                    </div>
+                    <button
+                      onClick={() => setVtpAudioEnabled(!vtpAudioEnabled)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0 ${
+                        vtpAudioEnabled 
+                          ? 'bg-amber-500 text-slate-950 font-black shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                          : 'bg-white dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-white border border-slate-200 dark:border-white/10'
+                      }`}
+                    >
+                      {vtpAudioEnabled ? (
+                        <>
+                          <span className="w-2.5 h-2.5 rounded-full bg-slate-950 animate-pulse" />
+                          Audio Aktif
+                        </>
+                      ) : (
+                        'Aktifkan Metronom'
+                      )}
+                    </button>
                   </div>
 
                   <button 
@@ -1409,12 +1488,25 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
                 readOnly
                 value={clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               />
-              <button 
-                onClick={handleReset}
-                className="w-full mt-6 bg-slate-200/50 dark:bg-white/10 hover:bg-white/20 text-slate-700 dark:text-white py-3 rounded-xl font-bold transition-colors text-sm border border-slate-300 dark:border-white/20"
-              >
-                Tutup & Reset
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                <button 
+                  onClick={handleCopyLog}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2 border ${
+                    copied 
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20' 
+                      : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20'
+                  }`}
+                >
+                  <Check className={`w-4 h-4 transition-transform ${copied ? 'scale-110' : 'scale-0 hidden'}`} />
+                  {copied ? 'Berhasil Disalin!' : 'Salin Log ke Clipboard'}
+                </button>
+                <button 
+                  onClick={handleReset}
+                  className="flex-1 bg-slate-200/50 dark:bg-white/10 hover:bg-white/20 text-slate-700 dark:text-white py-3 rounded-xl font-bold transition-colors text-sm border border-slate-300 dark:border-white/20"
+                >
+                  Tutup & Reset
+                </button>
+              </div>
             </div>
           </div>
         </div>
