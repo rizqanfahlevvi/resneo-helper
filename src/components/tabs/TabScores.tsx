@@ -392,128 +392,79 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     );
   };
 
-  const BallardSVGs = ({ type, val }: { type: string, val: number }) => {
-    if (type === 'squareWindow') {
-      let angle = val === -1 ? 120 : val === 0 ? 90 : val === 1 ? 60 : val === 2 ? 45 : val === 3 ? 30 : 0;
-      return (
-        <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 drop-shadow-sm">
-          <g transform={`translate(-5, 0)`}>
-            <path d="M10 40 L 40 40" strokeWidth="6" fill="currentColor" fillOpacity="0.1" />
-            <path d="M10 40 L 40 40" strokeWidth="3" />
-            <g transform={`rotate(${-angle}, 40, 40)`}>
-              <path d="M40 40 L 55 40" strokeWidth="5" />
-              <path d="M55 40 Q 60 40 60 38 L 45 38" strokeWidth="3" />
-              <path d="M58 38 Q 62 38 62 35 L 43 35" strokeWidth="2" opacity="0.6"/>
-              <path d="M58 35 Q 61 35 61 32 L 42 32" strokeWidth="2" opacity="0.6"/>
-              <path d="M55 32 Q 58 32 58 29 L 40 29" strokeWidth="2" opacity="0.6"/>
-            </g>
-          </g>
-        </svg>
-      );
-    }
-    if (type === 'armRecoil') {
-       let angle = val === 0 ? 180 : val === 1 ? 150 : val === 2 ? 120 : val === 3 ? 100 : 70;
-       return (
-         <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 drop-shadow-sm">
-            <path d="M25 15 L 25 35" strokeWidth="5" />
-            <circle cx="25" cy="15" r="4" fill="currentColor" fillOpacity="0.2" stroke="none" />
-            <g transform={`rotate(${-angle + 90}, 25, 35)`}>
-              <path d="M25 35 L 25 55" strokeWidth="4" />
-              <circle cx="25" cy="55" r="3" fill="currentColor" stroke="none" />
-            </g>
-         </svg>
-       )
-    }
-    if (type === 'popliteal') {
-       let a = val === -1 ? 180 : val === 0 ? 160 : val === 1 ? 140 : val === 2 ? 120 : val === 3 ? 100 : val === 4 ? 90 : 70;
-       return (
-         <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 drop-shadow-sm pb-1">
-            <path d="M5 45 L 25 45" strokeWidth="4" />
-            <rect x="5" y="41" width="20" height="8" rx="4" fill="currentColor" fillOpacity="0.05" stroke="none" />
-            <path d="M25 45 L 25 20" strokeWidth="5" />
-            <g transform={`rotate(${a - 180}, 25, 20)`}>
-              <path d="M25 20 L 45 20" strokeWidth="4" />
-              <path d="M45 20 L 50 15" strokeWidth="3" />
-            </g>
-         </svg>
-       )
-    }
-    if (type === 'posture') {
-      return (
-         <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 drop-shadow-sm">
-            <circle cx="30" cy="14" r="7" fill="currentColor" fillOpacity="0.1"/>
-            <rect x="23" y="21" width="14" height="20" rx="6" fill="currentColor" fillOpacity="0.05" strokeWidth="2" />
-            {val === 0 && (
-              <>
-                <path d="M23 24 Q 15 26 13 35" />
-                <path d="M37 24 Q 45 26 47 35" />
-                <path d="M25 41 Q 23 50 20 58" />
-                <path d="M35 41 Q 37 50 40 58" />
-              </>
-            )}
-            {val === 1 && (
-              <>
-                <path d="M23 24 Q 15 26 13 35" />
-                <path d="M37 24 Q 45 26 47 35" />
-                <path d="M25 41 Q 18 45 15 50" />
-                <path d="M35 41 Q 42 45 45 50" />
-              </>
-            )}
-            {val === 2 && (
-              <>
-                <path d="M23 24 Q 14 26 14 36" />
-                <path d="M37 24 Q 46 26 46 36" />
-                <path d="M25 41 Q 15 42 16 48 L 19 50" />
-                <path d="M35 41 Q 45 42 44 48 L 41 50" />
-              </>
-            )}
-            {val === 3 && (
-              <>
-                <path d="M23 24 Q 15 23 14 28 T 17 31" />
-                <path d="M37 24 Q 45 23 46 28 T 43 31" />
-                <path d="M25 41 Q 15 39 16 46 L 21 48" />
-                <path d="M35 41 Q 45 39 44 46 L 39 48" />
-              </>
-            )}
-            {val === 4 && (
-              <>
-                <path d="M23 25 Q 16 23 16 28 T 21 31" />
-                <path d="M37 25 Q 44 23 44 28 T 39 31" />
-                <path d="M26 40 Q 15 36 17 44 L 24 45" />
-                <path d="M34 40 Q 45 36 43 44 L 36 45" />
-              </>
-            )}
-         </svg>
-      )
-    }
-    if (type === 'scarf') {
-       let x = val === -1 ? 55 : val === 0 ? 45 : val === 1 ? 35 : val === 2 ? 30 : val === 3 ? 20 : 10;
-       return (
-         <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" className="opacity-80 drop-shadow-sm">
-           <circle cx="30" cy="18" r="8" fill="currentColor" fillOpacity="0.1" />
-           <rect x="22" y="28" width="16" height="22" rx="6" fill="currentColor" fillOpacity="0.05" strokeWidth="2" />
-           <path d="M30 28 L30 50" strokeDasharray="3 3" />
-           <path d="M18 30 C 22 36, 28 36, 42 30" strokeWidth="4" />
-           <path d={`M42 30 L ${x} 40`} strokeWidth="4" />
-           <circle cx={x} cy="40" r="3" fill="currentColor" stroke="none" />
-         </svg>
-       )
-    }
-    if (type === 'heelEar') {
-       let a = val === -1 ? 90 : val === 0 ? 80 : val === 1 ? 60 : val === 2 ? 45 : val === 3 ? 20 : 0;
-       return (
-         <svg width="40" height="40" viewBox="0 0 60 60" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" className="opacity-80 drop-shadow-sm pr-1">
-           <circle cx="20" cy="15" r="7" fill="currentColor" fillOpacity="0.1"/>
-           <rect x="15" y="24" width="10" height="20" rx="4" fill="currentColor" fillOpacity="0.05" strokeWidth="2"/>
-           <g transform={`rotate(${-a - 10}, 20, 42)`}>
-             <path d="M20 42 L 50 42" strokeWidth="4" />
-             <path d="M50 42 L 53 37" strokeWidth="3" />
-           </g>
-         </svg>
-       )
-    }
-    return null;
-  }
+  const BALLARD_IMG_PREFIX: Record<string, string> = {
+    posture: 'ballard_post',
+    squareWindow: 'ballard_square',
+    armRecoil: 'ballard_armrecoil',
+    popliteal: 'ballard_poplitealangle',
+    scarf: 'ballard_scarfsign',
+    heelEar: 'ballard_heeltoear',
+  };
+
+  const BallardImg = ({ type, val }: { type: string; val: number }) => {
+    const prefix = BALLARD_IMG_PREFIX[type];
+    if (!prefix) return null;
+    return (
+      <img
+        src={`/ballard/${prefix}_${val}.png`}
+        alt={`${type} skor ${val}`}
+        className="w-12 h-12 object-contain opacity-90 mx-auto dark:brightness-90"
+        loading="lazy"
+      />
+    );
+  };
+
+  const ballardPhysicalDesc: Record<string, Record<number, string>> = {
+    skin: {
+      '-1': 'Lengket, rapuh, transparan',
+      0: 'Gelatin, merah, transparan',
+      1: 'Halus, merah muda, vena terlihat',
+      2: 'Mengelupas ± ruam, vena sedikit',
+      3: 'Area pucat, retak, vena jarang',
+      4: 'Kulit seperti perkamen, retak dalam',
+      5: 'Kulit kasar, keriput, retak dalam',
+    },
+    lanugo: {
+      '-1': 'Tidak ada',
+      0: 'Jarang',
+      1: 'Banyak',
+      2: 'Menipis',
+      3: 'Gundul sebagian',
+      4: 'Hampir tidak ada',
+    },
+    plantar: {
+      '-1': 'Tumit–jari 40–50 mm: -1',
+      0: 'Tumit–jari <40 mm: -2',
+      1: 'Garis samar-samar',
+      2: 'Garis anterior saja',
+      3: 'Lipatan anterior 2/3',
+      4: 'Lipatan seluruh telapak',
+    },
+    breast: {
+      '-1': 'Tidak tampak',
+      0: 'Hampir tak tampak',
+      1: 'Areola rata, tanpa tonjolan',
+      2: 'Areola timbul, tonjolan 1–2 mm',
+      3: 'Areola penuh, tonjolan 3–4 mm',
+      4: 'Payudara penuh, tonjolan 5–10 mm',
+    },
+    eyeEar: {
+      '-1': 'Kelopak menyatu longgar',
+      0: 'Kelopak menyatu kuat',
+      1: 'Daun telinga datar, tetap terlipat',
+      2: 'Daun telinga melengkung sedikit, rekoil lambat',
+      3: 'Daun telinga dibentuk, rekoil cepat',
+      4: 'Kartilago tebal, telinga kaku',
+    },
+    genitals: {
+      '-1': 'Skrotum datar / Klitoris menonjol, labia datar',
+      0: 'Skrotum kosong, rugae samar / Klitoris menonjol, labia minora kecil',
+      1: 'Testis di kanal atas, rugae jarang / Labia minora membesar',
+      2: 'Testis turun, rugae sedikit / Klitoris & labia minora sama menonjol',
+      3: 'Testis turun, rugae baik / Labia mayora & minora sama menonjol',
+      4: 'Testis menggantung, rugae dalam / Labia mayora menutupi klitoris',
+    },
+  };
 
   const apgarDetails = [
     { key: 'appearance', name: 'Appearance (Warna Kulit)', opts: [{val: 0, desc: 'Biru/Pucat'}, {val: 1, desc: 'Tubuh pink, ekstremitas biru'}, {val: 2, desc: 'Seluruh tubuh pink normal'}] },
@@ -966,7 +917,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                             val={val}
                             current={ballardN[param.id] ?? null}
                             onClick={() => setBallardN({...ballardN, [param.id]: val})}
-                            svg={<BallardSVGs type={param.id} val={val} />}
+                            svg={<BallardImg type={param.id} val={val} />}
                             activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30"
                           />
                         ))}
@@ -978,7 +929,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
 
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Fisik</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     { id: 'skin', label: 'Kulit (Skin)', min: -1, max: 5 },
                     { id: 'lanugo', label: 'Lanugo (Rambut Halus)', min: -1, max: 4 },
@@ -988,11 +939,26 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                     { id: 'genitals', label: 'Alat Kelamin (Genitalia)', min: -1, max: 4 }
                   ].map(param => (
                     <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-2">{param.label}</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
-                          <CompactScoreOption key={val} val={val} current={ballardP[param.id] ?? null} onClick={() => setBallardP({...ballardP, [param.id]: val})} activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30" />
-                        ))}
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-2 uppercase tracking-wider">{param.label}</span>
+                      <div className="flex flex-col gap-1.5">
+                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => {
+                          const isActive = ballardP[param.id] === val;
+                          const desc = ballardPhysicalDesc[param.id]?.[val] ?? '';
+                          return (
+                            <button
+                              key={val}
+                              onClick={() => setBallardP({...ballardP, [param.id]: val})}
+                              className={`w-full text-left px-3 py-2 rounded-xl border text-xs transition-all active:scale-95
+                                ${isActive
+                                  ? 'bg-emerald-500 text-white border-emerald-400 shadow-sm font-bold'
+                                  : 'bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                                }`}
+                            >
+                              <span className="font-extrabold mr-1.5">{val}</span>
+                              <span className="opacity-90">{desc}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
