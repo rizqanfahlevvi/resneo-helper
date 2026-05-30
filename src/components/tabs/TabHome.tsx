@@ -1,18 +1,19 @@
-import { 
-  Baby, 
-  Activity, 
-  ClipboardList, 
-  Stethoscope, 
-  ChevronRight, 
-  ArrowRight, 
-  Syringe, 
-  Heart, 
-  Wind, 
-  AlertTriangle, 
-  BookOpen, 
-  Layers 
+import {
+  Baby,
+  Activity,
+  ClipboardList,
+  Stethoscope,
+  ChevronRight,
+  ArrowRight,
+  Syringe,
+  Heart,
+  Wind,
+  AlertTriangle,
+  BookOpen,
+  Layers
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced') => void;
@@ -20,6 +21,12 @@ interface TabHomeProps {
 
 export default function TabHome({ onNavigate }: TabHomeProps) {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(1); // 1 = forward, -1 = backward
+
+  const goToSlide = (idx: number) => {
+    setSlideDirection(idx > activeSlide ? 1 : -1);
+    setActiveSlide(idx);
+  };
 
   // Carousel slider data for left hero card
   const slides = [
@@ -67,18 +74,20 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      // Next slide
-      setActiveSlide((prev) => (prev + 1) % slides.length);
+      const next = (activeSlide + 1) % slides.length;
+      goToSlide(next);
     } else if (isRightSwipe) {
-      // Prev slide
-      setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+      const prev = (activeSlide - 1 + slides.length) % slides.length;
+      goToSlide(prev);
     }
   };
 
   // Auto-switch carousel slides every 5 seconds (resetting timer on manual navigation)
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % slides.length);
+      const next = (activeSlide + 1) % slides.length;
+      setSlideDirection(1);
+      setActiveSlide(next);
     }, 5000);
 
     return () => clearInterval(timer);
@@ -141,15 +150,18 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
 
       {/* Core Hero and Quick Access Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        
-        {/* Left Column: Intersecting Interactive Hero Slider Container */}
+
+        {/* Left Column: Animated Carousel Hero */}
         <div className="lg:col-span-1 min-h-[220px] md:min-h-[260px] flex flex-col">
-          <div 
+          <motion.div
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={() => handleSlideAction(slides[activeSlide])}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`flex-1 rounded-2xl p-6 ${slides[activeSlide].bgClass} shadow-lg relative overflow-hidden flex flex-col justify-between group transition-all duration-500 cursor-pointer hover:scale-[1.01] hover:shadow-xl`}
+            className={`flex-1 rounded-2xl p-6 ${slides[activeSlide].bgClass} shadow-lg relative overflow-hidden flex flex-col justify-between group cursor-pointer hover:shadow-xl transition-shadow duration-300`}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -161,149 +173,198 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
             aria-label={`${slides[activeSlide].title}: ${slides[activeSlide].subtitle}`}
           >
             {/* Blurry glow */}
-            <div className="absolute top-0 right-0 -translate-y-6 translate-x-6 w-32 h-32 bg-white/10 blur-xl rounded-full" />
-            
-            <div>
-              <div className="flex justify-between items-start">
-                <span className="px-2.5 py-0.5 rounded bg-white/20 text-[9px] font-black tracking-widest uppercase">
-                  {slides[activeSlide].badge}
-                </span>
-                {/* Dynamically instantiate class icon */}
-                {(() => {
-                  const IconComp = slides[activeSlide].icon;
-                  return <IconComp className="w-8 h-8 opacity-25 group-hover:scale-110 transition-transform duration-300" />;
-                })()}
-              </div>
+            <div className="absolute top-0 right-0 -translate-y-6 translate-x-6 w-32 h-32 bg-white/10 blur-xl rounded-full pointer-events-none" />
 
-              <div className="mt-4 space-y-1">
-                <h2 className="text-3xl font-black tracking-tight leading-none">
-                  {slides[activeSlide].title}
-                </h2>
-                <h3 className="text-lg font-bold opacity-90 tracking-tight leading-none">
-                  {slides[activeSlide].subtitle}
-                </h3>
-                <p className="text-xs opacity-75 leading-relaxed pt-2 line-clamp-3">
-                  {slides[activeSlide].desc}
-                </p>
-              </div>
-            </div>
+            {/* Saweria sparkle effect */}
+            {activeSlide === 1 && (
+              <>
+                <motion.div
+                  animate={{ scale: [1, 1.6, 1], opacity: [0.15, 0.35, 0.15] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute bottom-16 right-6 w-20 h-20 bg-white/20 rounded-full blur-xl pointer-events-none"
+                />
+                <motion.div
+                  animate={{ y: [0, -8, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                  className="absolute top-4 left-1/2 -translate-x-1/2 text-white/40 text-lg pointer-events-none select-none"
+                >
+                  ✦
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, -6, 0], opacity: [0.3, 0.8, 0.3] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 0.9 }}
+                  className="absolute top-8 right-10 text-white/30 text-xs pointer-events-none select-none"
+                >
+                  ✦
+                </motion.div>
+              </>
+            )}
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSlide}
+                initial={{ x: slideDirection * 60, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: slideDirection * -60, opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <div className="flex justify-between items-start">
+                  <span className="px-2.5 py-0.5 rounded bg-white/20 text-[9px] font-black tracking-widest uppercase">
+                    {slides[activeSlide].badge}
+                  </span>
+                  {(() => {
+                    const IconComp = slides[activeSlide].icon;
+                    return (
+                      <motion.div
+                        animate={activeSlide === 1 ? { rotate: [0, 10, -10, 0] } : {}}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        <IconComp className="w-8 h-8 opacity-25 group-hover:opacity-40 transition-opacity duration-300" />
+                      </motion.div>
+                    );
+                  })()}
+                </div>
+
+                <div className="mt-4 space-y-1">
+                  <h2 className="text-3xl font-black tracking-tight leading-none">
+                    {slides[activeSlide].title}
+                  </h2>
+                  <h3 className="text-lg font-bold opacity-90 tracking-tight leading-none">
+                    {slides[activeSlide].subtitle}
+                  </h3>
+                  <p className="text-xs opacity-75 leading-relaxed pt-2 line-clamp-3">
+                    {slides[activeSlide].desc}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             <div className="mt-4 flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
               {slides[activeSlide].tab === 'link' ? (
-                <a
+                <motion.a
                   href="https://saweria.co/rizqanfahlevvi"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-white text-slate-900 hover:bg-slate-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5 text-center decoration-none"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="w-full bg-white text-slate-900 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5 text-center decoration-none"
                 >
                   {slides[activeSlide].btnLabel}
                   <ArrowRight className="w-3.5 h-3.5" />
-                </a>
+                </motion.a>
               ) : (
-                <button
+                <motion.button
                   onClick={() => handleSlideAction(slides[activeSlide])}
-                  className="w-full bg-white text-slate-900 hover:bg-slate-100 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-1.5"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="w-full bg-white text-slate-900 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5"
                 >
                   {slides[activeSlide].btnLabel}
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </motion.button>
               )}
 
               {/* Slider Dots */}
               <div className="flex justify-center gap-1.5 self-center pt-1.5">
                 {slides.map((_, idx) => (
-                  <button
+                  <motion.button
                     key={idx}
-                    onClick={() => setActiveSlide(idx)}
-                    className={`w-2 h-2 rounded-full transition-all ${idx === activeSlide ? 'bg-white w-4' : 'bg-white/40'}`}
+                    onClick={() => goToSlide(idx)}
+                    animate={{ width: idx === activeSlide ? 16 : 8, opacity: idx === activeSlide ? 1 : 0.4 }}
+                    transition={{ duration: 0.3 }}
+                    className="h-2 rounded-full bg-white"
+                    style={{ width: idx === activeSlide ? 16 : 8 }}
                   />
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Column: 2x2 Grid for Specific Phase Shortcuts */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          
-          <div 
-            onClick={() => onNavigate('emergency')}
-            className="group cursor-pointer bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800/90 p-5 rounded-3xl border border-slate-200/60 dark:border-white/5 transition-all shadow-lg shadow-slate-200/40 dark:shadow-none flex items-start gap-4 hover:border-rose-500/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50"
-          >
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-orange-100 dark:bg-orange-500/10 text-orange-650 dark:text-orange-400 flex items-center justify-center font-black">
-              F1
-            </div>
-            <div className="space-y-1 my-auto">
-              <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                Langkah Awal Neonatus
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all text-orange-555" />
-              </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Hangatkan, atur posisi, bersihkan jalan napas, keringkan, dan stimulasi taktil.
-              </p>
-            </div>
-          </div>
 
-          <div
-            onClick={() => onNavigate('emergency')}
-            className="group cursor-pointer bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800/90 p-5 rounded-3xl border border-slate-200/60 dark:border-white/5 transition-all shadow-lg shadow-slate-200/40 dark:shadow-none flex items-start gap-4 hover:border-blue-500/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50"
-          >
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-105 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black">
-              VTP
-            </div>
-            <div className="space-y-1 my-auto">
-              <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                Ventilasi Tekanan Positif (VTP)
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all text-blue-555" />
-              </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Siklus tiup-dua-tiga ventilasi dengan masker balon mengembang sendiri selama 30 detik.
-              </p>
-            </div>
-          </div>
-
-          <div
-            onClick={() => onNavigate('scores')}
-            className="group cursor-pointer bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800/90 p-5 rounded-3xl border border-slate-200/60 dark:border-white/5 transition-all shadow-lg shadow-slate-200/40 dark:shadow-none flex items-start gap-4 hover:border-emerald-500/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50"
-          >
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <ClipboardList className="w-5 h-5" />
-            </div>
-            <div className="space-y-1 my-auto">
-              <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                Kalkulasi Dosis Darurat
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all text-emerald-555" />
-              </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Ketuk langsung ukuran ETT, kedalaman pipa, dosis epinefrin IV/ETT, dan salin normal.
-              </p>
-            </div>
-          </div>
-
-          <div
-            onClick={() => onNavigate('advanced')}
-            className="group cursor-pointer bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800/90 p-5 rounded-3xl border border-slate-200/60 dark:border-white/5 transition-all shadow-lg shadow-slate-200/40 dark:shadow-none flex items-start gap-4 hover:border-cyan-500/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50"
-          >
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-cyan-100 dark:bg-cyan-500/10 text-cyan-650 dark:text-cyan-400 flex items-center justify-center font-bold">
-              <Stethoscope className="w-5 h-5" />
-            </div>
-            <div className="space-y-1 my-auto">
-              <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1">
-                Stabilisasi NICU &amp; STABLE
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all text-cyan-555" />
-              </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Infus glukosa kontinu (GIR), inotropik vasoaktif, termoregulasi, dan evaluasi hasil Laborat.
-              </p>
-            </div>
-          </div>
+          {[
+            {
+              label: 'F1',
+              labelClass: 'bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400',
+              hoverBorder: 'hover:border-rose-500/30',
+              shadowColor: 'hover:shadow-rose-100/50 dark:hover:shadow-none',
+              title: 'Langkah Awal Neonatus',
+              chevronClass: 'text-orange-500',
+              desc: 'Hangatkan, atur posisi, bersihkan jalan napas, keringkan, dan stimulasi taktil.',
+              tab: 'emergency' as const,
+              delay: 0,
+            },
+            {
+              label: 'VTP',
+              labelClass: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+              hoverBorder: 'hover:border-blue-500/30',
+              shadowColor: 'hover:shadow-blue-100/50 dark:hover:shadow-none',
+              title: 'Ventilasi Tekanan Positif (VTP)',
+              chevronClass: 'text-blue-500',
+              desc: 'Siklus tiup-dua-tiga ventilasi dengan masker balon mengembang sendiri selama 30 detik.',
+              tab: 'emergency' as const,
+              delay: 0.05,
+            },
+            {
+              icon: ClipboardList,
+              iconClass: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+              hoverBorder: 'hover:border-emerald-500/30',
+              shadowColor: 'hover:shadow-emerald-100/50 dark:hover:shadow-none',
+              title: 'Kalkulasi Dosis Darurat',
+              chevronClass: 'text-emerald-500',
+              desc: 'Ketuk langsung ukuran ETT, kedalaman pipa, dosis epinefrin IV/ETT, dan salin normal.',
+              tab: 'scores' as const,
+              delay: 0.1,
+            },
+            {
+              icon: Stethoscope,
+              iconClass: 'bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
+              hoverBorder: 'hover:border-cyan-500/30',
+              shadowColor: 'hover:shadow-cyan-100/50 dark:hover:shadow-none',
+              title: 'Stabilisasi NICU & STABLE',
+              chevronClass: 'text-cyan-500',
+              desc: 'Infus glukosa kontinu (GIR), inotropik vasoaktif, termoregulasi, dan evaluasi hasil Laborat.',
+              tab: 'advanced' as const,
+              delay: 0.15,
+            },
+          ].map((card, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: card.delay, duration: 0.4, ease: 'easeOut' }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              onClick={() => onNavigate(card.tab)}
+              className={`group cursor-pointer bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800/90 p-5 rounded-3xl border border-slate-200/60 dark:border-white/5 transition-colors shadow-lg shadow-slate-200/40 dark:shadow-none flex items-start gap-4 ${card.hoverBorder} hover:shadow-xl ${card.shadowColor}`}
+            >
+              <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black ${card.icon ? card.iconClass : card.labelClass}`}>
+                {card.icon ? <card.icon className="w-5 h-5" /> : card.label}
+              </div>
+              <div className="space-y-1 my-auto">
+                <h4 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  {card.title}
+                  <ChevronRight className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all ${card.chevronClass}`} />
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  {card.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
 
         </div>
 
       </div>
 
       {/* Two Columns Section: Guidelines Workflow vs Drug Index Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.5, ease: 'easeOut' }}
+        className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8"
+      >
         
         {/* Left Column: Neonatal Resuscitation Step Chronology Checklist */}
         <div className="lg:col-span-7 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between">
@@ -445,10 +506,14 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
           </div>
         </div>
 
-      </div>
+      </motion.div>
 
       {/* Pustaka Alat & Skor Segment */}
-      <div className="mt-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-white/5 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.5, ease: 'easeOut' }}
+        className="mt-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-white/5 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none">
         <div className="flex justify-between items-center pb-4 mb-5 border-b border-slate-100 dark:border-slate-805">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -468,41 +533,29 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-none space-y-2 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-500/30 hover:-translate-y-1 transition-all group">
-            <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 rounded">APGAR SCORE</span>
-            <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Evaluasi Menit ke-1, 5, 10</h5>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
-              Menilai Appearance (warna kulit), Pulse (LDJ), Grimace (refleks), Activity (tonus), dan Respiration (napas).
-            </p>
-          </div>
 
-          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-none space-y-2 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/30 hover:-translate-y-1 transition-all group">
-            <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 rounded">DOWNE SCORE</span>
-            <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Penilaian Distres Pernafasan</h5>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
-              Mengukur frekuensi napas, retraksi dada, sianosis, udara masuk paru-paru, dan rintihan (grunting).
-            </p>
-          </div>
-
-          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-none space-y-2 hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-500/30 hover:-translate-y-1 transition-all group">
-            <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded">BALLARD SCORE</span>
-            <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Estimasi Kematangan Gestasi</h5>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
-              Estimasi usia kehamilan bayi baru lahir menggunakan penilaian fisik dan neurologis (neuromuscular).
-            </p>
-          </div>
-
-          <div className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-none space-y-2 hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-500/30 hover:-translate-y-1 transition-all group">
-            <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-amber-100 dark:bg-amber-950 text-amber-970 dark:text-amber-400 rounded">SILVERMAN-ANDERSON</span>
-            <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Distres Napas Prematur</h5>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
-              Skor khusus mengevaluasi keparahan sesak napas pada bayi lahir kurang bulan atau prematur.
-            </p>
-          </div>
+          {[
+            { badge: 'APGAR SCORE', badgeClass: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400', borderHover: 'hover:border-indigo-500/30', shadowHover: 'hover:shadow-indigo-500/10', title: 'Evaluasi Menit ke-1, 5, 10', desc: 'Menilai Appearance (warna kulit), Pulse (LDJ), Grimace (refleks), Activity (tonus), dan Respiration (napas).', delay: 0.35 },
+            { badge: 'DOWNE SCORE', badgeClass: 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400', borderHover: 'hover:border-blue-500/30', shadowHover: 'hover:shadow-blue-500/10', title: 'Penilaian Distres Pernafasan', desc: 'Mengukur frekuensi napas, retraksi dada, sianosis, udara masuk paru-paru, dan rintihan (grunting).', delay: 0.4 },
+            { badge: 'BALLARD SCORE', badgeClass: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400', borderHover: 'hover:border-emerald-500/30', shadowHover: 'hover:shadow-emerald-500/10', title: 'Estimasi Kematangan Gestasi', desc: 'Estimasi usia kehamilan bayi baru lahir menggunakan penilaian fisik dan neurologis (neuromuscular).', delay: 0.45 },
+            { badge: 'SILVERMAN-ANDERSON', badgeClass: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400', borderHover: 'hover:border-amber-500/30', shadowHover: 'hover:shadow-amber-500/10', title: 'Distres Napas Prematur', desc: 'Skor khusus mengevaluasi keparahan sesak napas pada bayi lahir kurang bulan atau prematur.', delay: 0.5 },
+          ].map((sc, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: sc.delay, duration: 0.4, ease: 'easeOut' }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className={`bg-white/70 dark:bg-slate-900/40 backdrop-blur-md p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-md shadow-slate-200/40 dark:shadow-none space-y-2 hover:shadow-xl ${sc.shadowHover} ${sc.borderHover} transition-colors cursor-default`}
+            >
+              <span className={`px-2 py-0.5 text-[8px] font-black uppercase rounded ${sc.badgeClass}`}>{sc.badge}</span>
+              <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-100">{sc.title}</h5>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">{sc.desc}</p>
+            </motion.div>
+          ))}
 
         </div>
-      </div>
+      </motion.div>
 
     </div>
   );
