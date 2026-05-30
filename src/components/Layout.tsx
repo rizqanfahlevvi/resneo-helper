@@ -120,7 +120,24 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             </h1>
           )}
         </div>
-        <nav className={`flex-1 space-y-2 mt-6 ${sidebarCollapsed ? 'px-3' : 'px-4'}`}>
+        {/* Search Button in Sidebar */}
+        <div className={`mt-4 ${sidebarCollapsed ? 'px-3' : 'px-4'}`}>
+          <button
+            onClick={() => setSearchOpen(true)}
+            title="Cari (Ctrl+K)"
+            className={`w-full flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all text-xs font-semibold shadow-sm ${sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-2.5'}`}
+          >
+            <Search className="w-4 h-4 shrink-0" />
+            {!sidebarCollapsed && (
+              <>
+                <span className="flex-1 text-left">Cari...</span>
+                <kbd className="text-[9px] bg-white dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
+              </>
+            )}
+          </button>
+        </div>
+
+        <nav className={`flex-1 space-y-2 mt-4 ${sidebarCollapsed ? 'px-3' : 'px-4'}`}>
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -226,15 +243,6 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
           {/* Right Section: Live Digital Clock & Theme Toggle Button */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-medium shadow-sm"
-              title="Cari (Ctrl+K)"
-            >
-              <Search className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Cari</span>
-              <kbd className="hidden md:block text-[10px] bg-white dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
-            </button>
             {/* Real-time Ticking Clock */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold font-mono shadow-sm">
               <svg className="w-3.5 h-3.5 text-indigo-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -370,7 +378,13 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       {moreMenuOpen && (
         <div className="fixed bottom-[94px] left-4 right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-3xl p-5 z-50 flex flex-col gap-3 shadow-2xl animate-in slide-in-from-bottom-5 duration-300 md:hidden">
           <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase block mb-1">Menu Lainnya</span>
-          <button 
+          <button
+            onClick={() => { setSearchOpen(true); setMoreMenuOpen(false); }}
+            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
+          >
+            <Search className="w-5 h-5 text-indigo-500" /> Cari di Aplikasi
+          </button>
+          <button
             onClick={() => {
               onTabChange('theory');
               setMoreMenuOpen(false);

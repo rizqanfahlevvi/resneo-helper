@@ -38,21 +38,28 @@ export default function App() {
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
     const path = TAB_PATHS[tab];
-    window.location.hash = path === '/' ? '' : path;
+    const hash = path === '/' ? '' : path;
+    history.pushState({ tab }, '', '#' + hash);
     setActiveTab(tab);
   };
 
   useEffect(() => {
-    // On mount: set tab from URL
+    // On mount: replace current history entry so back doesn't go to non-hash URL
     const tab = getTabFromHash();
+    history.replaceState({ tab }, '', window.location.href);
     if (tab !== activeTab) setActiveTab(tab);
 
-    const onHashChange = () => {
-      const tab = getTabFromHash();
-      setActiveTab(tab);
+    const onPopState = (e: PopStateEvent) => {
+      const currentTab = getTabFromHash();
+      setActiveTab(currentTab);
+      // If we've popped to the very first entry and it's the app root, push a new entry
+      // to prevent the next back press from exiting the SPA
+      if (!e.state) {
+        history.replaceState({ tab: currentTab }, '', window.location.href);
+      }
     };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   const renderTab = () => {
