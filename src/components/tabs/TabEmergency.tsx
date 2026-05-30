@@ -1842,9 +1842,12 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     </button>
                   </div>
 
+                  {/* Antropometri di FAB mobile */}
+                  <AnthropoPanel setBirthWeight={setBirthWeight} compact />
+
                   <hr className="border-slate-200 dark:border-slate-700 my-1" />
-                  
-                  <button 
+
+                  <button
                     onClick={() => {
                       addLog("FAB: Kembali ke Langkah Awal");
                       setPhase('initial_steps');
