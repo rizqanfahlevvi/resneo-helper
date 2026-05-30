@@ -1,9 +1,10 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
+import GlobalSearch from './GlobalSearch';
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,6 +30,16 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Ctrl/Cmd+K shortcut
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   
   const [clockStr, setClockStr] = useState('');
 
@@ -157,14 +168,14 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           
           {/* Mobile View Header Content with Hamburger Menu */}
           <div className="md:hidden flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setMobileSidebarOpen(true)}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all shadow-sm"
               title="Buka Menu Sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div 
+            <div
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => onTabChange('home' as any)}
             >
@@ -215,6 +226,15 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
           {/* Right Section: Live Digital Clock & Theme Toggle Button */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-medium shadow-sm"
+              title="Cari (Ctrl+K)"
+            >
+              <Search className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs">Cari</span>
+              <kbd className="hidden md:block text-[10px] bg-white dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
+            </button>
             {/* Real-time Ticking Clock */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold font-mono shadow-sm">
               <svg className="w-3.5 h-3.5 text-indigo-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -231,7 +251,9 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             </button>
           </div>
         </header>
-        
+
+        <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} onNavigate={(tab) => { onTabChange(tab); setSearchOpen(false); }} />
+
         <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full h-full">
           {children}
         </div>
