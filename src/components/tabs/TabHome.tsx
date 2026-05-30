@@ -11,19 +11,33 @@ import {
   AlertTriangle,
   BookOpen,
   Layers,
-  Search
+  Search,
+  X
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { SEARCH_INDEX } from '../GlobalSearch';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
-  onSearch?: () => void;
+  onSearch?: () => void; // kept for Ctrl+K compatibility
 }
 
 export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [slideDirection, setSlideDirection] = useState(1); // 1 = forward, -1 = backward
+  const [slideDirection, setSlideDirection] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return SEARCH_INDEX.filter(item =>
+      item.title.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.keywords.some(k => k.includes(q))
+    ).slice(0, 8);
+  }, [searchQuery]);
 
   const goToSlide = (idx: number) => {
     setSlideDirection(idx > activeSlide ? 1 : -1);
@@ -138,17 +152,53 @@ export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
         </div>
       </div>
 
-      {/* Search Bar — visible on all screen sizes in Beranda */}
-      {onSearch && (
-        <button
-          onClick={onSearch}
-          className="w-full mt-5 flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all text-sm font-medium"
-        >
+      {/* Inline Search Bar */}
+      <div className="mt-5 relative">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm focus-within:border-indigo-400 dark:focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/40 transition-all">
           <Search className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" />
-          <span className="flex-1 text-left text-slate-400 dark:text-slate-500">Cari algoritma, skor, obat...</span>
-          <kbd className="hidden sm:block text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
-        </button>
-      )}
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Cari algoritma, skor, obat..."
+            className="flex-1 bg-transparent text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Inline Results */}
+        {searchResults.length > 0 && (
+          <div className="mt-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden">
+            {searchResults.map((item, i) => (
+              <button
+                key={item.id}
+                onClick={() => { onNavigate(item.tab as any); setSearchQuery(''); }}
+                className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${i !== 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''}`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{item.title}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${item.badgeColor}`}>{item.badge}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{item.description}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 mt-0.5 shrink-0" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+          <div className="mt-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-5 text-center text-sm text-slate-400 dark:text-slate-500">
+            Tidak ditemukan hasil untuk "<span className="font-semibold">{searchQuery}</span>"
+          </div>
+        )}
+      </div>
 
       {/* Segment Header Bar */}
       <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-white/5 p-3 rounded-xl mt-4 mb-6 flex items-center justify-between shadow-sm">

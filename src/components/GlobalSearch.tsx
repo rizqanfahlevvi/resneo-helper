@@ -12,7 +12,7 @@ interface SearchItem {
   action?: string; // e.g. score view id
 }
 
-const SEARCH_INDEX: SearchItem[] = [
+export const SEARCH_INDEX: SearchItem[] = [
   // === EMERGENCY TAB ===
   { id: 'e-prep', title: 'Fase 0: Persiapan Resusitasi', description: 'Checklist tim, alat, estimasi BB, usia gestasi sebelum bayi lahir', keywords: ['persiapan','checklist','tim','alat','fase 0','briefing','nrp'], tab: 'emergency', badge: 'Resusitasi', badgeColor: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300' },
   { id: 'e-init', title: 'Langkah Awal (Golden Minute)', description: 'Skrining cepat, stimulasi, hangatkan, posisi, isap sekret', keywords: ['golden minute','initial steps','stimulasi','isap','suction','60 detik'], tab: 'emergency', badge: 'Resusitasi', badgeColor: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300' },
