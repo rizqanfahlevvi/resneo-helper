@@ -34,6 +34,7 @@ export default function App() {
   // Shared state across tabs
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
@@ -118,9 +119,9 @@ export default function App() {
         </div>
       )}
 
-      <Layout activeTab={activeTab} onTabChange={navigateTo} birthWeight={birthWeight} setBirthWeight={setBirthWeight}>
+      <Layout activeTab={activeTab} onTabChange={navigateTo} birthWeight={birthWeight} setBirthWeight={setBirthWeight} searchOpen={searchOpen} onSearchOpen={setSearchOpen}>
           <div className={activeTab === 'home' ? 'block' : 'hidden'}>
-            <TabHome onNavigate={navigateTo} />
+            <TabHome onNavigate={navigateTo} onSearch={() => setSearchOpen(true)} />
           </div>
           <div className={activeTab === 'emergency' ? 'block' : 'hidden'}>
             <TabEmergency 

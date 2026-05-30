@@ -12,6 +12,8 @@ interface LayoutProps {
   onTabChange: (tab: TabType) => void;
   birthWeight?: string;
   setBirthWeight?: (weight: string) => void;
+  searchOpen?: boolean;
+  onSearchOpen?: (open: boolean) => void;
 }
 
 const TABS = [
@@ -23,14 +25,16 @@ const TABS = [
   { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen },
 ] as const;
 
-export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight }: LayoutProps) {
+export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight, searchOpen: searchOpenProp, onSearchOpen }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [showAdrenalinPopup, setShowAdrenalinPopup] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchOpenLocal, setSearchOpenLocal] = useState(false);
+  const searchOpen = searchOpenProp ?? searchOpenLocal;
+  const setSearchOpen = (v: boolean) => { setSearchOpenLocal(v); onSearchOpen?.(v); };
 
   // Ctrl/Cmd+K shortcut
   useEffect(() => {

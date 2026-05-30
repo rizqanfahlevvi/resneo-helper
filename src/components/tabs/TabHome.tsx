@@ -10,16 +10,18 @@ import {
   Wind,
   AlertTriangle,
   BookOpen,
-  Layers
+  Layers,
+  Search
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
+  onSearch?: () => void;
 }
 
-export default function TabHome({ onNavigate }: TabHomeProps) {
+export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState(1); // 1 = forward, -1 = backward
 
@@ -135,6 +137,18 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
           </div>
         </div>
       </div>
+
+      {/* Search Bar — visible on all screen sizes in Beranda */}
+      {onSearch && (
+        <button
+          onClick={onSearch}
+          className="w-full mt-5 flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all text-sm font-medium"
+        >
+          <Search className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" />
+          <span className="flex-1 text-left text-slate-400 dark:text-slate-500">Cari algoritma, skor, obat...</span>
+          <kbd className="hidden sm:block text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
+        </button>
+      )}
 
       {/* Segment Header Bar */}
       <div className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-white/5 p-3 rounded-xl mt-4 mb-6 flex items-center justify-between shadow-sm">
