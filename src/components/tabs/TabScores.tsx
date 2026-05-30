@@ -579,7 +579,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 </p>
               </div>
               <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
-                <span>ESTIMASI: {ballardTotal > -12 ? `${estimatedGestationalAge.toFixed(1)} Mgg` : "Belum Diisi"}</span>
+                <span>ESTIMASI: {ballardTotal > -12 ? (() => { const d = Math.round(estimatedGestationalAge * 7); const w = Math.floor(d / 7); const r = d % 7; return `${w}mgg${r > 0 ? ` ${r}hr` : ''}`; })() : "Belum Diisi"}</span>
                 <span className="text-emerald-500 dark:text-emerald-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka Alat →</span>
               </div>
             </div>
@@ -1049,9 +1049,17 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
 
               <div className="mt-8 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-5 text-center shadow-inner">
                 <span className="block font-bold text-emerald-800 dark:text-emerald-300 text-sm uppercase tracking-wider mb-1">Estimasi Usia Kehamilan (Ballard)</span>
-                <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                  {ballardTotal > -12 ? estimatedGestationalAge.toFixed(1) : '--'} <span className="text-lg">Minggu</span>
-                </span>
+                {ballardTotal > -12 ? (() => {
+                  const totalDays = Math.round(estimatedGestationalAge * 7);
+                  const weeks = Math.floor(totalDays / 7);
+                  const days = totalDays % 7;
+                  return (
+                    <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                      {weeks}<span className="text-lg"> Minggu</span>
+                      {days > 0 && <> {days}<span className="text-lg"> Hari</span></>}
+                    </span>
+                  );
+                })() : <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">--</span>}
                 <span className="block text-emerald-600 dark:text-emerald-500 text-xs mt-2 font-medium">
                   Total Skor Ballard: {ballardTotal}
                 </span>
