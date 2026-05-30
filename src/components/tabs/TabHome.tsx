@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface TabHomeProps {
-  onNavigate: (tab: 'emergency' | 'scores' | 'advanced') => void;
+  onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
 }
 
 export default function TabHome({ onNavigate }: TabHomeProps) {
@@ -286,47 +286,47 @@ export default function TabHome({ onNavigate }: TabHomeProps) {
 
           {[
             {
-              label: 'F1',
-              labelClass: 'bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400',
-              hoverBorder: 'hover:border-rose-500/30',
-              shadowColor: 'hover:shadow-rose-100/50 dark:hover:shadow-none',
-              title: 'Langkah Awal Neonatus',
-              chevronClass: 'text-orange-500',
-              desc: 'Hangatkan, atur posisi, bersihkan jalan napas, keringkan, dan stimulasi taktil.',
-              tab: 'emergency' as const,
-              delay: 0,
-            },
-            {
-              label: 'VTP',
-              labelClass: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
-              hoverBorder: 'hover:border-blue-500/30',
-              shadowColor: 'hover:shadow-blue-100/50 dark:hover:shadow-none',
-              title: 'Ventilasi Tekanan Positif (VTP)',
-              chevronClass: 'text-blue-500',
-              desc: 'Siklus tiup-dua-tiga ventilasi dengan masker balon mengembang sendiri selama 30 detik.',
-              tab: 'emergency' as const,
-              delay: 0.05,
-            },
-            {
-              icon: ClipboardList,
-              iconClass: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+              label: 'S&K',
+              labelClass: 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
               hoverBorder: 'hover:border-emerald-500/30',
               shadowColor: 'hover:shadow-emerald-100/50 dark:hover:shadow-none',
-              title: 'Kalkulasi Dosis Darurat',
+              title: 'Skor & Kalkulator',
               chevronClass: 'text-emerald-500',
-              desc: 'Ketuk langsung ukuran ETT, kedalaman pipa, dosis epinefrin IV/ETT, dan salin normal.',
+              desc: 'Hitung Downe Score, APGAR, Ballard, Silverman-Anderson, dan dosis obat darurat berbasis berat badan.',
               tab: 'scores' as const,
-              delay: 0.1,
+              delay: 0,
             },
             {
               icon: Stethoscope,
               iconClass: 'bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
               hoverBorder: 'hover:border-cyan-500/30',
               shadowColor: 'hover:shadow-cyan-100/50 dark:hover:shadow-none',
-              title: 'Stabilisasi NICU & STABLE',
+              title: 'Stabilisasi NICU',
               chevronClass: 'text-cyan-500',
-              desc: 'Infus glukosa kontinu (GIR), inotropik vasoaktif, termoregulasi, dan evaluasi hasil Laborat.',
+              desc: 'Panduan stabilisasi pasca resusitasi: GIR, inotropik vasoaktif, termoregulasi, dan STABLE.',
               tab: 'advanced' as const,
+              delay: 0.05,
+            },
+            {
+              icon: BookOpen,
+              iconClass: 'bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400',
+              hoverBorder: 'hover:border-violet-500/30',
+              shadowColor: 'hover:shadow-violet-100/50 dark:hover:shadow-none',
+              title: 'Materi & Teori',
+              chevronClass: 'text-violet-500',
+              desc: 'Pelajari teori dasar resusitasi neonatus, fisiologi transisi, dan prinsip klinis terkini.',
+              tab: 'theory' as const,
+              delay: 0.1,
+            },
+            {
+              icon: ClipboardList,
+              iconClass: 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
+              hoverBorder: 'hover:border-amber-500/30',
+              shadowColor: 'hover:shadow-amber-100/50 dark:hover:shadow-none',
+              title: 'Pustaka & Referensi',
+              chevronClass: 'text-amber-500',
+              desc: 'Referensi pedoman klinis NRP, WHO, dan IDAI untuk penanganan neonatus berbasis bukti.',
+              tab: 'references' as const,
               delay: 0.15,
             },
           ].map((card, i) => (
