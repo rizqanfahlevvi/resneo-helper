@@ -250,6 +250,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     posture: null, squareWindow: null, armRecoil: null, popliteal: null, scarf: null, heelEar: null
   });
   const [openNeuroParam, setOpenNeuroParam] = useState<string | null>(null);
+  const [openPhysParam, setOpenPhysParam] = useState<string | null>(null);
   const [ballardP, setBallardP] = useState<Record<string, number | null>>({
     skin: null, lanugo: null, plantar: null, breast: null, eyeEar: null, genitals: null
   });
@@ -945,14 +946,14 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                           {/* Dropdown body */}
                           {isOpen && (
                             <div className="border-t border-slate-100 dark:border-white/5 px-4 py-4">
-                              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${vals.length}, minmax(0, 1fr))` }}>
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                                 {vals.map(val => {
                                   const isActive = selected === val;
                                   return (
                                     <button
                                       key={val}
                                       onClick={() => { setBallardN({...ballardN, [param.id]: val}); setOpenNeuroParam(null); }}
-                                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all active:scale-95
+                                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all active:scale-95
                                         ${isActive
                                           ? 'bg-emerald-500 border-emerald-400 shadow-md text-white'
                                           : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-slate-700 dark:text-slate-300'
@@ -961,10 +962,10 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                                       <img
                                         src={`/ballard/${BALLARD_IMG_PREFIX[param.id]}_${val}.png`}
                                         alt={`${param.id} ${val}`}
-                                        className={`w-16 h-16 object-contain ${isActive ? 'brightness-0 invert' : 'dark:brightness-90'}`}
+                                        className={`w-24 h-24 object-contain ${isActive ? 'brightness-0 invert' : 'dark:brightness-90'}`}
                                         loading="lazy"
                                       />
-                                      <span className="text-xs font-extrabold">{val}</span>
+                                      <span className="text-sm font-extrabold">Skor {val}</span>
                                     </button>
                                   );
                                 })}
@@ -980,7 +981,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
 
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Fisik</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
                   {[
                     { id: 'skin', label: 'Kulit (Skin)', min: -1, max: 5 },
                     { id: 'lanugo', label: 'Lanugo (Rambut Halus)', min: -1, max: 4 },
@@ -988,31 +989,61 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                     { id: 'breast', label: 'Payudara (Breast)', min: -1, max: 4 },
                     { id: 'eyeEar', label: 'Mata / Telinga (Eye / Ear)', min: -1, max: 4 },
                     { id: 'genitals', label: 'Alat Kelamin (Genitalia)', min: -1, max: 4 }
-                  ].map(param => (
-                    <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-2 uppercase tracking-wider">{param.label}</span>
-                      <div className="flex flex-col gap-1.5">
-                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => {
-                          const isActive = ballardP[param.id] === val;
-                          const desc = ballardPhysicalDesc[param.id]?.[val] ?? '';
-                          return (
-                            <button
-                              key={val}
-                              onClick={() => setBallardP({...ballardP, [param.id]: val})}
-                              className={`w-full text-left px-3 py-2 rounded-xl border text-xs transition-all active:scale-95
-                                ${isActive
-                                  ? 'bg-emerald-500 text-white border-emerald-400 shadow-sm font-bold'
-                                  : 'bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400'
-                                }`}
-                            >
-                              <span className="font-extrabold mr-1.5">{val}</span>
-                              <span className="opacity-90">{desc}</span>
-                            </button>
-                          );
-                        })}
+                  ].map(param => {
+                    const selected = ballardP[param.id] ?? null;
+                    const isOpen = openPhysParam === param.id;
+                    const vals = Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min);
+                    const selectedDesc = selected !== null ? (ballardPhysicalDesc[param.id]?.[selected] ?? '') : null;
+                    return (
+                      <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-hidden">
+                        {/* Header */}
+                        <button
+                          onClick={() => setOpenPhysParam(isOpen ? null : param.id)}
+                          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex-shrink-0">{param.label}</span>
+                            {selected !== null && (
+                              <span className="inline-flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full flex-shrink-0">
+                                Skor: {selected}
+                              </span>
+                            )}
+                            {selectedDesc && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{selectedDesc}</span>
+                            )}
+                          </div>
+                          <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {/* Body */}
+                        {isOpen && (
+                          <div className="border-t border-slate-100 dark:border-white/5 px-4 py-4">
+                            <div className="flex flex-col gap-2">
+                              {vals.map(val => {
+                                const isActive = selected === val;
+                                const desc = ballardPhysicalDesc[param.id]?.[val] ?? '';
+                                return (
+                                  <button
+                                    key={val}
+                                    onClick={() => { setBallardP({...ballardP, [param.id]: val}); setOpenPhysParam(null); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm transition-all active:scale-95
+                                      ${isActive
+                                        ? 'bg-emerald-500 text-white border-emerald-400 shadow-sm'
+                                        : 'bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                                      }`}
+                                  >
+                                    <span className={`text-lg font-black w-8 text-center flex-shrink-0 ${isActive ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'}`}>{val}</span>
+                                    <span className={`text-sm leading-snug ${isActive ? 'text-white font-semibold' : 'text-slate-600 dark:text-slate-300'}`}>{desc}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
