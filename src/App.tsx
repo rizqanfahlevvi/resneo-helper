@@ -9,12 +9,51 @@ import TabTheory from './components/tabs/TabTheory';
 import { useStore } from './store';
 import { ThemeProvider } from './components/ThemeProvider';
 import { AlertTriangle } from 'lucide-react';
+import { TabType } from './types';
+
+const TAB_PATHS: Record<TabType, string> = {
+  home: '/',
+  emergency: '/emergency',
+  scores: '/scores',
+  advanced: '/advanced',
+  references: '/references',
+  theory: '/theory',
+};
+
+const PATH_TABS: Record<string, TabType> = Object.fromEntries(
+  Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab as TabType])
+);
+
+function getTabFromHash(): TabType {
+  const path = window.location.hash.replace('#', '') || '/';
+  return PATH_TABS[path] ?? 'home';
+}
 
 export default function App() {
   const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
   // Shared state across tabs
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
+
+  // Sync tab ↔ URL hash
+  const navigateTo = (tab: TabType) => {
+    const path = TAB_PATHS[tab];
+    window.location.hash = path === '/' ? '' : path;
+    setActiveTab(tab);
+  };
+
+  useEffect(() => {
+    // On mount: set tab from URL
+    const tab = getTabFromHash();
+    if (tab !== activeTab) setActiveTab(tab);
+
+    const onHashChange = () => {
+      const tab = getTabFromHash();
+      setActiveTab(tab);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const renderTab = () => {
     switch (activeTab) {
@@ -60,7 +99,7 @@ export default function App() {
             </div>
             <button 
               onClick={() => {
-                setActiveTab('emergency');
+                navigateTo('emergency');
                 setPhase('compressions');
                 addLog(elapsedTime, "Peringatan Global: Gagal CPAP (Skor Downe > 6). Diambil alih untuk Intubasi/VTP");
               }}
@@ -72,9 +111,9 @@ export default function App() {
         </div>
       )}
 
-      <Layout activeTab={activeTab} onTabChange={setActiveTab} birthWeight={birthWeight} setBirthWeight={setBirthWeight}>
+      <Layout activeTab={activeTab} onTabChange={navigateTo} birthWeight={birthWeight} setBirthWeight={setBirthWeight}>
           <div className={activeTab === 'home' ? 'block' : 'hidden'}>
-            <TabHome onNavigate={setActiveTab} />
+            <TabHome onNavigate={navigateTo} />
           </div>
           <div className={activeTab === 'emergency' ? 'block' : 'hidden'}>
             <TabEmergency 
