@@ -43,9 +43,71 @@ interface TabEmergencyProps {
   setBirthWeight: (val: string) => void;
 }
 
+const ANTHROPO_FIELDS = [
+  { key: 'bbl',  label: 'BB Lahir',       unit: 'gram', placeholder: '3200', note: 'Aktual (bukan estimasi)' },
+  { key: 'pb',   label: 'Panjang Badan',  unit: 'cm',   placeholder: '50',   note: '' },
+  { key: 'lk',   label: 'Lingkar Kepala', unit: 'cm',   placeholder: '34',   note: '' },
+  { key: 'ld',   label: 'Lingkar Dada',   unit: 'cm',   placeholder: '33',   note: '' },
+  { key: 'lila', label: 'LiLA',           unit: 'cm',   placeholder: '11',   note: 'Lingkar lengan atas' },
+] as const;
+
+function AnthropoPanel({ setBirthWeight, compact = false }: { setBirthWeight: (v: string) => void, compact?: boolean }) {
+  const { anthropometry, setAnthropometry } = useStore();
+  const [open, setOpen] = useState(false);
+  const filled = !!anthropometry.bbl;
+  return (
+    <div className={`rounded-2xl border overflow-hidden ${compact ? 'border-teal-200 dark:border-teal-500/30 bg-white/60 dark:bg-teal-950/10' : 'border-teal-200 dark:border-teal-500/20 glass-card'}`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <svg className="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <span className="text-sm font-bold text-teal-800 dark:text-teal-300">Antropometri Neonatus</span>
+          {filled
+            ? <span className="text-xs bg-teal-500 text-white font-bold px-2 py-0.5 rounded-full flex-shrink-0">BBL: {anthropometry.bbl} g{anthropometry.pb ? ` · PB: ${anthropometry.pb} cm` : ''}</span>
+            : <span className="text-xs text-slate-400 dark:text-slate-500 truncate">BBL, PB, LK, LD, LiLA — autofill ke seluruh tab</span>
+          }
+        </div>
+        <svg className={`w-4 h-4 text-teal-500 transition-transform duration-200 flex-shrink-0 ml-2 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="border-t border-teal-100 dark:border-teal-500/20 px-4 py-4 space-y-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl px-3 py-2">
+            Data tersambung ke seluruh kalkulator & skor. BB Lahir aktual akan memperbarui panduan dosis secara otomatis.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {ANTHROPO_FIELDS.map(field => (
+              <div key={field.key} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl p-3">
+                <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">
+                  {field.label} <span className="normal-case font-normal">({field.unit})</span>
+                </label>
+                {field.note && <p className="text-[9px] text-teal-600 dark:text-teal-400 font-semibold mb-1">{field.note}</p>}
+                <input
+                  type="number"
+                  value={anthropometry[field.key]}
+                  onChange={(e) => {
+                    setAnthropometry({ [field.key]: e.target.value });
+                    if (field.key === 'bbl') setBirthWeight(e.target.value);
+                  }}
+                  placeholder={field.placeholder}
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TabEmergency({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabEmergencyProps) {
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry } = useStore();
-  const [anthropoOpen, setAnthropoOpen] = useState(false);
 
   // Phase VTP States
   const [vtpStartTime, setVtpStartTime] = useState<number | null>(null);
@@ -558,6 +620,8 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               </p>
             </div>
           </div>
+
+          <AnthropoPanel setBirthWeight={setBirthWeight} />
 
           <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
             <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md px-5 py-3 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
@@ -1360,6 +1424,9 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
             </div>
             
             <div className="bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 p-5 md:p-6">
+              <div className="mb-5">
+                <AnthropoPanel setBirthWeight={setBirthWeight} />
+              </div>
               <h4 className="font-bold text-emerald-100 mb-4 flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 Checklist Asuhan Normal (IDAI / AHA)
@@ -1491,53 +1558,8 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
             
             <div className="bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 p-5 md:p-6">
 
-              {/* Antropometri collapsible */}
-              <div className="mb-5 rounded-2xl border border-teal-200 dark:border-teal-500/30 overflow-hidden bg-white/60 dark:bg-teal-950/10">
-                <button
-                  onClick={() => setAnthropoOpen(o => !o)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <span className="text-sm font-bold text-teal-800 dark:text-teal-300">Input Antropometri Aktual</span>
-                    {anthropometry.bbl && <span className="text-xs bg-teal-500 text-white font-bold px-2 py-0.5 rounded-full">BBL: {anthropometry.bbl} g</span>}
-                  </div>
-                  <svg className={`w-4 h-4 text-teal-500 transition-transform duration-200 ${anthropoOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {anthropoOpen && (
-                  <div className="border-t border-teal-100 dark:border-teal-500/20 px-4 py-4 space-y-3">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Data tersambung ke seluruh kalkulator & skor di aplikasi.</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[
-                        { key: 'bbl', label: 'BB Lahir', unit: 'gram', placeholder: '3200' },
-                        { key: 'pb',  label: 'Panjang Badan', unit: 'cm', placeholder: '50' },
-                        { key: 'lk',  label: 'Lingkar Kepala', unit: 'cm', placeholder: '34' },
-                        { key: 'ld',  label: 'Lingkar Dada', unit: 'cm', placeholder: '33' },
-                        { key: 'lila',label: 'LiLA', unit: 'cm', placeholder: '11' },
-                      ].map(field => (
-                        <div key={field.key} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl p-3">
-                          <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
-                            {field.label} <span className="normal-case font-normal">({field.unit})</span>
-                          </label>
-                          <input
-                            type="number"
-                            value={anthropometry[field.key as keyof typeof anthropometry]}
-                            onChange={(e) => {
-                              setAnthropometry({ [field.key]: e.target.value });
-                              if (field.key === 'bbl') setBirthWeight(e.target.value);
-                            }}
-                            placeholder={field.placeholder}
-                            className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <div className="mb-5">
+                <AnthropoPanel setBirthWeight={setBirthWeight} />
               </div>
 
               <h4 className="font-bold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
@@ -1597,10 +1619,10 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
                 {/* Direct edit input for Birth Weight in Sidebar */}
                 <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 p-3 rounded-xl shadow-inner">
-                   <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Berat Badan (Gram) & Gestasi</label>
+                   <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">Estimasi BB (Gram) & Gestasi</label>
                    <div className="flex gap-2">
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         value={birthWeight}
                         onChange={(e) => setBirthWeight(e.target.value)}
                         placeholder="cth: 3000"
@@ -1614,6 +1636,9 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                       </div>
                    )}
                 </div>
+
+                {/* Antropometri collapsible di sidebar */}
+                <AnthropoPanel setBirthWeight={setBirthWeight} compact />
 
                 {bwKg <= 0 ? (
                    <div className="text-center p-4 bg-red-50/40 dark:bg-red-950/15 rounded-xl border border-red-205/50 dark:border-red-950/40">
@@ -1702,73 +1727,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {phase === 'completed' && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
 
-          {/* Antropometri Neonatus */}
-          <div className="glass-card rounded-2xl shadow-sm overflow-hidden">
-            <button
-              onClick={() => setAnthropoOpen(o => !o)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-teal-500/15 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">Antropometri Neonatus</span>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {anthropometry.bbl ? `BBL: ${anthropometry.bbl} g` : 'Isi data pengukuran aktual setelah resusitasi'}
-                    {anthropometry.pb ? ` · PB: ${anthropometry.pb} cm` : ''}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {anthropometry.bbl && <span className="text-xs bg-teal-500 text-white font-bold px-2 py-0.5 rounded-full">Terisi</span>}
-                <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${anthropoOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {anthropoOpen && (
-              <div className="border-t border-slate-100 dark:border-white/5 p-5 space-y-4">
-                <p className="text-xs text-slate-500 dark:text-slate-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl px-3 py-2">
-                  Data ini tersambung ke seluruh kalkulator & skor di aplikasi (autofill). Isi setelah pengukuran aktual selesai dilakukan.
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {[
-                    { key: 'bbl', label: 'BB Lahir', unit: 'gram', placeholder: '3200', note: 'Aktual (bukan estimasi)' },
-                    { key: 'pb',  label: 'Panjang Badan', unit: 'cm', placeholder: '50', note: '' },
-                    { key: 'lk',  label: 'Lingkar Kepala', unit: 'cm', placeholder: '34', note: '' },
-                    { key: 'ld',  label: 'Lingkar Dada', unit: 'cm', placeholder: '33', note: '' },
-                    { key: 'lila',label: 'LiLA', unit: 'cm', placeholder: '11', note: 'Lingkar lengan atas' },
-                  ].map(field => (
-                    <div key={field.key} className="bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl p-3">
-                      <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                        {field.label} <span className="normal-case font-normal">({field.unit})</span>
-                      </label>
-                      {field.note && <p className="text-[9px] text-teal-600 dark:text-teal-400 font-semibold mb-1">{field.note}</p>}
-                      <input
-                        type="number"
-                        value={anthropometry[field.key as keyof typeof anthropometry]}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setAnthropometry({ [field.key]: val });
-                          // BBL aktual → sync ke birthWeight global
-                          if (field.key === 'bbl') setBirthWeight(val);
-                        }}
-                        placeholder={field.placeholder}
-                        className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
-                  Perubahan BB Lahir aktual akan memperbarui semua kalkulator dosis secara otomatis.
-                </p>
-              </div>
-            )}
-          </div>
+          <AnthropoPanel setBirthWeight={setBirthWeight} />
 
           <div className="glass-card rounded-2xl shadow-xl overflow-hidden text-slate-900 dark:text-slate-100 flex flex-col">
             <div className="p-5 md:p-6 text-center border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md">
