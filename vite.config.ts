@@ -11,30 +11,30 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
+        includeAssets: ['favicon.ico', 'favicon.svg', 'icons/icon-192.svg', 'icons/icon-512.svg'],
         manifest: {
           name: 'ResNeo Helper',
           short_name: 'ResNeo Helper',
           description: 'Panduan Protokol & Resusitasi Neonatus',
           theme_color: '#4f46e5',
-          background_color: '#0b132b',
+          background_color: '#1C1C1E',
           display: 'standalone',
           orientation: 'portrait',
           icons: [
             {
-              src: 'icon-192.png',
+              src: 'icons/icon-192.svg',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/svg+xml'
             },
             {
-              src: 'icon-512.png',
+              src: 'icons/icon-512.svg',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/svg+xml'
             },
             {
-              src: 'icon-192.png',
-              sizes: '192x192',
-              type: 'image/png',
+              src: 'icons/icon-512.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml',
               purpose: 'any maskable'
             }
           ]
