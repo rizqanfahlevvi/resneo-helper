@@ -3,6 +3,14 @@ import { TabType } from './types';
 
 export type Phase = 'preparation' | 'initial_steps' | 'vtp' | 'vtp_ldj_eval' | 'cpap' | 'compressions' | 'setting_ventilator' | 'routine_care' | 'post_resuscitation' | 'completed';
 
+export interface Anthropometry {
+  bbl: string;  // berat badan lahir aktual (gram)
+  pb: string;   // panjang badan (cm)
+  lk: string;   // lingkar kepala (cm)
+  ld: string;   // lingkar dada (cm)
+  lila: string; // lingkar lengan atas (cm)
+}
+
 interface ResneoStore {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
@@ -19,6 +27,8 @@ interface ResneoStore {
   clearLog: () => void;
   downeScore: number;
   setDowneScore: (score: number) => void;
+  anthropometry: Anthropometry;
+  setAnthropometry: (a: Partial<Anthropometry>) => void;
 }
 
 export const useStore = create<ResneoStore>((set) => ({
@@ -46,4 +56,6 @@ export const useStore = create<ResneoStore>((set) => ({
   clearLog: () => set({ clinicalLog: [] }),
   downeScore: 0,
   setDowneScore: (downeScore) => set({ downeScore }),
+  anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
+  setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
 }));
