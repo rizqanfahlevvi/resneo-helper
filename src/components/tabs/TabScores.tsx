@@ -249,6 +249,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const [ballardN, setBallardN] = useState<Record<string, number | null>>({
     posture: null, squareWindow: null, armRecoil: null, popliteal: null, scarf: null, heelEar: null
   });
+  const [openNeuroParam, setOpenNeuroParam] = useState<string | null>(null);
   const [ballardP, setBallardP] = useState<Record<string, number | null>>({
     skin: null, lanugo: null, plantar: null, breast: null, eyeEar: null, genitals: null
   });
@@ -899,31 +900,81 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               
               <div className="mb-6">
                 <h4 className="font-bold text-slate-900 dark:text-white mb-3 border-b border-slate-200 dark:border-white/10 pb-2">Kematangan Neuromuskular</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { id: 'posture', label: 'Postur Tubuh (Posture)', min: 0, max: 4 },
-                    { id: 'squareWindow', label: 'Sudut Pergelangan (Square Window)', min: -1, max: 4 },
-                    { id: 'armRecoil', label: 'Pemantulan Lengan (Arm Recoil)', min: 0, max: 4 },
-                    { id: 'popliteal', label: 'Sudut Popliteal (Popliteal Angle)', min: -1, max: 5 },
-                    { id: 'scarf', label: 'Tanda Scarf (Scarf Sign)', min: -1, max: 4 },
-                    { id: 'heelEar', label: 'Tumit ke Telinga (Heel to Ear)', min: -1, max: 4 }
-                  ].map(param => (
-                    <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-350 block mb-3 uppercase tracking-wider">{param.label}</span>
-                      <div className="flex gap-1.5 flex-1 items-stretch min-h-[3.5rem]">
-                        {Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min).map(val => (
-                          <DetailedScoreOption
-                            key={val}
-                            val={val}
-                            current={ballardN[param.id] ?? null}
-                            onClick={() => setBallardN({...ballardN, [param.id]: val})}
-                            svg={<BallardImg type={param.id} val={val} />}
-                            activeColor="bg-emerald-500 border-emerald-400 shadow-emerald-500/30"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  {(() => {
+                    const neuroParams = [
+                      { id: 'posture', label: 'Postur Tubuh (Posture)', min: 0, max: 4 },
+                      { id: 'squareWindow', label: 'Sudut Pergelangan (Square Window)', min: -1, max: 4 },
+                      { id: 'armRecoil', label: 'Pemantulan Lengan (Arm Recoil)', min: 0, max: 4 },
+                      { id: 'popliteal', label: 'Sudut Popliteal (Popliteal Angle)', min: -1, max: 5 },
+                      { id: 'scarf', label: 'Tanda Scarf (Scarf Sign)', min: -1, max: 4 },
+                      { id: 'heelEar', label: 'Tumit ke Telinga (Heel to Ear)', min: -1, max: 4 }
+                    ];
+                    return neuroParams.map(param => {
+                      const selected = ballardN[param.id] ?? null;
+                      const isOpen = openNeuroParam === param.id;
+                      const vals = Array.from({ length: param.max - param.min + 1 }, (_, i) => i + param.min);
+                      return (
+                        <div key={param.id} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm overflow-hidden">
+                          {/* Dropdown header */}
+                          <button
+                            onClick={() => setOpenNeuroParam(isOpen ? null : param.id)}
+                            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{param.label}</span>
+                              {selected !== null && (
+                                <span className="inline-flex items-center gap-1.5 bg-emerald-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+                                  Skor: {selected}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {selected !== null && (
+                                <img
+                                  src={`/ballard/${BALLARD_IMG_PREFIX[param.id]}_${selected}.png`}
+                                  alt={`preview ${selected}`}
+                                  className="w-10 h-10 object-contain dark:brightness-90"
+                                />
+                              )}
+                              <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          </button>
+                          {/* Dropdown body */}
+                          {isOpen && (
+                            <div className="border-t border-slate-100 dark:border-white/5 px-4 py-4">
+                              <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${vals.length}, minmax(0, 1fr))` }}>
+                                {vals.map(val => {
+                                  const isActive = selected === val;
+                                  return (
+                                    <button
+                                      key={val}
+                                      onClick={() => { setBallardN({...ballardN, [param.id]: val}); setOpenNeuroParam(null); }}
+                                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all active:scale-95
+                                        ${isActive
+                                          ? 'bg-emerald-500 border-emerald-400 shadow-md text-white'
+                                          : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-slate-700 dark:text-slate-300'
+                                        }`}
+                                    >
+                                      <img
+                                        src={`/ballard/${BALLARD_IMG_PREFIX[param.id]}_${val}.png`}
+                                        alt={`${param.id} ${val}`}
+                                        className={`w-16 h-16 object-contain ${isActive ? 'brightness-0 invert' : 'dark:brightness-90'}`}
+                                        loading="lazy"
+                                      />
+                                      <span className="text-xs font-extrabold">{val}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
