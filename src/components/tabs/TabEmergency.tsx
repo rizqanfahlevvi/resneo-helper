@@ -703,6 +703,12 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {showSidebar ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-8 space-y-6">
+
+            {/* Antropometri — tampil di semua ukuran layar kecuali desktop (sidebar sudah ada) */}
+            <div className="lg:hidden">
+              <AnthropoPanel setBirthWeight={setBirthWeight} />
+            </div>
+
             {phase === 'initial_steps' && (
               <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
           
