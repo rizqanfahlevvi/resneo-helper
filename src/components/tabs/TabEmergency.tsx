@@ -1462,7 +1462,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 <button 
                   onClick={() => {
                     const finalTimeStr = `[${Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}]`;
-                    addLog(`ROSC Tercapai/Resusitasi Dihentikan. Total Waktu: ${finalTimeStr}`);
+                    addLog(`Resusitasi Selesai & Log Disimpan. Total Waktu: ${finalTimeStr}`);
                     setPhase('completed');
                     setIsTimerRunning(false);
                   }}
