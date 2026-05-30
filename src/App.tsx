@@ -35,6 +35,7 @@ export default function App() {
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [homeSearchTrigger, setHomeSearchTrigger] = useState(0);
 
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
@@ -119,9 +120,17 @@ export default function App() {
         </div>
       )}
 
-      <Layout activeTab={activeTab} onTabChange={navigateTo} birthWeight={birthWeight} setBirthWeight={setBirthWeight} searchOpen={searchOpen} onSearchOpen={setSearchOpen}>
+      <Layout
+        activeTab={activeTab}
+        onTabChange={navigateTo}
+        birthWeight={birthWeight}
+        setBirthWeight={setBirthWeight}
+        searchOpen={searchOpen}
+        onSearchOpen={setSearchOpen}
+        onSidebarSearch={() => { navigateTo('home'); setHomeSearchTrigger(t => t + 1); }}
+      >
           <div className={activeTab === 'home' ? 'block' : 'hidden'}>
-            <TabHome onNavigate={navigateTo} onSearch={() => setSearchOpen(true)} />
+            <TabHome onNavigate={navigateTo} focusTrigger={homeSearchTrigger} />
           </div>
           <div className={activeTab === 'emergency' ? 'block' : 'hidden'}>
             <TabEmergency 

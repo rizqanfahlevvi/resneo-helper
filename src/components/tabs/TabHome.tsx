@@ -11,8 +11,7 @@ import {
   AlertTriangle,
   BookOpen,
   Layers,
-  Search,
-  X
+  Search
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -20,14 +19,20 @@ import { SEARCH_INDEX } from '../GlobalSearch';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
-  onSearch?: () => void; // kept for Ctrl+K compatibility
+  focusTrigger?: number;
 }
 
-export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
+export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (focusTrigger) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  }, [focusTrigger]);
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -154,7 +159,7 @@ export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
 
       {/* Inline Search Bar */}
       <div className="mt-5 relative">
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm focus-within:border-indigo-400 dark:focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-100 dark:focus-within:ring-indigo-900/40 transition-all">
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm focus-within:border-slate-300 dark:focus-within:border-slate-700 transition-colors">
           <Search className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" />
           <input
             ref={searchInputRef}
@@ -165,8 +170,10 @@ export default function TabHome({ onNavigate, onSearch }: TabHomeProps) {
             className="flex-1 bg-transparent text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-              <X className="w-4 h-4" />
+            <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-0.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
             </button>
           )}
         </div>
