@@ -267,7 +267,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
         <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} onNavigate={(tab) => { onTabChange(tab); setSearchOpen(false); }} />
 
-        <div className="p-4 sm:p-5 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full h-full">
+        <div className="p-5 sm:p-5 md:p-6 lg:p-8 max-w-[1600px] mx-auto w-full h-full">
           {children}
         </div>
       </main>
