@@ -665,6 +665,110 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
             </div>
 
           </div>
+
+          {/* DIFFERENTIAL DIAGNOSIS ENGINE */}
+          {(() => {
+            const ga = estimatedGestationalAge;
+            const hasBallard = ballardTotal > -12;
+            type DDx = { dx: string; probability: 'tinggi' | 'sedang' | 'rendah'; basis: string; action: string };
+            const ddx: DDx[] = [];
+
+            // RDS / HMD
+            if ((hasBallard && ga < 34) || silvermanTotal >= 3 || downeTotal >= 4) {
+              ddx.push({
+                dx: 'Respiratory Distress Syndrome (RDS/HMD)',
+                probability: (hasBallard && ga < 30) || silvermanTotal >= 6 ? 'tinggi' : 'sedang',
+                basis: [hasBallard && ga < 34 && `Ballard <34 mgg (${Math.floor(ga)}m)`, silvermanTotal >= 3 && `Silverman ${silvermanTotal}`, downeTotal >= 4 && `Downe ${downeTotal}`].filter(Boolean).join(', '),
+                action: 'Surfaktan rescue (CPAP FiO2 >0.30), CPAP PEEP 5–7 cmH₂O. Ref: ILCOR CoSTR 2022',
+              });
+            }
+
+            // TTN
+            if ((!hasBallard || ga >= 34) && downeTotal >= 2 && downeTotal <= 5 && silvermanTotal >= 1 && silvermanTotal <= 4) {
+              ddx.push({
+                dx: 'Transient Tachypnea of the Newborn (TTN)',
+                probability: 'sedang',
+                basis: `Downe ${downeTotal}, Silverman ${silvermanTotal}, usia gestasi ≥34 mgg`,
+                action: 'O₂ suplemental, observasi ketat. Resolusi spontan 24–72 jam. Ref: AAP 2017',
+              });
+            }
+
+            // MAS
+            if (downeTotal >= 5 && silvermanTotal >= 5 && (!hasBallard || ga >= 36)) {
+              ddx.push({
+                dx: 'Meconium Aspiration Syndrome (MAS)',
+                probability: 'tinggi',
+                basis: `Downe ${downeTotal}, Silverman ${silvermanTotal}, matur/post-matur`,
+                action: 'Ventilasi PEEP rendah (3–4 cmH₂O), surfaktan rescue jika berat. Ref: NRP 8th Ed 2021',
+              });
+            }
+
+            // HIE
+            if (thomsonTotal >= 5) {
+              ddx.push({
+                dx: 'Hypoxic-Ischemic Encephalopathy (HIE)',
+                probability: thomsonTotal >= 11 ? 'tinggi' : 'sedang',
+                basis: `Thomson ${thomsonTotal}${thomsonTotal >= 11 ? ' (berat)' : ' (sedang)'}`,
+                action: 'Terapi pendinginan 33–34°C selama 72 jam jika ≥36 mgg. Konsul neuropediatri. Ref: WHO 2022, Jacobs 2013',
+              });
+            }
+
+            // Hipoglikemia risiko
+            if (hasBallard && (ga < 37 || ga > 42)) {
+              ddx.push({
+                dx: 'Risiko Hipoglikemia Neonatus',
+                probability: ga < 32 ? 'tinggi' : 'sedang',
+                basis: `Ballard: ${Math.floor(ga)} mgg ${ga > 42 ? '(post-matur)' : '(prematur)'}`,
+                action: 'Skrining GDS 1–2 jam post-lahir, target >47 mg/dL. Ref: AAP PES 2011, ACOG 2017',
+              });
+            }
+
+            // Sepsis
+            if (downeTotal >= 4 && thomsonTotal >= 3) {
+              ddx.push({
+                dx: 'Early-Onset Neonatal Sepsis (EONS)',
+                probability: 'sedang',
+                basis: `Downe ${downeTotal} + Thomson ${thomsonTotal} — gejala klinis tumpang tindih`,
+                action: 'Kultur darah, CBC, CRP. Ampisilin + Gentamisin empiris. Ref: ESCMID/ACOG 2020',
+              });
+            }
+
+            if (ddx.length === 0) return null;
+
+            const probColor = (p: string) => p === 'tinggi'
+              ? 'bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'
+              : p === 'sedang'
+              ? 'bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+
+            return (
+              <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-slate-800/80 dark:bg-slate-900/80 backdrop-blur-md px-5 py-3 border-b border-white/10 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-violet-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                  <h4 className="font-bold text-white text-sm">Diagnosis Diferensial Otomatis</h4>
+                  <span className="ml-auto text-[10px] text-slate-400 font-normal">Berdasarkan kombinasi skor yang telah diisi</span>
+                </div>
+                <div className="p-4 space-y-3">
+                  {ddx.map((d, i) => (
+                    <div key={i} className={`rounded-xl border p-3 ${probColor(d.probability)}`}>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <span className="font-bold text-sm leading-snug">{d.dx}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0 border ${probColor(d.probability)}`}>
+                          {d.probability}
+                        </span>
+                      </div>
+                      <p className="text-xs opacity-80 mb-1"><span className="font-semibold">Dasar:</span> {d.basis}</p>
+                      <p className="text-xs opacity-90"><span className="font-semibold">Tindakan:</span> {d.action}</p>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center pt-1">
+                    DDx dihasilkan otomatis berdasarkan skor terisi. Konfirmasi selalu dengan klinis dan pemeriksaan penunjang.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       )}
 
@@ -1065,10 +1169,68 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 </span>
               </div>
 
-              <ClinicalTheoryAccordion 
-                title="Teori Medis & Panduan Skor New Ballard" 
-                content={ballardTheoryContent} 
-                references={ballardReferences} 
+              {/* Alert klinis berdasarkan estimasi usia gestasi */}
+              {ballardTotal > -12 && (() => {
+                const ga = estimatedGestationalAge;
+                const alerts: { color: string; title: string; items: string[] }[] = [];
+                if (ga < 28) alerts.push({
+                  color: 'red',
+                  title: '⚠ Sangat Prematur (<28 minggu) — Pertimbangkan Segera:',
+                  items: [
+                    'Surfaktan profilaktik (Poractant 200 mg/kg) dalam 1–2 jam pertama (NRP 2021, ILCOR CoSTR 2022)',
+                    'CPAP dini sejak ruang bersalin — hindari intubasi elektif (SUPPORT Trial, NEJM 2010)',
+                    'Hipotermia terapeutik TIDAK diindikasikan pada usia gestasi <36 minggu (WHO 2022)',
+                    'Konsultasi NICU tersier — risiko RDS, NEC, IVH, retinopati',
+                    'Informed consent extended kepada orang tua mengenai prognosis',
+                  ],
+                });
+                else if (ga < 32) alerts.push({
+                  color: 'orange',
+                  title: '⚠ Prematur (<32 minggu) — Tindakan Prioritas:',
+                  items: [
+                    'Surfaktan rescue jika FiO2 >0.30 pada CPAP (Neonatal CPAP or Intubation Trial — NEJM 2008)',
+                    'CPAP PEEP 5–7 cmH₂O segera, hindari hiperoksia (target SpO2 90–95%)',
+                    'Pertimbangkan kortikosteroid antenatal jika belum diberikan (WHO ACS guidelines 2022)',
+                    'Pantau suhu ketat — bungkus plastik jika <32 minggu (NRP 8th Ed)',
+                    'Skrining hipoglikemia 1–2 jam setelah lahir (GDS target >47 mg/dL)',
+                    'Pertimbangkan Delayed Cord Clamping ≥60 detik jika kondisi stabil (ILCOR 2022)',
+                  ],
+                });
+                else if (ga < 37) alerts.push({
+                  color: 'amber',
+                  title: 'Prematur Akhir / Late Preterm (32–<37 minggu):',
+                  items: [
+                    'Risiko hipoglikemia lebih tinggi — skrining GDS rutin tiap 3–4 jam (AAP 2011)',
+                    'Pertimbangkan CPAP jika tanda distres napas (Silverman >3)',
+                    'Pantau jaundice lebih ketat — risiko hiperbilirubinemia signifikan',
+                    'IMD dan laktasi mungkin lebih sulit — konsul laktasi',
+                  ],
+                });
+                if (alerts.length === 0) return null;
+                const colorMap: Record<string, string> = {
+                  red: 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200',
+                  orange: 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700 text-orange-800 dark:text-orange-200',
+                  amber: 'bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200',
+                };
+                return alerts.map((alert, i) => (
+                  <div key={i} className={`mt-4 rounded-xl border p-4 ${colorMap[alert.color]}`}>
+                    <p className="font-bold text-sm mb-2">{alert.title}</p>
+                    <ul className="space-y-1">
+                      {alert.items.map((item, j) => (
+                        <li key={j} className="text-xs flex gap-2 leading-snug">
+                          <span className="mt-0.5 flex-shrink-0">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ));
+              })()}
+
+              <ClinicalTheoryAccordion
+                title="Teori Medis & Panduan Skor New Ballard"
+                content={ballardTheoryContent}
+                references={ballardReferences}
               />
             </div>
           </div>

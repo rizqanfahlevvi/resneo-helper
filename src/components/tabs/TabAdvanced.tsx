@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Activity, AlertTriangle, Droplet, CheckCircle2, FlaskConical, Scale, Info, Syringe } from 'lucide-react';
+import { useStore } from '../../store';
 
 interface TabAdvancedProps {
   gestationalAge: string;
@@ -9,8 +10,14 @@ interface TabAdvancedProps {
 }
 
 export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabAdvancedProps) {
-  const gaNum = parseInt(gestationalAge) || 0;
-  const bwNum = parseInt(birthWeight) || 0;
+  const { anthropometry } = useStore();
+
+  // Autofill from anthropometry store if props are empty
+  const effectiveGA = gestationalAge || '';
+  const effectiveBW = birthWeight || (anthropometry.bbl || '');
+
+  const gaNum = parseInt(effectiveGA) || 0;
+  const bwNum = parseInt(effectiveBW) || 0;
   const wtKg = bwNum / 1000;
 
   // Hypoglycemia State
@@ -98,8 +105,8 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Usia Gestasi (Minggu)</label>
-            <input 
-              type="number" 
+            <input
+              type="number"
               value={gestationalAge}
               onChange={(e) => setGestationalAge(e.target.value)}
               placeholder="cth: 38"
@@ -107,10 +114,13 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Berat Lahir (Gram)</label>
-            <input 
-              type="number" 
-              value={birthWeight}
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+              Berat Lahir (Gram)
+              {!birthWeight && anthropometry.bbl && <span className="ml-2 text-teal-500 font-normal normal-case">· autofill dari Antropometri</span>}
+            </label>
+            <input
+              type="number"
+              value={effectiveBW}
               onChange={(e) => setBirthWeight(e.target.value)}
               placeholder="cth: 3200"
               className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"

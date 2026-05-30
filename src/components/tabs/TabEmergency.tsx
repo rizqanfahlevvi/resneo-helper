@@ -151,6 +151,9 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   const [cpapPeep, setCpapPeep] = useState<number>(5);
   const [cpapDistress, setCpapDistress] = useState<boolean>(false);
 
+  // Ventilator Calculator
+  const [ventBB, setVentBB] = useState<string>('');
+
   // Timer States
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [showRetraksiEval, setShowRetraksiEval] = useState(false);
@@ -1486,57 +1489,92 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               <p className="text-cyan-300 text-sm font-medium">Beralih ke dukungan nafas invasif</p>
             </div>
             
-            <div className="bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 p-5 md:p-6">
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Diagnosis / Kondisi Paru</label>
-                <select 
-                  value={lungCondition}
-                  onChange={(e) => setLungCondition(e.target.value as any)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                >
-                  <option value="normal">Paru Normal (Resusitasi/Asfiksia)</option>
-                  <option value="rds">HMD / RDS (Prematur)</option>
-                  <option value="mas">MAS (Aspirasi Mekonium)</option>
-                </select>
-              </div>
+            <div className="bg-slate-100/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-900 dark:text-slate-100 p-5 md:p-6 space-y-6">
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">MODE</span>
-                  <span className="block text-xl font-black text-cyan-500">AC/PC</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">atau SIMV + PS</span>
+              {/* Input BB untuk kalkulasi */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Berat Badan (gram)</label>
+                  <input
+                    type="number"
+                    value={ventBB || birthWeight}
+                    onChange={(e) => setVentBB(e.target.value)}
+                    placeholder={birthWeight || 'cth: 1500'}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
+                  />
                 </div>
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5 relative group">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">FiO2 Awal</span>
-                  <span className="block text-xl font-black text-slate-900 dark:text-white">{recommendedFiO2}</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">Titrasi ke target SpO2</span>
-                </div>
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Rate (RR)</span>
-                  <span className="block text-xl font-black text-slate-900 dark:text-white">{lungCondition === 'rds' ? '40-60' : '40-50'}</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">x / menit</span>
-                </div>
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">PIP</span>
-                  <span className="block text-xl font-black text-slate-900 dark:text-white">{lungCondition === 'mas' ? '25-30' : (lungCondition === 'rds' ? '20-25' : '15-20')}</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">cmH2O</span>
-                </div>
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">PEEP</span>
-                  <span className="block text-xl font-black text-slate-900 dark:text-white">{lungCondition === 'mas' ? '4' : (lungCondition === 'rds' ? '5-6' : '5')}</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">cmH2O</span>
-                </div>
-                <div className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none hover:shadow-lg transition-all hover:-translate-y-0.5">
-                  <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">T-I</span>
-                  <span className="block text-xl font-black text-slate-900 dark:text-white">{lungCondition === 'rds' ? '0.3-0.4' : '0.35-0.45'}</span>
-                  <span className="block text-[10px] text-slate-400 mt-1">Detik</span>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Diagnosis / Kondisi Paru</label>
+                  <select
+                    value={lungCondition}
+                    onChange={(e) => setLungCondition(e.target.value as 'normal' | 'rds' | 'mas')}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="normal">Asfiksia / Paru Normal</option>
+                    <option value="rds">HMD / RDS (Prematur)</option>
+                    <option value="mas">MAS (Aspirasi Mekonium)</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
-                <button 
+              {/* Setting Grid */}
+              {(() => {
+                const bbKg = parseFloat(ventBB || birthWeight) / 1000 || 0;
+                const tvMin = bbKg > 0 ? (4 * bbKg).toFixed(1) : '-';
+                const tvMax = bbKg > 0 ? (6 * bbKg).toFixed(1) : '-';
+                const mapMin = lungCondition === 'rds' ? (bbKg > 0 ? (8 * bbKg).toFixed(0) : '-') : '-';
+                const settings = {
+                  normal: { pip: '15–20', peep: '5', rr: '40–50', ti: '0.35–0.45', fio2: gaNum >= 35 ? '21%' : '21–30%', mode: 'AC/PC' },
+                  rds:    { pip: '20–25', peep: '5–6', rr: '40–60', ti: '0.3–0.4', fio2: '30–40%', mode: 'AC/PC' },
+                  mas:    { pip: '25–30', peep: '3–4', rr: '40–50', ti: '0.4–0.5', fio2: '40–60%', mode: 'SIMV+PS' },
+                };
+                const s = settings[lungCondition];
+                const cards = [
+                  { label: 'Mode', value: s.mode, sub: 'atau SIMV + PS', color: 'text-cyan-500' },
+                  { label: 'FiO2 Awal', value: s.fio2, sub: 'Titrasi ke SpO2 target', color: 'text-sky-500' },
+                  { label: 'Rate (RR)', value: s.rr, sub: 'x / menit', color: '' },
+                  { label: 'PIP', value: s.pip, sub: 'cmH₂O', color: '' },
+                  { label: 'PEEP', value: s.peep, sub: 'cmH₂O', color: '' },
+                  { label: 'Ti', value: s.ti, sub: 'detik', color: '' },
+                  { label: 'Tidal Volume', value: bbKg > 0 ? `${tvMin}–${tvMax}` : '4–6 mL/kg', sub: bbKg > 0 ? `mL (4–6 mL/kg × ${bbKg.toFixed(2)} kg)` : 'mL — isi BB', color: 'text-emerald-500' },
+                  ...(lungCondition === 'rds' && bbKg > 0 ? [{ label: 'MAP Target', value: mapMin, sub: 'cmH₂O (~8× BB kg) — RDS', color: 'text-violet-500' }] : []),
+                ];
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {cards.map((c, i) => (
+                      <div key={i} className="bg-white/80 dark:bg-slate-900/50 p-3 rounded-xl text-center border border-slate-200/60 dark:border-white/5 shadow-sm">
+                        <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">{c.label}</span>
+                        <span className={`block text-xl font-black ${c.color || 'text-slate-900 dark:text-white'}`}>{c.value}</span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5">{c.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* SpO2 Target Table */}
+              <div className="bg-cyan-50 dark:bg-cyan-950/20 border border-cyan-200 dark:border-cyan-800/40 rounded-xl p-4">
+                <p className="text-xs font-bold text-cyan-800 dark:text-cyan-300 uppercase tracking-wider mb-2">Target SpO2 Pasca-Intubasi (NRP 2021 / ILCOR 2022)</p>
+                <div className="grid grid-cols-5 gap-1 text-center text-xs">
+                  {[['1 mnt','60–65%'],['2 mnt','65–70%'],['3 mnt','70–75%'],['4 mnt','75–80%'],['≥10 mnt','85–95%']].map(([t,v]) => (
+                    <div key={t} className="bg-white dark:bg-slate-900/50 rounded-lg py-2 border border-cyan-100 dark:border-cyan-900/40">
+                      <span className="block text-[9px] text-slate-400 font-semibold">{t}</span>
+                      <span className="block font-extrabold text-cyan-700 dark:text-cyan-300 text-xs">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Referensi */}
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                Ref: NRP 8th Ed (AAP/AHA 2021) · ILCOR CoSTR 2022 · Klingenberg et al. Arch Dis Child Fetal 2011 · Sweet et al. ESPGHAN/ESPR Guidelines 2023
+              </p>
+
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
                   onClick={() => {
-                    addLog(`Ventilator diatur untuk kondisi: ${lungCondition.toUpperCase()}. Lanjut Perawatan Pasca Resusitasi.`);
+                    const bbDisp = ventBB || birthWeight;
+                    addLog(`Ventilator diatur: ${lungCondition.toUpperCase()}, BB ${bbDisp}g. Pindah Pasca Resusitasi.`);
                     setPhase('post_resuscitation');
                   }}
                   className="w-full bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 py-4 rounded-xl font-bold transition-all uppercase tracking-wider flex justify-center items-center gap-2 border border-cyan-500"
