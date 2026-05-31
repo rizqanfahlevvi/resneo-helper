@@ -160,7 +160,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             {!sidebarCollapsed && (
               <>
                 <span className="flex-1 text-left">Cari...</span>
-                <kbd className="text-[9px] bg-white dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">⌘K</kbd>
+                <span className="text-[9px] bg-white dark:bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700 leading-none">Ctrl+K</span>
               </>
             )}
           </button>

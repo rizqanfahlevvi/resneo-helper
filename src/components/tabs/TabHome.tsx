@@ -125,7 +125,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
   return (
     <div className="w-full text-slate-800 dark:text-slate-100 font-sans">
       {/* Top Header Jumbotron Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 pt-2 border-b border-slate-205 dark:border-slate-800/40">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 pt-2">
         <div className="space-y-2">
           {/* Neonatal Pill Badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-105 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 font-extrabold uppercase tracking-widest text-[9px] md:text-[10px]">
