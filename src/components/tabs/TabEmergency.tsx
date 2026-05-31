@@ -160,6 +160,7 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
 
   // Reminder state (#6)
   const [reminder, setReminder] = useState<string | null>(null);
+  const [mobileDosingOpen, setMobileDosingOpen] = useState(false);
   const [lastReminderTime, setLastReminderTime] = useState<number>(-1);
 
   // Shared AudioContext to prevent hitting maximum hardware contexts limit
@@ -777,6 +778,83 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
             {/* Antropometri — tampil di semua ukuran layar kecuali desktop (sidebar sudah ada) */}
             <div className="lg:hidden">
               <AnthropoPanel setBirthWeight={setBirthWeight} />
+            </div>
+
+            {/* Referensi Dosis & Alat — mobile/tablet only collapsible */}
+            <div className="lg:hidden">
+              <button
+                onClick={() => setMobileDosingOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm text-sm font-bold text-slate-700 dark:text-slate-200"
+              >
+                <div className="flex items-center gap-2">
+                  <Syringe className="w-4 h-4 text-red-500" />
+                  <span>Referensi Dosis & Alat</span>
+                  {bwKg > 0 && <span className="text-[10px] font-extrabold bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full">BB {birthWeight}g</span>}
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mobileDosingOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {mobileDosingOpen && (
+                <div className="mt-2 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={birthWeight}
+                      onChange={e => setBirthWeight(e.target.value)}
+                      placeholder="BB (gram)"
+                      className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                    />
+                    <span className="self-center text-xs text-slate-400 font-bold">Gram</span>
+                  </div>
+
+                  {bwKg <= 0 ? (
+                    <p className="text-xs text-slate-400 text-center py-2">Masukkan BB untuk melihat dosis</p>
+                  ) : (
+                    <div className="space-y-2.5 text-xs">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                          <span className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Ukuran ETT</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm">{ettSize} mm</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                          <span className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Batas Bibir</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm">{ettDepth} cm</span>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-950/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                        <span className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Salin Normal (10 mL/kg)</span>
+                        <span className="font-extrabold text-slate-800 dark:text-slate-100 text-sm">{volumeExp} mL</span>
+                      </div>
+                      <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-3 border border-red-100 dark:border-red-900/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] text-red-700 dark:text-red-400 font-bold uppercase">Adrenalin IV/IO</span>
+                          <span className="text-[9px] bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded font-extrabold">1:10.000</span>
+                        </div>
+                        <span className="font-extrabold text-base text-red-600 dark:text-red-400">{adrenalinMin} – {adrenalinMax} <span className="text-xs font-normal text-slate-500">mL</span></span>
+                      </div>
+                      <div className="bg-rose-50 dark:bg-rose-950/20 rounded-xl p-3 border border-rose-100 dark:border-rose-900/40">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase">Adrenalin via ETT</span>
+                          <span className="text-[9px] bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 px-1.5 py-0.5 rounded font-extrabold">1:10.000</span>
+                        </div>
+                        <span className="font-extrabold text-sm text-rose-600 dark:text-rose-400">{(0.5*bwKg).toFixed(2)} – {(1.0*bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
+                          <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">D10% Bolus</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{(2*bwKg).toFixed(1)} mL</span>
+                          <span className="block text-[8px] text-slate-400 mt-0.5">2 mL/kg</span>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-2.5 border border-blue-100 dark:border-blue-900/40">
+                          <span className="block text-[9px] text-blue-700 dark:text-blue-400 font-bold uppercase mb-0.5">NaHCO₃ 4.2%</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{(2*bwKg).toFixed(1)} mL</span>
+                          <span className="block text-[8px] text-slate-400 mt-0.5">1–2 mEq/kg</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {phase === 'initial_steps' && (
