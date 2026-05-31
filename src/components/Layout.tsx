@@ -210,7 +210,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         </nav>
 
         {/* Update Button + Collapse Toggle */}
-        <div className={`p-4 border-t border-slate-100 dark:border-slate-900 space-y-2`}>
+        <div className={`p-4 pb-28 md:pb-4 border-t border-slate-100 dark:border-slate-900 space-y-2`}>
           {/* Update available banner */}
           {needRefresh && (
             <button
