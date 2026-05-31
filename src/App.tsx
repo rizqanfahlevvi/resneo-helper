@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Layout from './components/Layout';
 import TabEmergency from './components/tabs/TabEmergency';
 import TabScores from './components/tabs/TabScores';
@@ -173,6 +174,7 @@ export default function App() {
              <TabDashboard onNavigate={navigateTo} />
           </div>
         </Layout>
+      <Analytics />
     </ThemeProvider>
   );
 }
