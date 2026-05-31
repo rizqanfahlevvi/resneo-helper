@@ -29,6 +29,7 @@ const TABS = [
 
 export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight, searchOpen: searchOpenProp, onSearchOpen, onSidebarSearch }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [showAdrenalinPopup, setShowAdrenalinPopup] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -37,6 +38,14 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const [searchOpenLocal, setSearchOpenLocal] = useState(false);
   const searchOpen = searchOpenProp ?? searchOpenLocal;
   const setSearchOpen = (v: boolean) => { setSearchOpenLocal(v); onSearchOpen?.(v); };
+
+  useEffect(() => {
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline); };
+  }, []);
 
   // Ctrl/Cmd+K shortcut
   useEffect(() => {
@@ -89,6 +98,12 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0B132B] overflow-hidden text-slate-900 dark:text-slate-100 relative transition-colors duration-300">
+      {!isOnline && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-center text-xs font-bold py-1.5 px-4 flex items-center justify-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          Mode Offline — Data tetap tersedia dari cache
+        </div>
+      )}
       {/* Backdrop for Mobile Sidebar Drawer */}
       {mobileSidebarOpen && (
         <div 

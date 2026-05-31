@@ -211,7 +211,7 @@ interface TabScoresProps {
 
 export default function TabScores({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabScoresProps) {
   // Navigation & Accordion States
-  const [activeScoreView, setActiveScoreView] = useState<'menu' | 'apgar' | 'downe' | 'thomson' | 'ballard' | 'silverman' | 'gir' | 'surfactan' | 'inotropic' | 'fluid'>('menu');
+  const [activeScoreView, setActiveScoreView] = useState<'menu' | 'apgar' | 'downe' | 'thomson' | 'ballard' | 'silverman' | 'gir' | 'surfactan' | 'inotropic' | 'fluid' | 'flacc' | 'nips'>('menu');
   const [expandedMinutes, setExpandedMinutes] = useState<Record<number, boolean>>({ 1: true, 5: true });
 
   // APGAR State
@@ -661,6 +661,38 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
                 <span>Aterm 80–150 · BBLSR 60–150 mL/kg/hari</span>
                 <span className="text-sky-500 dark:text-sky-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka →</span>
+              </div>
+            </div>
+
+            {/* Card 10: FLACC */}
+            <div
+              onClick={() => setActiveScoreView('flacc')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-rose-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 rounded">Skor FLACC</span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Penilaian Nyeri FLACC</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Face, Legs, Activity, Cry, Consolability — penilaian nyeri neonatus ≥2 bulan atau aterm. Skor 0–10.</p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>0: Nyaman · 1–3: Ringan · 4–6: Sedang · 7–10: Berat</span>
+                <span className="text-rose-500 dark:text-rose-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka →</span>
+              </div>
+            </div>
+
+            {/* Card 11: NIPS */}
+            <div
+              onClick={() => setActiveScoreView('nips')}
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-rose-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
+            >
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 rounded">Skor NIPS</span>
+                <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Neonatal Infant Pain Scale</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Penilaian nyeri untuk neonatus prematur dan aterm: ekspresi wajah, tangisan, napas, lengan, kaki, status bangun.</p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>0–2: Minimal · 3–4: Sedang · 5–7: Berat</span>
+                <span className="text-rose-500 dark:text-rose-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka →</span>
               </div>
             </div>
 
@@ -1587,6 +1619,217 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
         </div>
       )}
 
+      {/* FLACC SCORE */}
+      {activeScoreView === 'flacc' && (
+        <FlaccScore onBack={() => setActiveScoreView('menu')} />
+      )}
+
+      {/* NIPS SCORE */}
+      {activeScoreView === 'nips' && (
+        <NipsScore onBack={() => setActiveScoreView('menu')} />
+      )}
+
+    </div>
+  );
+}
+
+// ==========================================
+// FLACC SCORE COMPONENT
+// ==========================================
+function FlaccScore({ onBack }: { onBack: () => void }) {
+  const flaccParams = [
+    {
+      key: 'face',
+      label: 'Wajah (Face)',
+      options: [
+        'Tidak ada ekspresi / senyum',
+        'Meringis sesekali, mengerutkan dahi, menarik diri, tidak tertarik',
+        'Mengerutkan dahi terus-menerus, rahang mengatup, tremor dagu',
+      ],
+    },
+    {
+      key: 'legs',
+      label: 'Kaki (Legs)',
+      options: [
+        'Normal / rileks',
+        'Gelisah, tegang',
+        'Menendang atau kaki tertekuk',
+      ],
+    },
+    {
+      key: 'activity',
+      label: 'Aktivitas (Activity)',
+      options: [
+        'Berbaring tenang, posisi normal, bergerak mudah',
+        'Menggeliat, bergoyang maju-mundur, tegang',
+        'Melengkung kaku, berkedut',
+      ],
+    },
+    {
+      key: 'cry',
+      label: 'Tangisan (Cry)',
+      options: [
+        'Tidak menangis',
+        'Merintih, merengek, sesekali menangis',
+        'Menangis terus-menerus, berteriak, sesenggukan',
+      ],
+    },
+    {
+      key: 'consolability',
+      label: 'Ketenangan (Consolability)',
+      options: [
+        'Puas/tenang',
+        'Teralihkan dengan sentuhan/pelukan sesekali',
+        'Sulit ditenangkan',
+      ],
+    },
+  ];
+
+  const [scores, setScores] = useState<Record<string, number>>({});
+  const total = flaccParams.reduce((sum, p) => sum + (scores[p.key] ?? 0), 0);
+  const allFilled = flaccParams.every(p => p.key in scores);
+
+  const interp = total === 0 ? { label: 'Nyaman / Tidak Nyeri', color: 'emerald' }
+    : total <= 3 ? { label: 'Nyeri Ringan', color: 'yellow' }
+    : total <= 6 ? { label: 'Nyeri Sedang', color: 'orange' }
+    : { label: 'Nyeri Berat', color: 'red' };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+        Kembali ke Menu Skor
+      </button>
+      <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-rose-600/80 backdrop-blur-md p-4 text-white border-b border-white/10">
+          <h3 className="font-bold text-lg">Skor FLACC Nyeri Neonatus</h3>
+          <p className="text-xs text-white/70">Face, Legs, Activity, Cry, Consolability — Neonatus ≥2 bulan / aterm · Total 0–10</p>
+        </div>
+        <div className="p-4 md:p-6 space-y-4">
+          {flaccParams.map(param => (
+            <div key={param.key} className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{param.label}</span>
+                {param.key in scores && (
+                  <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">{scores[param.key]}</span>
+                )}
+              </div>
+              <div className="space-y-2">
+                {param.options.map((opt, i) => (
+                  <label key={i} className={`flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all ${scores[param.key] === i ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-700' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-700'}`}>
+                    <input type="radio" name={param.key} value={i} checked={scores[param.key] === i} onChange={() => setScores(s => ({ ...s, [param.key]: i }))} className="mt-0.5 accent-rose-600" />
+                    <span className="text-xs text-slate-700 dark:text-slate-300"><span className="font-bold mr-1">{i}</span>{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {allFilled && (
+            <div className={`rounded-2xl border-2 p-5 text-center ${interp.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : interp.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400' : interp.color === 'orange' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400' : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400'}`}>
+              <span className="block text-xs font-extrabold uppercase tracking-widest mb-1">Total Skor FLACC</span>
+              <span className="text-5xl font-black">{total}</span>
+              <span className="block font-bold text-sm mt-2">{interp.label}</span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0: Nyaman · 1–3: Ringan · 4–6: Sedang · 7–10: Berat</span>
+            </div>
+          )}
+          <p className="text-[10px] text-slate-400 text-right">Merkel SI et al. Pediatr Nurs. 1997; Voepel-Lewis T et al. Anesth Analg. 2010</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// NIPS SCORE COMPONENT
+// ==========================================
+function NipsScore({ onBack }: { onBack: () => void }) {
+  const nipsParams = [
+    {
+      key: 'face',
+      label: 'Ekspresi Wajah',
+      options: [{ val: 0, label: 'Rileks' }, { val: 1, label: 'Meringis' }],
+    },
+    {
+      key: 'cry',
+      label: 'Tangisan',
+      options: [{ val: 0, label: 'Tidak menangis' }, { val: 1, label: 'Merengek' }, { val: 2, label: 'Menangis keras' }],
+    },
+    {
+      key: 'breathing',
+      label: 'Pola Napas',
+      options: [{ val: 0, label: 'Rileks' }, { val: 1, label: 'Berbeda dari baseline' }],
+    },
+    {
+      key: 'arms',
+      label: 'Lengan',
+      options: [{ val: 0, label: 'Rileks / ditahan' }, { val: 1, label: 'Fleksi / ekstensi' }],
+    },
+    {
+      key: 'legs',
+      label: 'Kaki',
+      options: [{ val: 0, label: 'Rileks / ditahan' }, { val: 1, label: 'Fleksi / ekstensi' }],
+    },
+    {
+      key: 'state',
+      label: 'Status Bangun',
+      options: [{ val: 0, label: 'Tidur / terjaga tenang' }, { val: 1, label: 'Rewel' }],
+    },
+  ];
+
+  const [scores, setScores] = useState<Record<string, number>>({});
+  const total = nipsParams.reduce((sum, p) => sum + (scores[p.key] ?? 0), 0);
+  const allFilled = nipsParams.every(p => p.key in scores);
+
+  const interp = total <= 2 ? { label: 'Tidak Nyeri / Nyeri Minimal', color: 'emerald' }
+    : total <= 4 ? { label: 'Nyeri Sedang', color: 'orange' }
+    : { label: 'Nyeri Berat', color: 'red' };
+
+  return (
+    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+        Kembali ke Menu Skor
+      </button>
+      <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-rose-600/80 backdrop-blur-md p-4 text-white border-b border-white/10">
+          <h3 className="font-bold text-lg">Skor NIPS Nyeri Neonatus</h3>
+          <p className="text-xs text-white/70">Neonatal Infant Pain Scale — prematur &amp; aterm · Total 0–7</p>
+        </div>
+        <div className="p-4 md:p-6 space-y-4">
+          {nipsParams.map(param => (
+            <div key={param.key} className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{param.label}</span>
+                {param.key in scores && (
+                  <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">{scores[param.key]}</span>
+                )}
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {param.options.map(opt => (
+                  <button
+                    key={opt.val}
+                    onClick={() => setScores(s => ({ ...s, [param.key]: opt.val }))}
+                    className={`px-4 py-2 rounded-xl border text-xs font-bold transition-all ${scores[param.key] === opt.val ? 'bg-rose-500 text-white border-rose-400 shadow-sm' : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-rose-400'}`}
+                  >
+                    <span className="font-black mr-1">{opt.val}</span>{opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {allFilled && (
+            <div className={`rounded-2xl border-2 p-5 text-center ${interp.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : interp.color === 'orange' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400' : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400'}`}>
+              <span className="block text-xs font-extrabold uppercase tracking-widest mb-1">Total Skor NIPS</span>
+              <span className="text-5xl font-black">{total}</span>
+              <span className="block font-bold text-sm mt-2">{interp.label}</span>
+              <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0–2: Minimal · 3–4: Sedang · 5–7: Berat</span>
+            </div>
+          )}
+          <p className="text-[10px] text-slate-400 text-right">Lawrence J et al. Neonatal Netw. 1993; Suraseranivongse S et al. J Med Assoc Thai. 2006</p>
+        </div>
+      </div>
     </div>
   );
 }

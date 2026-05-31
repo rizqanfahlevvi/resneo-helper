@@ -683,6 +683,367 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
           </div>
         )}
       </div>
+
+      {/* TPN CALCULATOR */}
+      <TpnCalculator effectiveBW={effectiveBW} />
+
+      {/* FENTON 2013 GROWTH CHART */}
+      <FentonGrowthChart effectiveBW={effectiveBW} gestationalAge={effectiveGA} />
+
+    </div>
+  );
+}
+
+// ==========================================
+// TPN CALCULATOR
+// ==========================================
+function TpnCalculator({ effectiveBW }: { effectiveBW: string }) {
+  const [tpnDol, setTpnDol] = useState<string>('1');
+  const [tpnSex, setTpnSex] = useState<'male' | 'female'>('male');
+  const [tpnStatus, setTpnStatus] = useState<'term' | 'preterm'>('term');
+  const [open, setOpen] = useState(false);
+
+  const bwNum = parseInt(effectiveBW) || 0;
+  const bwKg = bwNum / 1000;
+  const dolNum = Math.min(14, Math.max(1, parseInt(tpnDol) || 1));
+
+  // Fluid mL/kg/day
+  const getFluidRange = (): [number, number] => {
+    let base: [number, number];
+    if (dolNum === 1) base = [60, 80];
+    else if (dolNum === 2) base = [80, 100];
+    else if (dolNum === 3) base = [100, 120];
+    else if (dolNum <= 7) base = [120, 150];
+    else base = [140, 160];
+    if (tpnStatus === 'preterm') return [base[0] + 20, base[1] + 20];
+    return base;
+  };
+
+  const [fluidMin, fluidMax] = getFluidRange();
+  const totalFluidMin = bwKg > 0 ? (fluidMin * bwKg).toFixed(0) : '—';
+  const totalFluidMax = bwKg > 0 ? (fluidMax * bwKg).toFixed(0) : '—';
+
+  // GIR / Glucose
+  const girStart = { min: 4, max: 6 };
+  const girTarget = { min: 6, max: 8 };
+  const dextroseGStart = bwKg > 0 ? ((girStart.min + girStart.max) / 2 * bwKg * 1440 / 1000).toFixed(1) : '—';
+  const volD10 = bwKg > 0 ? (parseFloat(dextroseGStart) / 0.1).toFixed(0) : '—';
+
+  // Protein g/kg/day range
+  const getProteinRange = (): [number, number] => {
+    if (tpnStatus === 'preterm') return dolNum === 1 ? [2, 3] : [3.5, 4];
+    return dolNum <= 2 ? [1.5, 2] : [3, 3.5];
+  };
+  const [protMin, protMax] = getProteinRange();
+  const protVolMin = bwKg > 0 ? (protMin * bwKg / 0.1).toFixed(1) : '—';
+  const protVolMax = bwKg > 0 ? (protMax * bwKg / 0.1).toFixed(1) : '—';
+
+  // Lipid g/kg/day
+  const getLipidRange = (): [number, number] => {
+    if (dolNum === 1 && bwNum >= 1000) return [0, 0];
+    if (dolNum === 1) return [0.5, 1];
+    if (dolNum <= 3) return [1, 2];
+    return [2, 3];
+  };
+  const [lipMin, lipMax] = getLipidRange();
+  const lipVolMin = bwKg > 0 ? (lipMin * bwKg / 0.2).toFixed(1) : '—';
+  const lipVolMax = bwKg > 0 ? (lipMax * bwKg / 0.2).toFixed(1) : '—';
+
+  // Electrolytes (start DOL 2-3)
+  const showElyte = dolNum >= 2;
+  const naMin = bwKg > 0 ? (2 * bwKg).toFixed(1) : '—';
+  const naMax = bwKg > 0 ? (3 * bwKg).toFixed(1) : '—';
+  const kMin = bwKg > 0 ? (1 * bwKg).toFixed(1) : '—';
+  const kMax = bwKg > 0 ? (2 * bwKg).toFixed(1) : '—';
+  const caMin = bwKg > 0 ? (1 * bwKg).toFixed(1) : '—';
+  const caMax = bwKg > 0 ? (1.5 * bwKg).toFixed(1) : '—';
+  const caVolMin = bwKg > 0 ? (1 * bwKg * 10 / 4.65).toFixed(1) : '—';
+  const caVolMax = bwKg > 0 ? (1.5 * bwKg * 10 / 4.65).toFixed(1) : '—';
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Kalkulator TPN Neonatus</span>
+          <span className="text-xs text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-950/40 px-2 py-0.5 rounded font-bold ml-1">Baru</span>
+        </div>
+        <svg className={`w-4 h-4 text-violet-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-violet-100 dark:border-violet-500/20 p-4 md:p-6 space-y-5">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Total Parenteral Nutrition — kalkulasi berdasarkan BB dan hari kehidupan. BB diambil dari data antropometri.</p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">BB (gram)</label>
+              <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200">{bwNum > 0 ? bwNum : '—'}</div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Hari Kehidupan (DOL)</label>
+              <input type="number" min={1} max={14} value={tpnDol} onChange={e => setTpnDol(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Jenis Kelamin</label>
+              <div className="flex gap-1">
+                <button onClick={() => setTpnSex('male')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${tpnSex === 'male' ? 'bg-violet-500 text-white border-violet-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>L</button>
+                <button onClick={() => setTpnSex('female')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${tpnSex === 'female' ? 'bg-violet-500 text-white border-violet-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>P</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Status</label>
+              <div className="flex gap-1">
+                <button onClick={() => setTpnStatus('term')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${tpnStatus === 'term' ? 'bg-violet-500 text-white border-violet-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>Aterm</button>
+                <button onClick={() => setTpnStatus('preterm')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${tpnStatus === 'preterm' ? 'bg-violet-500 text-white border-violet-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>Prematur</button>
+              </div>
+            </div>
+          </div>
+
+          {bwKg > 0 && (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-violet-50 dark:bg-violet-950/30">
+                    <th className="text-left p-3 font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider">Komponen</th>
+                    <th className="text-center p-3 font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider">Dosis</th>
+                    <th className="text-center p-3 font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider">Volume</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr className="bg-white dark:bg-slate-900/30">
+                    <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Cairan Total</td>
+                    <td className="p-3 text-center font-bold text-slate-900 dark:text-white">{fluidMin}–{fluidMax} mL/kg/hari</td>
+                    <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{totalFluidMin}–{totalFluidMax} mL/hari</td>
+                  </tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10">
+                    <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Glukosa (GIR 4–6 mg/kg/mnt)</td>
+                    <td className="p-3 text-center font-bold text-slate-900 dark:text-white">{dextroseGStart} g/hari</td>
+                    <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">D10%: {volD10} mL</td>
+                  </tr>
+                  <tr className="bg-white dark:bg-slate-900/30">
+                    <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Protein (Aminosteril Inf. 10%)</td>
+                    <td className="p-3 text-center font-bold text-slate-900 dark:text-white">{protMin}–{protMax} g/kg/hari</td>
+                    <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{protVolMin}–{protVolMax} mL</td>
+                  </tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10">
+                    <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Lipid (Intralipid 20%)</td>
+                    <td className="p-3 text-center font-bold text-slate-900 dark:text-white">{lipMin === 0 && lipMax === 0 ? 'Tunda (DOL 1, BB≥1000g)' : `${lipMin}–${lipMax} g/kg/hari`}</td>
+                    <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{lipMin === 0 && lipMax === 0 ? '—' : `${lipVolMin}–${lipVolMax} mL`}</td>
+                  </tr>
+                  {showElyte ? (
+                    <>
+                      <tr className="bg-white dark:bg-slate-900/30">
+                        <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Na⁺ (NaCl 3%: 1 mEq=1 mL)</td>
+                        <td className="p-3 text-center font-bold text-slate-900 dark:text-white">2–3 mEq/kg/hari</td>
+                        <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{naMin}–{naMax} mL</td>
+                      </tr>
+                      <tr className="bg-slate-50/50 dark:bg-slate-900/10">
+                        <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">K⁺ (KCl 7.46%: 1 mEq=1 mL)</td>
+                        <td className="p-3 text-center font-bold text-slate-900 dark:text-white">1–2 mEq/kg/hari</td>
+                        <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{kMin}–{kMax} mL</td>
+                      </tr>
+                      <tr className="bg-white dark:bg-slate-900/30">
+                        <td className="p-3 font-semibold text-slate-700 dark:text-slate-300">Ca²⁺ (Ca Glukonat 10%)</td>
+                        <td className="p-3 text-center font-bold text-slate-900 dark:text-white">1–1.5 mEq/kg/hari</td>
+                        <td className="p-3 text-center font-bold text-violet-600 dark:text-violet-400">{caVolMin}–{caVolMax} mL</td>
+                      </tr>
+                    </>
+                  ) : (
+                    <tr className="bg-white dark:bg-slate-900/30">
+                      <td className="p-3 font-semibold text-slate-500 dark:text-slate-400" colSpan={3}>Elektrolit dimulai DOL 2–3</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {bwKg <= 0 && (
+            <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">Input berat lahir di panel Antropometri untuk melihat kalkulasi TPN.</div>
+          )}
+          <p className="text-[10px] text-slate-400 text-right">ESPGHAN 2018 · IDAI NICU Guidelines · Koletzko B et al. J Pediatr Gastroenterol Nutr. 2018</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// FENTON 2013 GROWTH CHART
+// ==========================================
+const fentonWeightBoys: Record<number, [number, number, number, number, number]> = {
+  22: [350,400,500,620,700], 23: [400,460,575,710,810], 24: [460,530,665,820,940],
+  25: [535,615,770,950,1090], 26: [615,715,895,1105,1270], 27: [710,830,1035,1280,1475],
+  28: [820,960,1200,1490,1720], 29: [950,1110,1390,1730,2000], 30: [1100,1285,1610,2010,2325],
+  31: [1270,1485,1860,2325,2695], 32: [1460,1705,2135,2675,3100], 33: [1670,1950,2440,3055,3545],
+  34: [1900,2215,2770,3470,4025], 35: [2150,2500,3120,3905,4530], 36: [2410,2800,3490,4370,5070],
+  37: [2680,3110,3870,4840,5620], 38: [2940,3410,4250,5310,6170], 39: [3190,3700,4610,5750,6680],
+  40: [3420,3960,4940,6160,7160], 41: [3620,4190,5240,6520,7570], 42: [3790,4390,5490,6840,7930],
+};
+
+const fentonWeightGirls: Record<number, [number, number, number, number, number]> = {
+  22: [330,380,475,590,665], 23: [385,440,550,685,775], 24: [440,505,635,795,900],
+  25: [510,590,740,930,1060], 26: [590,685,865,1090,1245], 27: [685,800,1015,1285,1475],
+  28: [795,935,1190,1515,1745], 29: [920,1090,1395,1785,2060], 30: [1070,1270,1635,2100,2430],
+  31: [1240,1480,1910,2460,2850], 32: [1430,1715,2220,2865,3325], 33: [1645,1980,2570,3320,3860],
+  34: [1875,2270,2955,3820,4445], 35: [2120,2575,3365,4360,5075], 36: [2375,2895,3790,4920,5730],
+  37: [2630,3215,4225,5490,6395], 38: [2875,3520,4655,6055,7060], 39: [3100,3805,5070,6600,7700],
+  40: [3300,4060,5460,7115,8300], 41: [3465,4285,5810,7590,8855], 42: [3595,4475,6120,8020,9360],
+};
+
+function FentonGrowthChart({ effectiveBW, gestationalAge }: { effectiveBW: string; gestationalAge: string }) {
+  const [sex, setSex] = useState<'male' | 'female'>('male');
+  const [gaInput, setGaInput] = useState(gestationalAge || '');
+  const [bbInput, setBbInput] = useState(effectiveBW || '');
+  const [open, setOpen] = useState(false);
+
+  const table = sex === 'male' ? fentonWeightBoys : fentonWeightGirls;
+  const gaNum = Math.min(42, Math.max(22, parseInt(gaInput) || 0));
+  const bbNum = parseInt(bbInput) || 0;
+
+  const row = gaNum >= 22 && gaNum <= 42 ? table[gaNum] : null;
+  const interp = row && bbNum > 0
+    ? bbNum < row[1] ? 'SGA'
+    : bbNum > row[3] ? 'LGA'
+    : 'AGA'
+    : null;
+
+  // SVG chart: GA 24-42 on X, weight 0-9000 on Y
+  const gaRange = Array.from({ length: 19 }, (_, i) => i + 24); // 24..42
+  const svgW = 400; const svgH = 200;
+  const padL = 36; const padR = 10; const padT = 10; const padB = 24;
+  const chartW = svgW - padL - padR;
+  const chartH = svgH - padT - padB;
+  const maxY = 9000;
+
+  const xPos = (ga: number) => padL + ((ga - 24) / 18) * chartW;
+  const yPos = (g: number) => padT + chartH - (g / maxY) * chartH;
+
+  const pctColors = ['#f87171','#fb923c','#22c55e','#60a5fa','#818cf8'];
+  const pctLabels = ['P3','P10','P50','P90','P97'];
+
+  const polylinePoints = (pIdx: number) =>
+    gaRange.map(ga => `${xPos(ga)},${yPos(table[ga][pIdx])}`).join(' ');
+
+  const dotX = gaNum >= 24 && gaNum <= 42 && bbNum > 0 ? xPos(gaNum) : null;
+  const dotY = bbNum > 0 && gaNum >= 24 && gaNum <= 42 ? yPos(bbNum) : null;
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Kurva Pertumbuhan Fenton 2013</span>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded font-bold ml-1">Baru</span>
+        </div>
+        <svg className={`w-4 h-4 text-emerald-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-emerald-100 dark:border-emerald-500/20 p-4 md:p-6 space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Jenis Kelamin</label>
+              <div className="flex gap-1">
+                <button onClick={() => setSex('male')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${sex === 'male' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>Laki-laki</button>
+                <button onClick={() => setSex('female')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${sex === 'female' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>Perempuan</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">GA (minggu, 22–42)</label>
+              <input type="number" min={22} max={42} value={gaInput} onChange={e => setGaInput(e.target.value)} placeholder="cth: 32" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">BB Lahir (gram)</label>
+              <input type="number" value={bbInput} onChange={e => setBbInput(e.target.value)} placeholder="cth: 1200" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+          </div>
+
+          {/* SVG Chart */}
+          <div className="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 p-3 overflow-x-auto">
+            <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full max-w-full" style={{ minWidth: 280 }}>
+              {/* Grid lines */}
+              {[0,1000,2000,3000,4000,5000,6000,7000,8000,9000].map(g => (
+                <line key={g} x1={padL} y1={yPos(g)} x2={svgW - padR} y2={yPos(g)} stroke="#e2e8f0" strokeWidth={0.5} />
+              ))}
+              {gaRange.filter(ga => ga % 2 === 0).map(ga => (
+                <line key={ga} x1={xPos(ga)} y1={padT} x2={xPos(ga)} y2={svgH - padB} stroke="#e2e8f0" strokeWidth={0.5} />
+              ))}
+              {/* Percentile curves */}
+              {[0,1,2,3,4].map(pi => (
+                <polyline key={pi} points={polylinePoints(pi)} fill="none" stroke={pctColors[pi]} strokeWidth={pi === 2 ? 1.5 : 1} strokeDasharray={pi === 0 || pi === 4 ? '3,2' : pi === 1 || pi === 3 ? '5,2' : undefined} opacity={0.85} />
+              ))}
+              {/* Patient dot */}
+              {dotX !== null && dotY !== null && (
+                <>
+                  <circle cx={dotX} cy={dotY} r={5} fill="#ef4444" stroke="white" strokeWidth={1.5} />
+                  <circle cx={dotX} cy={dotY} r={9} fill="none" stroke="#ef4444" strokeWidth={1} opacity={0.4} />
+                </>
+              )}
+              {/* X axis labels */}
+              {gaRange.filter(ga => ga % 4 === 0).map(ga => (
+                <text key={ga} x={xPos(ga)} y={svgH - padB + 12} textAnchor="middle" fontSize={7} fill="#94a3b8">{ga}</text>
+              ))}
+              {/* Y axis labels */}
+              {[0,2000,4000,6000,8000].map(g => (
+                <text key={g} x={padL - 3} y={yPos(g) + 3} textAnchor="end" fontSize={6.5} fill="#94a3b8">{g/1000}k</text>
+              ))}
+              {/* Legend */}
+              {pctLabels.map((lbl, i) => (
+                <g key={lbl}>
+                  <line x1={svgW - padR - 60 + i * 12} y1={padT + 8} x2={svgW - padR - 55 + i * 12} y2={padT + 8} stroke={pctColors[i]} strokeWidth={1.5} />
+                  <text x={svgW - padR - 55 + i * 12} y={padT + 11} fontSize={5.5} fill={pctColors[i]}>{lbl}</text>
+                </g>
+              ))}
+              {/* Axis labels */}
+              <text x={padL + chartW / 2} y={svgH} textAnchor="middle" fontSize={7} fill="#94a3b8">Usia Gestasi (minggu)</text>
+            </svg>
+          </div>
+
+          {/* Percentile table for selected GA */}
+          {row && (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-emerald-50 dark:bg-emerald-950/30">
+                    <th className="p-2 text-left font-extrabold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">GA {gaNum}mgg ({sex === 'male' ? 'L' : 'P'})</th>
+                    {pctLabels.map(l => <th key={l} className="p-2 text-center font-bold text-emerald-600 dark:text-emerald-400">{l}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="bg-white dark:bg-slate-900/30">
+                    <td className="p-2 font-semibold text-slate-700 dark:text-slate-300">Berat (gram)</td>
+                    {row.map((v, i) => (
+                      <td key={i} className={`p-2 text-center font-bold tabular-nums ${bbNum > 0 && ((i === 0 && bbNum < v) || (i === 4 && bbNum > v) || (i === 1 && bbNum < v) || (i === 3 && bbNum > v)) ? 'text-slate-400 dark:text-slate-600' : (bbNum > 0 && i === 2) ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'} ${bbNum > 0 && bbNum >= (i > 0 ? row[i-1] : 0) && bbNum <= v ? 'bg-emerald-50 dark:bg-emerald-950/30' : ''}`}>
+                        {v}
+                        {bbNum > 0 && bbNum >= (i > 0 ? row[i-1] : 0) && bbNum < v ? ' ◀' : ''}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Interpretation */}
+          {interp && bbNum > 0 && gaNum >= 22 && (
+            <div className={`rounded-2xl border-2 p-4 text-center ${interp === 'AGA' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700' : interp === 'SGA' ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700' : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700'}`}>
+              <span className={`text-3xl font-black ${interp === 'AGA' ? 'text-emerald-600 dark:text-emerald-400' : interp === 'SGA' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>{interp}</span>
+              <span className="block text-xs font-bold text-slate-600 dark:text-slate-400 mt-1">
+                {interp === 'SGA' ? 'Small for Gestational Age (<P10)' : interp === 'AGA' ? 'Appropriate for Gestational Age (P10–P90)' : 'Large for Gestational Age (>P90)'}
+              </span>
+              <span className="block text-[10px] text-slate-500 dark:text-slate-500 mt-0.5">BB {bbNum}g · GA {gaNum} minggu · {sex === 'male' ? 'Laki-laki' : 'Perempuan'}</span>
+            </div>
+          )}
+          <p className="text-[10px] text-slate-400 text-right">Fenton TR &amp; Kim JH. BMC Pediatrics. 2013;13:59. doi:10.1186/1471-2431-13-59</p>
+        </div>
+      )}
     </div>
   );
 }

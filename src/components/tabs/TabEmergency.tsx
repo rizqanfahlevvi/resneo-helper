@@ -393,20 +393,24 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
       if (phaseElapsed > 0 && phaseElapsed % 30 === 0) {
         const msg = `⏱️ VTP ${Math.floor(phaseElapsed/60)}:${(phaseElapsed%60).toString().padStart(2,'0')} — Evaluasi LDJ sekarang`;
         setReminder(msg);
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
         setLastReminderTime(elapsedTime);
       }
       if (phaseElapsed === 120) {
         setReminder('⏱️ VTP sudah 2 menit — Pertimbangkan intubasi ETT');
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
         setLastReminderTime(elapsedTime);
       }
     }
     if (phase === 'compressions') {
       if (phaseElapsed === 60) {
         setReminder('⏱️ Kompresi 60 detik — Pertimbangkan Adrenalin IV/IO');
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
         setLastReminderTime(elapsedTime);
       }
       if (phaseElapsed === 180) {
         setReminder('⏱️ Kompresi 3 menit — Evaluasi penyebab: 4H4T');
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
         setLastReminderTime(elapsedTime);
       }
     }
@@ -912,6 +916,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   onClick={() => {
                     addLog("Kondisi Bayi Apnea / Megap-megap / LDJ < 100. Masuk Jalur VTP.");
                     setPhase('vtp');
+                    if ('vibrate' in navigator) navigator.vibrate(50);
                     setVtpStartTime(Date.now());
                   }}
                   className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-600 dark:text-red-400 text-left p-4 rounded-xl transition-colors flex items-center justify-between group"
@@ -1220,6 +1225,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     onClick={() => {
                         addLog("LD < 60, Masuk Fase VTP + Kompresi Dada 3:1 (Metronom Aktif)");
                         setPhase('compressions');
+                        if ('vibrate' in navigator) navigator.vibrate(50);
                         setCompressionsStartTime(Date.now());
                         setAudioEnabled(true);
                     }}
@@ -1273,6 +1279,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 onClick={() => {
                   addLog("Evaluasi Pasca-VTP: LDJ < 60x/mnt. Mulai Kompresi.");
                   setPhase('compressions');
+                  if ('vibrate' in navigator) navigator.vibrate(50);
                   setCompressionsStartTime(Date.now());
                   setAudioEnabled(true);
                 }}
@@ -1976,6 +1983,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     onClick={() => {
                         addLog("FAB: Pindah ke VTP");
                         setPhase('vtp');
+                        if ('vibrate' in navigator) navigator.vibrate(50);
                         setVtpStartTime(Date.now());
                         setFabMenuOpen(false);
                     }}
@@ -1989,6 +1997,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     onClick={() => {
                         addLog("FAB: Pindah ke Kompresi Dada");
                         setPhase('compressions');
+                        if ('vibrate' in navigator) navigator.vibrate(50);
                         setFabMenuOpen(false);
                     }}
                     className="w-full text-left bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-xl flex items-center gap-2 transition-colors text-sm font-bold text-slate-700 dark:text-slate-200 mb-1"
