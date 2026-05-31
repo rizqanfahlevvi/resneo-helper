@@ -12,6 +12,7 @@ import { useStore } from './store';
 import { ThemeProvider } from './components/ThemeProvider';
 import { AlertTriangle } from 'lucide-react';
 import { TabType } from './types';
+import { Analytics } from '@vercel/analytics/react';
 
 const TAB_PATHS: Record<TabType, string> = {
   home: '/',
@@ -173,7 +174,7 @@ export default function App() {
              <TabDashboard onNavigate={navigateTo} />
           </div>
         </Layout>
+      <Analytics />
     </ThemeProvider>
   );
 }
-
