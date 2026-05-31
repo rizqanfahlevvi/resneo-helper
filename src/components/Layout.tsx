@@ -253,7 +253,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 relative flex flex-col h-full overflow-y-auto pb-44 md:pb-6 scroll-smooth">
+      <main className="flex-1 relative flex flex-col h-full overflow-y-auto pb-56 md:pb-6 scroll-smooth">
         {/* Top Bar / Mobile & Desktop Sticky Header */}
         <header className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md p-4 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-900/80 flex items-center justify-between transition-all duration-300">
           
