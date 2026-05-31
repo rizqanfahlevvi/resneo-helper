@@ -152,7 +152,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         {/* Search Button in Sidebar */}
         <div className={`mt-4 ${sidebarCollapsed ? 'px-3' : 'px-4'}`}>
           <button
-            onClick={() => onSidebarSearch ? onSidebarSearch() : setSearchOpen(true)}
+            onClick={() => setSearchOpen(true)}
             title="Cari"
             className={`w-full flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all text-xs font-semibold shadow-sm ${sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-2.5'}`}
           >
@@ -427,7 +427,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         <div className="fixed bottom-[94px] left-4 right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-3xl p-5 z-50 flex flex-col gap-3 shadow-2xl animate-in slide-in-from-bottom-5 duration-300 md:hidden">
           <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase block mb-1">Menu Lainnya</span>
           <button
-            onClick={() => { onSidebarSearch ? onSidebarSearch() : setSearchOpen(true); setMoreMenuOpen(false); }}
+            onClick={() => { setSearchOpen(true); setMoreMenuOpen(false); }}
             className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
           >
             <Search className="w-5 h-5 text-indigo-500" /> Cari di Aplikasi
