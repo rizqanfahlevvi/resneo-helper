@@ -1,25 +1,14 @@
-import { useRegisterSW } from 'virtual:pwa-register/react';
-
-export function usePwaUpdate() {
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(swUrl, r) {
-      // Periodically check for updates every 60 minutes
-      if (r) {
-        setInterval(async () => {
-          if (!r.installing && navigator.onLine) {
-            const resp = await fetch(swUrl, { cache: 'no-store', headers: { cache: 'no-store', 'cache-control': 'no-cache' } });
-            if (resp?.status === 200) await r.update();
-          }
-        }, 60 * 60 * 1000);
-      }
-    },
-  });
-
-  const checkForUpdates = () => updateServiceWorker(false);
-  const applyUpdate = () => updateServiceWorker(true);
-
-  return { needRefresh, checkForUpdates, applyUpdate };
+export async function forceUpdateApp(): Promise<void> {
+  // 1. Hapus semua cache SW
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  // 2. Update & unregister SW agar tidak serve cache lama
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.update().catch(() => r.unregister())));
+  }
+  // 3. Hard reload bypass cache
+  window.location.reload();
 }
