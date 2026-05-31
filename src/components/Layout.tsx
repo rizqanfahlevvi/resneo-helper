@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
@@ -19,6 +19,7 @@ interface LayoutProps {
 
 const TABS = [
   { id: 'home', label: 'Beranda', icon: Home },
+  { id: 'dashboard', label: 'Dashboard Pasien', icon: LayoutDashboard },
   { id: 'emergency', label: 'Alur Resusitasi', icon: Activity },
   { id: 'scores', label: 'Skor & Kalkulator', icon: ClipboardList },
   { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope },

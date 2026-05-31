@@ -18,6 +18,17 @@ export interface SessionRecord {
   log: { time: string; message: string }[];
   anthropometry: Anthropometry;
   birthWeight: string;   // passed separately
+  drugLog?: DrugAction[];
+}
+
+export interface DrugAction {
+  id: string;
+  time: string;
+  elapsedTime: number;
+  drugName: string;
+  dose: string;
+  route: string;
+  notes: string;
 }
 
 interface ResneoStore {
@@ -43,6 +54,9 @@ interface ResneoStore {
   sessionHistory: SessionRecord[];
   saveSession: (record: Omit<SessionRecord, 'id' | 'date'>) => void;
   clearHistory: () => void;
+  drugLog: DrugAction[];
+  addDrugLog: (elapsed: number, drugName: string, dose: string, route: string, notes?: string) => void;
+  clearDrugLog: () => void;
 }
 
 export const useStore = create<ResneoStore>((set) => ({
@@ -80,10 +94,20 @@ export const useStore = create<ResneoStore>((set) => ({
   saveSession: (record) => set((state) => {
     const now = new Date();
     const date = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ', ' + now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    const newRecord: SessionRecord = { id: Date.now().toString(), date, ...record };
+    const newRecord: SessionRecord = { id: Date.now().toString(), date, ...record, drugLog: state.drugLog };
     const updated = [newRecord, ...state.sessionHistory].slice(0, 20);
     localStorage.setItem('resneo_history', JSON.stringify(updated));
     return { sessionHistory: updated };
   }),
   clearHistory: () => { localStorage.removeItem('resneo_history'); set({ sessionHistory: [] }); },
+  drugLog: [],
+  addDrugLog: (elapsed, drugName, dose, route, notes = '') => {
+    const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const secs = (elapsed % 60).toString().padStart(2, '0');
+    const now = new Date();
+    const timeStr = `[${mins}:${secs} | ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}]`;
+    const entry: DrugAction = { id: Date.now().toString(), time: timeStr, elapsedTime: elapsed, drugName, dose, route, notes };
+    set(state => ({ drugLog: [...state.drugLog, entry] }));
+  },
+  clearDrugLog: () => set({ drugLog: [] }),
 }));

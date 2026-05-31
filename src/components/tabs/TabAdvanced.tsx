@@ -687,6 +687,18 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
       {/* TPN CALCULATOR */}
       <TpnCalculator effectiveBW={effectiveBW} />
 
+      {/* ANTIBIOTIC DOSING CALCULATOR */}
+      <AntibioticCalculator effectiveBW={effectiveBW} />
+
+      {/* UVC/UAC CATHETER DEPTH CALCULATOR */}
+      <UvcUacCalculator effectiveBW={effectiveBW} />
+
+      {/* SEIZURE MANAGEMENT CALCULATOR */}
+      <SeizureCalculator effectiveBW={effectiveBW} />
+
+      {/* UNIT CONVERSION CALCULATOR */}
+      <UnitConverter effectiveBW={effectiveBW} />
+
       {/* FENTON 2013 GROWTH CHART */}
       <FentonGrowthChart effectiveBW={effectiveBW} gestationalAge={effectiveGA} />
 
@@ -1042,6 +1054,464 @@ function FentonGrowthChart({ effectiveBW, gestationalAge }: { effectiveBW: strin
             </div>
           )}
           <p className="text-[10px] text-slate-400 text-right">Fenton TR &amp; Kim JH. BMC Pediatrics. 2013;13:59. doi:10.1186/1471-2431-13-59</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// ANTIBIOTIC DOSING CALCULATOR
+// ==========================================
+function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
+  const [open, setOpen] = useState(false);
+  const [gaAbx, setGaAbx] = useState<string>('');
+  const [ageAbx, setAgeAbx] = useState<string>('0');
+  const [therapyType, setTherapyType] = useState<'eons' | 'lons' | 'meningitis'>('eons');
+
+  const bwNum = parseInt(effectiveBW) || 0;
+  const bwKg = bwNum / 1000;
+  const gaNum = parseInt(gaAbx) || 0;
+  const ageNum = parseInt(ageAbx) || 0;
+
+  type DrugRow = { drug: string; dose: string; interval: string; volume: string };
+
+  const calcDrugs = (): DrugRow[] => {
+    if (!bwKg || !gaNum) return [];
+    const rows: DrugRow[] = [];
+
+    // Ampisilin 100 mg/mL
+    if (therapyType === 'meningitis') {
+      const doseMg = 100 * bwKg;
+      rows.push({ drug: 'Ampisilin', dose: `${doseMg.toFixed(0)} mg (100 mg/kg)`, interval: 'q8h', volume: `${(doseMg / 100).toFixed(2)} mL` });
+    } else {
+      let interval = 'q12h';
+      if (gaNum >= 29 && ageNum > 7) interval = 'q8h';
+      const doseMg = 50 * bwKg;
+      rows.push({ drug: 'Ampisilin', dose: `${doseMg.toFixed(0)} mg (50 mg/kg)`, interval, volume: `${(doseMg / 100).toFixed(2)} mL` });
+    }
+
+    // Gentamisin 10 mg/mL
+    let gentDose = 4; let gentInterval = 'q24h';
+    if (gaNum < 29) { gentDose = 5; gentInterval = 'q48h'; }
+    else if (gaNum <= 34) { gentDose = 4; gentInterval = 'q36h'; }
+    const gentMg = gentDose * bwKg;
+    rows.push({ drug: 'Gentamisin', dose: `${gentMg.toFixed(1)} mg (${gentDose} mg/kg)`, interval: gentInterval, volume: `${(gentMg / 10).toFixed(2)} mL` });
+
+    // Cefotaxime 100 mg/mL
+    if (therapyType === 'meningitis') {
+      const doseMg = 50 * bwKg;
+      rows.push({ drug: 'Cefotaxime', dose: `${doseMg.toFixed(0)} mg (50 mg/kg)`, interval: 'q6h', volume: `${(doseMg / 100).toFixed(2)} mL` });
+    } else {
+      const cefInterval = ageNum <= 7 ? 'q12h' : 'q8h';
+      const doseMg = 50 * bwKg;
+      rows.push({ drug: 'Cefotaxime', dose: `${doseMg.toFixed(0)} mg (50 mg/kg)`, interval: cefInterval, volume: `${(doseMg / 100).toFixed(2)} mL` });
+    }
+
+    return rows;
+  };
+
+  const drugs = calcDrugs();
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Syringe className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Kalkulator Antibiotik Neonatus</span>
+          <span className="text-xs text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/40 px-2 py-0.5 rounded font-bold ml-1">Kalkulator</span>
+        </div>
+        <svg className={`w-4 h-4 text-rose-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="border-t border-rose-100 dark:border-rose-500/20 p-4 md:p-6 space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">BB (gram)</label>
+              <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200">{bwNum > 0 ? bwNum : '—'}</div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">GA (minggu, 23–42)</label>
+              <input type="number" min={23} max={42} value={gaAbx} onChange={e => setGaAbx(e.target.value)} placeholder="cth: 32" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-rose-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Usia Postnatal (hari)</label>
+              <input type="number" min={0} max={28} value={ageAbx} onChange={e => setAgeAbx(e.target.value)} placeholder="0" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-rose-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Jenis Terapi</label>
+              <div className="flex gap-1 flex-wrap">
+                {(['eons','lons','meningitis'] as const).map(t => (
+                  <button key={t} onClick={() => setTherapyType(t)} className={`flex-1 py-1.5 rounded-xl text-xs font-bold border transition-all ${therapyType === t ? 'bg-rose-500 text-white border-rose-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>
+                    {t === 'eons' ? 'EONS' : t === 'lons' ? 'LONS' : 'Mening.'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {drugs.length > 0 ? (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-rose-50 dark:bg-rose-950/30">
+                    <th className="text-left p-3 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Obat</th>
+                    <th className="text-center p-3 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Dosis</th>
+                    <th className="text-center p-3 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Interval</th>
+                    <th className="text-center p-3 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Volume</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {drugs.map((d, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white dark:bg-slate-900/30' : 'bg-slate-50/50 dark:bg-slate-900/10'}>
+                      <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">{d.drug}</td>
+                      <td className="p-3 text-center text-slate-700 dark:text-slate-300">{d.dose}</td>
+                      <td className="p-3 text-center font-bold text-rose-600 dark:text-rose-400">{d.interval}</td>
+                      <td className="p-3 text-center font-bold text-indigo-600 dark:text-indigo-400">{d.volume}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center text-xs text-slate-400 py-4">Masukkan BB, GA, dan usia postnatal untuk menghitung dosis.</div>
+          )}
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
+            ⚠️ Sesuaikan dengan panduan RS dan kultur sensitivitas. Sediaan: Ampisilin 500mg/vial (100mg/mL), Gentamisin 10mg/mL, Cefotaxime 1g/vial (100mg/mL). Ref: Neofax 2023, BNFC.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// UVC/UAC CATHETER DEPTH CALCULATOR
+// ==========================================
+function UvcUacCalculator({ effectiveBW }: { effectiveBW: string }) {
+  const [open, setOpen] = useState(false);
+  const bwNum = parseInt(effectiveBW) || 0;
+  const bwKg = bwNum / 1000;
+
+  const uaLength = bwKg > 0 ? bwKg * 3 + 9 : 0;
+  const uvcDepth = bwKg > 0 ? (0.5 * uaLength + 1) : 0;
+  const uacHigh = bwKg > 0 ? 3 * bwKg + 9 : 0;
+  const uacLow = bwKg > 0 ? bwKg + 7 : 0;
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Kedalaman Kateter Umbilikal (UVC/UAC)</span>
+          <span className="text-xs text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-950/40 px-2 py-0.5 rounded font-bold ml-1">Kalkulator</span>
+        </div>
+        <svg className={`w-4 h-4 text-teal-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="border-t border-teal-100 dark:border-teal-500/20 p-4 md:p-6 space-y-5">
+          <div>
+            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">BB (gram) — autofill dari Antropometri</label>
+            <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200 inline-block">{bwNum > 0 ? `${bwNum} g (${bwKg.toFixed(3)} kg)` : 'Belum diisi'}</div>
+          </div>
+          {bwKg > 0 ? (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-teal-50 dark:bg-teal-950/30">
+                    <th className="text-left p-3 font-extrabold text-teal-700 dark:text-teal-300 uppercase tracking-wider">Kateter</th>
+                    <th className="text-center p-3 font-extrabold text-teal-700 dark:text-teal-300 uppercase tracking-wider">Kedalaman</th>
+                    <th className="text-left p-3 font-extrabold text-teal-700 dark:text-teal-300 uppercase tracking-wider">Posisi Target</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr className="bg-white dark:bg-slate-900/30">
+                    <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">UVC</td>
+                    <td className="p-3 text-center font-bold text-teal-600 dark:text-teal-400 text-base">{uvcDepth.toFixed(1)} cm</td>
+                    <td className="p-3 text-slate-600 dark:text-slate-400">Supra-hepatik / T8–T9 (VCI)</td>
+                  </tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10">
+                    <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">UAC High</td>
+                    <td className="p-3 text-center font-bold text-teal-600 dark:text-teal-400 text-base">{uacHigh.toFixed(1)} cm</td>
+                    <td className="p-3 text-slate-600 dark:text-slate-400">Aorta T6–T9 (disukai)</td>
+                  </tr>
+                  <tr className="bg-white dark:bg-slate-900/30">
+                    <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">UAC Low</td>
+                    <td className="p-3 text-center font-bold text-teal-600 dark:text-teal-400 text-base">{uacLow.toFixed(1)} cm</td>
+                    <td className="p-3 text-slate-600 dark:text-slate-400">Aorta L3–L5</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center text-xs text-slate-400 py-4">Input berat lahir di panel Antropometri untuk menghitung kedalaman kateter.</div>
+          )}
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-300">
+            💡 UVC aman untuk akses darurat. UAC high lebih disukai untuk monitoring arterial. Konfirmasi dengan foto rontgen setelah pemasangan.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// SEIZURE MANAGEMENT CALCULATOR
+// ==========================================
+function SeizureCalculator({ effectiveBW }: { effectiveBW: string }) {
+  const [open, setOpen] = useState(false);
+  const [drug, setDrug] = useState<'phenobarbital' | 'levetiracetam' | 'midazolam' | 'phenytoin'>('phenobarbital');
+  const bwNum = parseInt(effectiveBW) || 0;
+  const bwKg = bwNum / 1000;
+
+  type DoseRow = { label: string; dose: string; volume: string; note?: string };
+
+  const calcRows = (): DoseRow[] => {
+    if (!bwKg) return [];
+    if (drug === 'phenobarbital') {
+      const loadMg = 20 * bwKg;
+      const maintMg = 2.5 * bwKg;
+      return [
+        { label: 'Loading', dose: `${loadMg.toFixed(1)} mg (20 mg/kg) IV selama 15–30 mnt`, volume: `${(loadMg / 200).toFixed(2)} mL (200mg/mL)` },
+        { label: 'Maintenance (q12h)', dose: `${maintMg.toFixed(1)} mg/dosis (2.5 mg/kg)`, volume: `${(maintMg / 200).toFixed(3)} mL per dosis`, note: 'Mulai 12–24 jam setelah loading' },
+        { label: 'Maks Loading', dose: `${(40 * bwKg).toFixed(1)} mg total (40 mg/kg)`, volume: `${(40 * bwKg / 200).toFixed(2)} mL total`, note: 'Jika kejang berlanjut' },
+      ];
+    }
+    if (drug === 'levetiracetam') {
+      const loadMg = 50 * bwKg;
+      const maintMg = 25 * bwKg;
+      return [
+        { label: 'Loading', dose: `${loadMg.toFixed(1)} mg (50 mg/kg) IV selama 15 mnt`, volume: `${(loadMg / 100).toFixed(2)} mL (100mg/mL)` },
+        { label: 'Maintenance (q12h)', dose: `${maintMg.toFixed(1)} mg/dosis (25 mg/kg)`, volume: `${(maintMg / 100).toFixed(2)} mL per dosis` },
+      ];
+    }
+    if (drug === 'midazolam') {
+      const bolusMg = 0.1 * bwKg;
+      const infusMin = 0.01 * bwKg;
+      const infusMax = 0.06 * bwKg;
+      return [
+        { label: 'Bolus IV', dose: `${bolusMg.toFixed(2)} mg (0.1 mg/kg) perlahan`, volume: `${(bolusMg / 5).toFixed(3)} mL (5mg/mL)` },
+        { label: 'Infus Kontinu', dose: `${infusMin.toFixed(3)}–${infusMax.toFixed(3)} mg/kg/jam`, volume: `${(infusMin / 5).toFixed(3)}–${(infusMax / 5).toFixed(3)} mL/kg/jam` },
+      ];
+    }
+    if (drug === 'phenytoin') {
+      const loadMg = 17.5 * bwKg;
+      return [
+        { label: 'Loading', dose: `${loadMg.toFixed(1)} mg (17.5 mg/kg) IV selama 30 mnt`, volume: `${(loadMg / 50).toFixed(2)} mL (50mg/mL)`, note: 'Max rate 1 mg/kg/mnt' },
+      ];
+    }
+    return [];
+  };
+
+  const rows = calcRows();
+  const drugLabels: Record<string, string> = { phenobarbital: 'Fenobarbital', levetiracetam: 'Levetiracetam', midazolam: 'Midazolam', phenytoin: 'Fenitoin' };
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Manajemen Kejang Neonatus</span>
+          <span className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/40 px-2 py-0.5 rounded font-bold ml-1">Kalkulator</span>
+        </div>
+        <svg className={`w-4 h-4 text-purple-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="border-t border-purple-100 dark:border-purple-500/20 p-4 md:p-6 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">BB (gram)</label>
+              <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200">{bwNum > 0 ? bwNum : '—'}</div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Obat Pilihan</label>
+              <div className="flex gap-1 flex-wrap">
+                {(['phenobarbital','levetiracetam','midazolam','phenytoin'] as const).map(k => (
+                  <button key={k} onClick={() => setDrug(k)} className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all ${drug === k ? 'bg-purple-500 text-white border-purple-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{drugLabels[k].slice(0, 8)}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {rows.length > 0 ? (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-purple-50 dark:bg-purple-950/30">
+                    <th className="text-left p-3 font-extrabold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Regimen</th>
+                    <th className="text-left p-3 font-extrabold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Dosis</th>
+                    <th className="text-left p-3 font-extrabold text-purple-700 dark:text-purple-300 uppercase tracking-wider">Volume</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {rows.map((r, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white dark:bg-slate-900/30' : 'bg-slate-50/50 dark:bg-slate-900/10'}>
+                      <td className="p-3 font-semibold text-slate-800 dark:text-slate-200 align-top">
+                        {r.label}
+                        {r.note && <span className="block text-[10px] text-slate-400 font-normal">{r.note}</span>}
+                      </td>
+                      <td className="p-3 text-slate-700 dark:text-slate-300">{r.dose}</td>
+                      <td className="p-3 font-bold text-purple-600 dark:text-purple-400">{r.volume}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center text-xs text-slate-400 py-4">Input berat lahir di panel Antropometri untuk menghitung dosis.</div>
+          )}
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
+            ⚠️ Pertimbangkan EEG/aEEG. Cari dan tangani penyebab: hipoglikemia, hipokalsemia, infeksi, HIE. Monitor respirasi dan apnea. Ref: Fenichel, NeoFax 2023.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// UNIT CONVERSION CALCULATOR
+// ==========================================
+function UnitConverter({ effectiveBW }: { effectiveBW: string }) {
+  const [open, setOpen] = useState(false);
+  const [category, setCategory] = useState<'dose' | 'solution' | 'infusion' | 'weight'>('dose');
+  const bwNum = parseInt(effectiveBW) || 0;
+  const bwKg = bwNum / 1000;
+
+  const [mcgKgMin, setMcgKgMin] = useState('5');
+  const [mgKgDose, setMgKgDose] = useState('50');
+  const [solConc, setSolConc] = useState('10');
+  const [solVol, setSolVol] = useState('50');
+  const [infDose, setInfDose] = useState('5');
+  const [infConc, setInfConc] = useState('1');
+  const [weightInput, setWeightInput] = useState('');
+  const [weightUnit, setWeightUnit] = useState<'g' | 'kg'>('g');
+
+  const mcgToMgDay = bwKg > 0 ? (parseFloat(mcgKgMin) * 60 * 24 * bwKg / 1000).toFixed(2) : '—';
+  const mgDoseTotal = bwKg > 0 ? (parseFloat(mgKgDose) * bwKg).toFixed(1) : '—';
+  const solGrams = ((parseFloat(solConc) || 0) * (parseFloat(solVol) || 0) / 100).toFixed(2);
+  const solMg = (parseFloat(solGrams) * 1000).toFixed(0);
+  const infMlHr = bwKg > 0 && parseFloat(infConc) > 0
+    ? ((parseFloat(infDose) || 0) * bwKg * 60 / ((parseFloat(infConc) || 1) * 1000)).toFixed(2)
+    : '—';
+  const weightConverted = weightUnit === 'g'
+    ? `${((parseFloat(weightInput) || 0) / 1000).toFixed(3)} kg`
+    : `${((parseFloat(weightInput) || 0) * 1000).toFixed(0)} g`;
+
+  const categories = [
+    { id: 'dose' as const, label: 'Dosis' },
+    { id: 'solution' as const, label: 'Larutan' },
+    { id: 'infusion' as const, label: 'Infus' },
+    { id: 'weight' as const, label: 'Berat' },
+  ];
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <FlaskConical className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Konversi Unit Cepat</span>
+          <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 rounded font-bold ml-1">Kalkulator</span>
+        </div>
+        <svg className={`w-4 h-4 text-orange-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="border-t border-orange-100 dark:border-orange-500/20 p-4 md:p-6 space-y-4">
+          <div className="flex gap-1 flex-wrap">
+            {categories.map(c => (
+              <button key={c.id} onClick={() => setCategory(c.id)} className={`py-1.5 px-3 rounded-xl text-xs font-bold border transition-all ${category === c.id ? 'bg-orange-500 text-white border-orange-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>{c.label}</button>
+            ))}
+          </div>
+
+          {category === 'dose' && (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">BB: {bwKg > 0 ? `${bwKg.toFixed(3)} kg` : 'Belum diisi'}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2">
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">mcg/kg/mnt → mg/hari</label>
+                  <input type="number" value={mcgKgMin} onChange={e => setMcgKgMin(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                  <div className="text-sm font-bold text-orange-600 dark:text-orange-400">= {mcgToMgDay} mg/hari</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 space-y-2">
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500">mg/kg/dosis → total dosis</label>
+                  <input type="number" value={mgKgDose} onChange={e => setMgKgDose(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                  <div className="text-sm font-bold text-orange-600 dark:text-orange-400">= {mgDoseTotal} mg/dosis</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {category === 'solution' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Konsentrasi (%)</label>
+                  <input type="number" value={solConc} onChange={e => setSolConc(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Volume (mL)</label>
+                  <input type="number" value={solVol} onChange={e => setSolVol(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3 text-sm font-bold text-orange-700 dark:text-orange-300">
+                D{solConc}% {solVol}mL = {solGrams} g = {solMg} mg zat aktif
+              </div>
+            </div>
+          )}
+
+          {category === 'infusion' && (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500 dark:text-slate-400">mL/jam = dosis × BB × 60 / (konsentrasi mg/mL × 1000)</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Dosis (mcg/kg/mnt)</label>
+                  <input type="number" value={infDose} onChange={e => setInfDose(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Konsentrasi (mg/mL)</label>
+                  <input type="number" value={infConc} onChange={e => setInfConc(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">BB (gram)</label>
+                  <div className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200">{bwNum > 0 ? bwNum : '—'}</div>
+                </div>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3 text-sm font-bold text-orange-700 dark:text-orange-300">
+                Kecepatan Infus = {infMlHr} mL/jam
+              </div>
+            </div>
+          )}
+
+          {category === 'weight' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Nilai</label>
+                  <input type="number" value={weightInput} onChange={e => setWeightInput(e.target.value)} placeholder="3200" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Satuan Input</label>
+                  <div className="flex gap-1">
+                    <button onClick={() => setWeightUnit('g')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${weightUnit === 'g' ? 'bg-orange-500 text-white border-orange-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>gram</button>
+                    <button onClick={() => setWeightUnit('kg')} className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${weightUnit === 'kg' ? 'bg-orange-500 text-white border-orange-400' : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700'}`}>kg</button>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-950/20 rounded-xl p-3 text-sm font-bold text-orange-700 dark:text-orange-300">
+                {weightInput || '—'} {weightUnit} = {weightInput ? weightConverted : '—'}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

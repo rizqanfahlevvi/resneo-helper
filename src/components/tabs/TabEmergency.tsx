@@ -107,7 +107,7 @@ function AnthropoPanel({ setBirthWeight, compact = false }: { setBirthWeight: (v
 }
 
 export default function TabEmergency({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabEmergencyProps) {
-  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry, phaseStartTime, setPhaseStartTime, saveSession } = useStore();
+  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry, phaseStartTime, setPhaseStartTime, saveSession, addDrugLog, drugLog } = useStore();
 
   // Phase VTP States
   const [vtpStartTime, setVtpStartTime] = useState<number | null>(null);
@@ -1409,6 +1409,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                      <button
                        onClick={() => {
                          addLog(`Tombol Berikan Adrenalin Diklik (Dosis Terhitung Berdasarkan BB)`);
+                         addDrugLog(elapsedTime, 'Adrenalin (Epinefrin)', `${adrenalinMin}–${adrenalinMax} mL (1:10.000)`, 'IV/IO');
                          setAdrenalinDoses([...adrenalinDoses, Date.now()])
                        }}
                        className="w-full bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/30 py-4 rounded-xl font-bold transition-all uppercase tracking-wider flex justify-center items-center gap-2 border border-red-500"
@@ -1860,19 +1861,48 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 readOnly
                 value={clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               />
+              {drugLog.length > 0 && (
+                <div className="mt-6 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                  <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border-b border-slate-200 dark:border-slate-700">
+                    <h4 className="font-bold text-rose-600 dark:text-rose-400 text-sm">Log Obat ({drugLog.length} tindakan)</h4>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 uppercase tracking-wider text-[10px]">
+                          <th className="p-2 text-left">Waktu</th>
+                          <th className="p-2 text-left">Obat</th>
+                          <th className="p-2 text-left">Dosis</th>
+                          <th className="p-2 text-left">Rute</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {drugLog.map(d => (
+                          <tr key={d.id} className="border-t border-slate-100 dark:border-slate-800">
+                            <td className="p-2 font-mono text-indigo-500 dark:text-indigo-400">{d.time}</td>
+                            <td className="p-2 font-semibold text-slate-700 dark:text-slate-300">{d.drugName}</td>
+                            <td className="p-2 text-slate-600 dark:text-slate-400">{d.dose}</td>
+                            <td className="p-2 text-slate-500">{d.route}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button 
+                <button
                   onClick={handleCopyLog}
                   className={`flex-1 py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2 border ${
-                    copied 
-                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20' 
+                    copied
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/20'
                       : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20'
                   }`}
                 >
                   <Check className={`w-4 h-4 transition-transform ${copied ? 'scale-110' : 'scale-0 hidden'}`} />
                   {copied ? 'Berhasil Disalin!' : 'Salin Log ke Clipboard'}
                 </button>
-                <button 
+                <button
                   onClick={handleReset}
                   className="flex-1 bg-slate-200/50 dark:bg-white/10 hover:bg-white/20 text-slate-700 dark:text-white py-3 rounded-xl font-bold transition-colors text-sm border border-slate-300 dark:border-white/20"
                 >
