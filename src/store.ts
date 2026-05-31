@@ -3,6 +3,14 @@ import { TabType } from './types';
 
 export type Phase = 'preparation' | 'initial_steps' | 'vtp' | 'vtp_ldj_eval' | 'cpap' | 'compressions' | 'setting_ventilator' | 'routine_care' | 'post_resuscitation' | 'completed';
 
+export interface PatientIdentity {
+  namaIbu: string;        // nama ibu kandung → By. Ny. <namaIbu>
+  diagnosisIbu: string;   // diagnosis / indikasi obstetri
+  kondisiKlinis: string;  // pertimbangan lain / kondisi klinis tambahan
+  usia: string;           // usia gestasi (minggu)
+  jenisKelamin: string;   // L / P / Belum diketahui
+}
+
 export interface Anthropometry {
   bbl: string;  // berat badan lahir aktual (gram)
   pb: string;   // panjang badan (cm)
@@ -47,6 +55,8 @@ interface ResneoStore {
   clearLog: () => void;
   downeScore: number;
   setDowneScore: (score: number) => void;
+  patientIdentity: PatientIdentity;
+  setPatientIdentity: (p: Partial<PatientIdentity>) => void;
   anthropometry: Anthropometry;
   setAnthropometry: (a: Partial<Anthropometry>) => void;
   phaseStartTime: number | null;
@@ -84,6 +94,8 @@ export const useStore = create<ResneoStore>((set) => ({
   clearLog: () => set({ clinicalLog: [] }),
   downeScore: 0,
   setDowneScore: (downeScore) => set({ downeScore }),
+  patientIdentity: { namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '' },
+  setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
   anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
   setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
   phaseStartTime: null,

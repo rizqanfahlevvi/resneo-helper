@@ -1,5 +1,5 @@
-import React from 'react';
-import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../../store';
 import { TabType } from '../../types';
 
@@ -21,7 +21,8 @@ function formatElapsed(secs: number): string {
 }
 
 export default function TabDashboard({ onNavigate }: TabDashboardProps) {
-  const { anthropometry, downeScore, phase, elapsedTime, clinicalLog, drugLog } = useStore();
+  const { patientIdentity, setPatientIdentity, anthropometry, downeScore, phase, elapsedTime, clinicalLog, drugLog } = useStore();
+  const [identityExpanded, setIdentityExpanded] = useState(true);
 
   const hasBbl = !!anthropometry.bbl;
   const downeInterp = getDowneInterpretation(downeScore);
@@ -39,37 +40,140 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
       </h2>
 
       {/* Identitas Pasien */}
-      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+        {/* Header */}
+        <button
+          onClick={() => setIdentityExpanded(v => !v)}
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
             <Baby className="w-4 h-4 text-indigo-400" />
-            Identitas Pasien
-          </h3>
-          <button
-            onClick={() => onNavigate('emergency')}
-            className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
-          >
-            Edit Antropometri <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {[
-            { label: 'BB Lahir', value: anthropometry.bbl ? `${anthropometry.bbl} g` : '—' },
-            { label: 'PB', value: anthropometry.pb ? `${anthropometry.pb} cm` : '—' },
-            { label: 'LK', value: anthropometry.lk ? `${anthropometry.lk} cm` : '—' },
-            { label: 'LD', value: anthropometry.ld ? `${anthropometry.ld} cm` : '—' },
-            { label: 'LiLA', value: anthropometry.lila ? `${anthropometry.lila} cm` : '—' },
-          ].map(item => (
-            <div key={item.label} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 text-center">
-              <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500 mb-1">{item.label}</div>
-              <div className={`font-bold text-sm ${item.value === '—' ? 'text-slate-400 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`}>{item.value}</div>
+            <span className="font-bold text-slate-900 dark:text-white text-sm">Identitas Pasien</span>
+            {patientIdentity.namaIbu && (
+              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-50 dark:bg-indigo-950/30 px-2 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900">
+                By. Ny. {patientIdentity.namaIbu}
+              </span>
+            )}
+          </div>
+          {identityExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </button>
+
+        {identityExpanded && (
+          <div className="px-5 pb-5 space-y-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+
+            {/* Nama Bayi (dari nama ibu) */}
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-3 flex items-center gap-3">
+              <Baby className="w-5 h-5 text-indigo-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-black uppercase text-indigo-400 tracking-wider mb-0.5">Nama Bayi</div>
+                <div className="font-bold text-sm text-indigo-700 dark:text-indigo-300 truncate">
+                  {patientIdentity.namaIbu ? `By. Ny. ${patientIdentity.namaIbu}` : <span className="italic font-normal text-indigo-400">Belum diisi — isi nama ibu di bawah</span>}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-        {!hasBbl && (
-          <p className="text-xs text-amber-600 dark:text-amber-400 mt-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-2">
-            Antropometri belum diisi. Buka tab Alur Resusitasi untuk mengisi data pasien.
-          </p>
+
+            {/* Form identitas */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Nama Ibu */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Nama Ibu</label>
+                <input
+                  type="text"
+                  value={patientIdentity.namaIbu}
+                  onChange={e => setPatientIdentity({ namaIbu: e.target.value })}
+                  placeholder="Contoh: Siti Aminah"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+                />
+              </div>
+
+              {/* Jenis Kelamin */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Jenis Kelamin Bayi</label>
+                <div className="flex gap-2">
+                  {['Laki-laki', 'Perempuan', 'Belum diketahui'].map(jk => (
+                    <button
+                      key={jk}
+                      onClick={() => setPatientIdentity({ jenisKelamin: patientIdentity.jenisKelamin === jk ? '' : jk })}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                        patientIdentity.jenisKelamin === jk
+                          ? 'bg-indigo-500 text-white border-indigo-400 shadow-sm'
+                          : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                      }`}
+                    >
+                      {jk === 'Laki-laki' ? 'L' : jk === 'Perempuan' ? 'P' : '?'}
+                    </button>
+                  ))}
+                </div>
+                {patientIdentity.jenisKelamin && (
+                  <p className="text-[10px] text-slate-400 mt-1">{patientIdentity.jenisKelamin}</p>
+                )}
+              </div>
+
+              {/* Usia Gestasi */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Usia Gestasi</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={patientIdentity.usia}
+                    onChange={e => setPatientIdentity({ usia: e.target.value })}
+                    placeholder="mis. 38"
+                    min={22} max={44}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+                  />
+                  <span className="text-xs text-slate-400 font-semibold shrink-0">minggu</span>
+                </div>
+              </div>
+
+              {/* Diagnosis Ibu */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Diagnosis / Indikasi Ibu</label>
+                <input
+                  type="text"
+                  value={patientIdentity.diagnosisIbu}
+                  onChange={e => setPatientIdentity({ diagnosisIbu: e.target.value })}
+                  placeholder="mis. PEB, KPD, Plasenta previa"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+                />
+              </div>
+            </div>
+
+            {/* Kondisi Klinis / Pertimbangan Lain */}
+            <div>
+              <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Pertimbangan Lain / Kondisi Klinis</label>
+              <textarea
+                value={patientIdentity.kondisiKlinis}
+                onChange={e => setPatientIdentity({ kondisiKlinis: e.target.value })}
+                placeholder="mis. Bayi prematur <28 minggu, riwayat surfaktan antenatal, IUGR, kehamilan kembar, dll."
+                rows={3}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition resize-none leading-relaxed"
+              />
+            </div>
+
+            {/* Antropometri ringkas + link */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Antropometri</span>
+                <button onClick={() => onNavigate('emergency')} className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">
+                  Edit <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { label: 'BB', value: anthropometry.bbl ? `${anthropometry.bbl}g` : '—' },
+                  { label: 'PB', value: anthropometry.pb ? `${anthropometry.pb}cm` : '—' },
+                  { label: 'LK', value: anthropometry.lk ? `${anthropometry.lk}cm` : '—' },
+                  { label: 'LD', value: anthropometry.ld ? `${anthropometry.ld}cm` : '—' },
+                  { label: 'LiLA', value: anthropometry.lila ? `${anthropometry.lila}cm` : '—' },
+                ].map(item => (
+                  <div key={item.label} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2 text-center">
+                    <div className="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500">{item.label}</div>
+                    <div className={`font-bold text-xs mt-0.5 ${item.value === '—' ? 'text-slate-400 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
