@@ -11,6 +11,15 @@ export interface Anthropometry {
   lila: string; // lingkar lengan atas (cm)
 }
 
+export interface SessionRecord {
+  id: string;            // Date.now().toString()
+  date: string;          // human readable e.g. "31 Mei 2025, 19:15"
+  duration: string;      // "05:42"
+  log: { time: string; message: string }[];
+  anthropometry: Anthropometry;
+  birthWeight: string;   // passed separately
+}
+
 interface ResneoStore {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
@@ -29,6 +38,11 @@ interface ResneoStore {
   setDowneScore: (score: number) => void;
   anthropometry: Anthropometry;
   setAnthropometry: (a: Partial<Anthropometry>) => void;
+  phaseStartTime: number | null;
+  setPhaseStartTime: (t: number | null) => void;
+  sessionHistory: SessionRecord[];
+  saveSession: (record: Omit<SessionRecord, 'id' | 'date'>) => void;
+  clearHistory: () => void;
 }
 
 export const useStore = create<ResneoStore>((set) => ({
@@ -58,4 +72,18 @@ export const useStore = create<ResneoStore>((set) => ({
   setDowneScore: (downeScore) => set({ downeScore }),
   anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
   setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
+  phaseStartTime: null,
+  setPhaseStartTime: (phaseStartTime) => set({ phaseStartTime }),
+  sessionHistory: (() => {
+    try { return JSON.parse(localStorage.getItem('resneo_history') || '[]'); } catch { return []; }
+  })(),
+  saveSession: (record) => set((state) => {
+    const now = new Date();
+    const date = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ', ' + now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    const newRecord: SessionRecord = { id: Date.now().toString(), date, ...record };
+    const updated = [newRecord, ...state.sessionHistory].slice(0, 20);
+    localStorage.setItem('resneo_history', JSON.stringify(updated));
+    return { sessionHistory: updated };
+  }),
+  clearHistory: () => { localStorage.removeItem('resneo_history'); set({ sessionHistory: [] }); },
 }));

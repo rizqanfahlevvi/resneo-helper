@@ -107,7 +107,7 @@ function AnthropoPanel({ setBirthWeight, compact = false }: { setBirthWeight: (v
 }
 
 export default function TabEmergency({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabEmergencyProps) {
-  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry } = useStore();
+  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry, phaseStartTime, setPhaseStartTime, saveSession } = useStore();
 
   // Phase VTP States
   const [vtpStartTime, setVtpStartTime] = useState<number | null>(null);
@@ -157,6 +157,10 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   // Timer States
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
   const [showRetraksiEval, setShowRetraksiEval] = useState(false);
+
+  // Reminder state (#6)
+  const [reminder, setReminder] = useState<string | null>(null);
+  const [lastReminderTime, setLastReminderTime] = useState<number>(-1);
 
   // Shared AudioContext to prevent hitting maximum hardware contexts limit
   const getAudioCtx = () => {
@@ -371,6 +375,50 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     };
   }, [phase, vtpAudioEnabled]);
 
+  // Track phase start time when phase changes (#2)
+  useEffect(() => {
+    if (phase === 'vtp' || phase === 'compressions' || phase === 'cpap' || phase === 'initial_steps') {
+      setPhaseStartTime(elapsedTime);
+    }
+  }, [phase]);
+
+  // Reminder useEffect (#6)
+  useEffect(() => {
+    if (phaseStartTime === null && phaseStartTime !== 0) return;
+    const phaseElapsed = elapsedTime - (phaseStartTime ?? elapsedTime);
+
+    if (elapsedTime === lastReminderTime) return; // avoid duplicates on re-renders
+
+    if (phase === 'vtp') {
+      if (phaseElapsed > 0 && phaseElapsed % 30 === 0) {
+        const msg = `⏱️ VTP ${Math.floor(phaseElapsed/60)}:${(phaseElapsed%60).toString().padStart(2,'0')} — Evaluasi LDJ sekarang`;
+        setReminder(msg);
+        setLastReminderTime(elapsedTime);
+      }
+      if (phaseElapsed === 120) {
+        setReminder('⏱️ VTP sudah 2 menit — Pertimbangkan intubasi ETT');
+        setLastReminderTime(elapsedTime);
+      }
+    }
+    if (phase === 'compressions') {
+      if (phaseElapsed === 60) {
+        setReminder('⏱️ Kompresi 60 detik — Pertimbangkan Adrenalin IV/IO');
+        setLastReminderTime(elapsedTime);
+      }
+      if (phaseElapsed === 180) {
+        setReminder('⏱️ Kompresi 3 menit — Evaluasi penyebab: 4H4T');
+        setLastReminderTime(elapsedTime);
+      }
+    }
+  }, [elapsedTime]);
+
+  // Auto-dismiss reminder after 15 seconds
+  useEffect(() => {
+    if (!reminder) return;
+    const t = setTimeout(() => setReminder(null), 15000);
+    return () => clearTimeout(t);
+  }, [reminder]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
@@ -403,6 +451,8 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     setCompressionsElapsed(0);
     setAdrenalinDoses([]);
     setAdrenalinElapsed(null);
+    setPhaseStartTime(null);
+    setReminder(null);
   };
 
   const handleCopyLog = () => {
@@ -493,6 +543,11 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 </span>
                 <span className="text-[10px] uppercase tracking-wider font-bold opacity-80 mt-1">
                   Master Timer
+                  {phaseStartTime !== null && (
+                    <span className="ml-2 font-mono normal-case opacity-70">
+                      · Fase ini: {formatTime(elapsedTime - phaseStartTime)}
+                    </span>
+                  )}
                 </span>
               </div>
             </div>
@@ -581,6 +636,14 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Reminder Banner (#6) */}
+      {reminder && (
+        <div className="mb-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/50 rounded-xl px-4 py-3 animate-in slide-in-from-top-2">
+          <span className="text-sm font-bold text-amber-800 dark:text-amber-300 flex-1">{reminder}</span>
+          <button onClick={() => setReminder(null)} className="text-amber-500 hover:text-amber-700 dark:hover:text-amber-300">✕</button>
         </div>
       )}
 
@@ -1463,6 +1526,8 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   onClick={() => {
                     const finalTimeStr = `[${Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}]`;
                     addLog(`Resusitasi Selesai & Log Disimpan. Total Waktu: ${finalTimeStr}`);
+                    const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
+                    saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
                     setPhase('completed');
                     setIsTimerRunning(false);
                   }}
@@ -1633,6 +1698,8 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   onClick={() => {
                     const finalTimeStr = `[${Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}]`;
                     addLog(`Perawatan Pasca Resusitasi Selesai. Total Waktu: ${finalTimeStr}`);
+                    const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
+                    saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
                     setPhase('completed');
                     setIsTimerRunning(false);
                   }}
@@ -1751,10 +1818,12 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 
                 {/* Always show Akhiri Resusitasi button at the bottom of the reference card */}
                 <hr className="border-slate-100 dark:border-slate-800 my-1" />
-                <button 
+                <button
                   onClick={() => {
                       setIsTimerRunning(false);
                       addLog("Resusitasi diakhiri secara paksa oleh klinisi via panel referensi desktop.");
+                      const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
+                      saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
                       setPhase('completed');
                   }}
                   className="w-full bg-red-650 hover:bg-red-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
@@ -1942,10 +2011,12 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
                   <hr className="border-slate-200 dark:border-slate-700 my-1" />
 
-                  <button 
+                  <button
                     onClick={() => {
                         setIsTimerRunning(false);
                         addLog("Resusitasi diakhiri secara paksa oleh klinisi via menu aksi cepat.");
+                        const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
+                        saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
                         setPhase('completed');
                         setFabMenuOpen(false);
                     }}

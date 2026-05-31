@@ -6,6 +6,7 @@ import TabAdvanced from './components/tabs/TabAdvanced';
 import TabHome from './components/tabs/TabHome';
 import TabReferences from './components/tabs/TabReferences';
 import TabTheory from './components/tabs/TabTheory';
+import TabHistory from './components/tabs/TabHistory';
 import { useStore } from './store';
 import { ThemeProvider } from './components/ThemeProvider';
 import { AlertTriangle } from 'lucide-react';
@@ -18,6 +19,7 @@ const TAB_PATHS: Record<TabType, string> = {
   advanced: '/advanced',
   references: '/references',
   theory: '/theory',
+  history: '/history',
 };
 
 const PATH_TABS: Record<string, TabType> = Object.fromEntries(
@@ -161,6 +163,9 @@ export default function App() {
           </div>
           <div className={activeTab === 'theory' ? 'block' : 'hidden'}>
              <TabTheory />
+          </div>
+          <div className={activeTab === 'history' ? 'block' : 'hidden'}>
+             <TabHistory />
           </div>
         </Layout>
     </ThemeProvider>

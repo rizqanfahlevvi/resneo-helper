@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
@@ -24,6 +24,7 @@ const TABS = [
   { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope },
   { id: 'theory', label: 'Materi & Teori', icon: FileText },
   { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen },
+  { id: 'history', label: 'Riwayat Sesi', icon: History },
 ] as const;
 
 export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight, searchOpen: searchOpenProp, onSearchOpen, onSidebarSearch }: LayoutProps) {

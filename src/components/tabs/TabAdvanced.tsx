@@ -603,6 +603,86 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
         </div>
 
       </div>
+
+      {/* Drug Dose Calculator (#5) */}
+      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden mt-6">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-red-50 dark:bg-red-950/20">
+          <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <Syringe className="w-4 h-4 text-red-600 dark:text-red-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Kalkulator Dosis Darurat</h3>
+            <p className="text-[10px] text-red-500 dark:text-red-400 font-semibold uppercase tracking-wider">Berdasarkan BB: {bwNum > 0 ? `${bwNum} g (${wtKg.toFixed(3)} kg)` : 'Belum diinput'}</p>
+          </div>
+        </div>
+        {bwNum > 0 ? (
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              {
+                name: 'Adrenalin IV/IO',
+                desc: '0.1–0.3 mL/kg (1:10.000)',
+                value: `${(0.1 * wtKg).toFixed(2)} – ${(0.3 * wtKg).toFixed(2)} mL`,
+                note: 'IV/IO bolus cepat',
+                color: 'red',
+              },
+              {
+                name: 'Adrenalin via ETT',
+                desc: '0.5–1.0 mL/kg (1:10.000)',
+                value: `${(0.5 * wtKg).toFixed(2)} – ${(1.0 * wtKg).toFixed(2)} mL`,
+                note: 'Intratrakeal',
+                color: 'rose',
+              },
+              {
+                name: 'Bikarbonat Natrium',
+                desc: '1–2 mEq/kg → NaHCO3 4.2%',
+                value: `${(2 * wtKg).toFixed(1)} – ${(4 * wtKg).toFixed(1)} mL`,
+                note: 'IV/IO perlahan (asidosis)',
+                color: 'orange',
+              },
+              {
+                name: 'Nalokson',
+                desc: '0.1 mg/kg (sol. 0.4 mg/mL)',
+                value: `${(0.25 * wtKg).toFixed(2)} mL`,
+                note: 'IM/IV (depresi opioid)',
+                color: 'amber',
+              },
+              {
+                name: 'Glukosa 10%',
+                desc: '2 mL/kg bolus IV',
+                value: `${(2 * wtKg).toFixed(1)} mL`,
+                note: 'Hipoglikemia neonatus',
+                color: 'yellow',
+              },
+              {
+                name: 'NaCl 0.9%',
+                desc: '10 mL/kg selama 5–10 menit',
+                value: `${(10 * wtKg).toFixed(1)} mL`,
+                note: 'Volume ekspander',
+                color: 'blue',
+              },
+              {
+                name: 'Surfaktan (Curosurf)',
+                desc: '200 mg/kg (dosis 1) / 100 mg/kg (berikutnya)',
+                value: `${(200 * wtKg / 80).toFixed(1)} mL / ${(100 * wtKg / 80).toFixed(1)} mL`,
+                note: 'Intratrakeal (80 mg/mL)',
+                color: 'teal',
+              },
+            ].map((drug) => (
+              <div key={drug.name} className={`bg-${drug.color}-50 dark:bg-${drug.color}-950/20 border border-${drug.color}-100 dark:border-${drug.color}-900/30 rounded-xl p-3`}>
+                <div className={`text-[10px] font-extrabold uppercase tracking-wider text-${drug.color}-600 dark:text-${drug.color}-400 mb-1`}>{drug.name}</div>
+                <div className={`text-xl font-bold font-mono text-${drug.color}-800 dark:text-${drug.color}-200`}>{drug.value}</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{drug.desc}</div>
+                <div className={`text-[9px] font-bold text-${drug.color}-600 dark:text-${drug.color}-400 mt-0.5 uppercase tracking-wide`}>{drug.note}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 text-center text-sm text-slate-400 dark:text-slate-500">
+            <Syringe className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p>Input Berat Lahir (BB) di panel Antropometri atau pada tab Alur Resusitasi untuk melihat dosis otomatis.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
