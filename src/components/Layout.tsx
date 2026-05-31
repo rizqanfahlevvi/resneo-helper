@@ -1,10 +1,11 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard, RefreshCw, Download } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
 import GlobalSearch from './GlobalSearch';
+import { usePwaUpdate } from '../hooks/usePwaUpdate';
 
 interface LayoutProps {
   children: ReactNode;
@@ -73,6 +74,19 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   }, []);
 
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, addLog } = useStore();
+  const { needRefresh, applyUpdate, checkForUpdates } = usePwaUpdate();
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [justChecked, setJustChecked] = useState(false);
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    setJustChecked(false);
+    checkForUpdates();
+    await new Promise(r => setTimeout(r, 2000));
+    setCheckingUpdate(false);
+    if (!needRefresh) setJustChecked(true);
+    setTimeout(() => setJustChecked(false), 4000);
+  };
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -103,6 +117,13 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
         <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-center text-xs font-bold py-1.5 px-4 flex items-center justify-center gap-2">
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
           Mode Offline — Data tetap tersedia dari cache
+        </div>
+      )}
+      {needRefresh && (
+        <div className="fixed top-0 left-0 right-0 z-[99] bg-indigo-600 text-white text-center text-xs font-bold py-1.5 px-4 flex items-center justify-center gap-3 md:hidden">
+          <Download className="w-3.5 h-3.5 shrink-0" />
+          <span>Pembaruan tersedia!</span>
+          <button onClick={applyUpdate} className="underline font-extrabold hover:no-underline">Pasang sekarang</button>
         </div>
       )}
       {/* Backdrop for Mobile Sidebar Drawer */}
@@ -188,15 +209,46 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           })}
         </nav>
 
-        {/* Bottom Sidebar Collapse Toggle */}
-        <div className={`p-4 border-t border-slate-100 dark:border-slate-900 flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-2 rounded-xl bg-slate-55 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all shadow-sm"
-            title={sidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
-          >
-            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+        {/* Update Button + Collapse Toggle */}
+        <div className={`p-4 border-t border-slate-100 dark:border-slate-900 space-y-2`}>
+          {/* Update available banner */}
+          {needRefresh && (
+            <button
+              onClick={applyUpdate}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md animate-pulse ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Pembaruan tersedia — klik untuk pasang"
+            >
+              <Download className="w-4 h-4 shrink-0" />
+              {!sidebarCollapsed && <span>Pasang Pembaruan</span>}
+            </button>
+          )}
+
+          {/* Check for updates button */}
+          {!needRefresh && (
+            <button
+              onClick={handleCheckUpdate}
+              disabled={checkingUpdate}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-all disabled:opacity-60 ${sidebarCollapsed ? 'justify-center' : ''}`}
+              title="Cek pembaruan aplikasi"
+            >
+              <RefreshCw className={`w-4 h-4 shrink-0 ${checkingUpdate ? 'animate-spin' : ''}`} />
+              {!sidebarCollapsed && (
+                <span className="flex-1 text-left">
+                  {checkingUpdate ? 'Memeriksa...' : justChecked ? '✓ Sudah terbaru' : 'Cek Pembaruan'}
+                </span>
+              )}
+            </button>
+          )}
+
+          <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-2 rounded-xl bg-slate-55 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all shadow-sm"
+              title={sidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
+            >
+              {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </aside>
 

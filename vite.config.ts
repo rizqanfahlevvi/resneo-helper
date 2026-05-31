@@ -10,7 +10,7 @@ export default defineConfig(() => {
       react(), 
       tailwindcss(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['favicon.ico', 'favicon.svg', 'icons/icon-192.svg', 'icons/icon-512.svg'],
         manifest: {
           name: 'ResNeo Helper',
