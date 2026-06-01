@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import TabEmergency from './components/tabs/TabEmergency';
 import TabScores from './components/tabs/TabScores';
@@ -27,6 +27,44 @@ const TAB_PATHS: Record<TabType, string> = {
 const PATH_TABS: Record<string, TabType> = Object.fromEntries(
   Object.entries(TAB_PATHS).map(([tab, path]) => [path, tab as TabType])
 );
+
+// Fade-transition wrapper: fade out current tab, swap content, fade in new tab
+function TabTransition({ activeTab, children }: { activeTab: TabType; children: (tab: TabType) => React.ReactNode }) {
+  const [visibleTab, setVisibleTab] = useState<TabType>(activeTab);
+  const [opacity, setOpacity] = useState(1);
+  const pendingTab = useRef<TabType | null>(null);
+  const animating = useRef(false);
+
+  useEffect(() => {
+    if (activeTab === visibleTab) return;
+    if (animating.current) {
+      pendingTab.current = activeTab;
+      return;
+    }
+    animating.current = true;
+    setOpacity(0);
+    const swap = setTimeout(() => {
+      setVisibleTab(activeTab);
+      setOpacity(1);
+      setTimeout(() => {
+        animating.current = false;
+        if (pendingTab.current && pendingTab.current !== activeTab) {
+          // will re-trigger via next render
+        }
+        pendingTab.current = null;
+      }, 200);
+    }, 180);
+    return () => clearTimeout(swap);
+  }, [activeTab]);
+
+  return (
+    <div
+      style={{ opacity, transition: 'opacity 180ms ease' }}
+    >
+      {children(visibleTab)}
+    </div>
+  );
+}
 
 function getTabFromHash(): TabType {
   const path = window.location.hash.replace('#', '') || '/';
@@ -128,46 +166,42 @@ export default function App() {
         birthWeight={birthWeight}
         setBirthWeight={setBirthWeight}
       >
-          <div className={activeTab === 'home' ? 'block' : 'hidden'}>
-            <TabHome onNavigate={navigateTo} />
-          </div>
-          <div className={activeTab === 'emergency' ? 'block' : 'hidden'}>
-            <TabEmergency 
-              gestationalAge={gestationalAge} 
-              setGestationalAge={setGestationalAge}
-              birthWeight={birthWeight}
-              setBirthWeight={setBirthWeight}
-            />
-          </div>
-          <div className={activeTab === 'scores' ? 'block' : 'hidden'}>
-             <TabScores 
-              gestationalAge={gestationalAge} 
-              setGestationalAge={setGestationalAge}
-              birthWeight={birthWeight}
-              setBirthWeight={setBirthWeight}
-            />
-          </div>
-          <div className={activeTab === 'advanced' ? 'block' : 'hidden'}>
-             <TabAdvanced 
-              gestationalAge={gestationalAge} 
-              setGestationalAge={setGestationalAge}
-              birthWeight={birthWeight}
-              setBirthWeight={setBirthWeight}
-            />
-          </div>
-          <div className={activeTab === 'references' ? 'block' : 'hidden'}>
-             <TabReferences />
-          </div>
-          <div className={activeTab === 'theory' ? 'block' : 'hidden'}>
-             <TabTheory />
-          </div>
-          <div className={activeTab === 'history' ? 'block' : 'hidden'}>
-             <TabHistory />
-          </div>
-          <div className={activeTab === 'dashboard' ? 'block' : 'hidden'}>
-             <TabDashboard onNavigate={navigateTo} />
-          </div>
-        </Layout>
+        <TabTransition activeTab={activeTab}>
+          {(visibleTab) => (
+            <>
+              {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
+              {visibleTab === 'emergency' && (
+                <TabEmergency
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'scores' && (
+                <TabScores
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'advanced' && (
+                <TabAdvanced
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'references' && <TabReferences />}
+              {visibleTab === 'theory' && <TabTheory />}
+              {visibleTab === 'history' && <TabHistory />}
+              {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
+            </>
+          )}
+        </TabTransition>
+      </Layout>
     </ThemeProvider>
   );
 }
