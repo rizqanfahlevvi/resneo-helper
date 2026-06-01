@@ -387,57 +387,41 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       </main>
 
       {/* Mobile Bottom Navigation (< md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[88px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-end px-1 pb-[18px] pt-1.5 z-50 transition-all shadow-[0_-4px_25px_rgba(0,0,0,0.06)] dark:shadow-none">
-        
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[88px] bg-white/95 dark:bg-slate-950/98 border-t border-slate-200/80 dark:border-slate-900/90 flex justify-around items-end px-1 pb-[18px] pt-1.5 z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] dark:shadow-none">
+
+        {/* Beranda */}
         <button
-          onClick={() => {
-            onTabChange('home');
-            setMoreMenuOpen(false);
-          }}
-          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
-            activeTab === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
+          onClick={() => { onTabChange('home'); setMoreMenuOpen(false); }}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all duration-200 ${activeTab === 'home' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'home' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'home' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : ''}`}>
             <Home className="w-6 h-6" />
           </div>
-          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'home' ? 'font-black' : 'font-semibold'}`}>
-            Beranda
-          </span>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'home' ? 'font-black' : 'font-semibold'}`}>Beranda</span>
         </button>
 
+        {/* Data Pasien */}
         <button
-          onClick={() => {
-            onTabChange('scores');
-            setMoreMenuOpen(false);
-          }}
-          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
-            activeTab === 'scores' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
+          onClick={() => { onTabChange('dashboard'); setMoreMenuOpen(false); }}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all duration-200 ${activeTab === 'dashboard' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'scores' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <ClipboardList className="w-6 h-6" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : ''}`}>
+            <LayoutDashboard className="w-6 h-6" />
           </div>
-          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'scores' ? 'font-black' : 'font-semibold'}`}>
-            Skoring
-          </span>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'dashboard' ? 'font-black' : 'font-semibold'}`}>Data Pasien</span>
         </button>
 
+        {/* FAB — Resusitasi */}
         {activeTab !== 'emergency' ? (
-          <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5 animate-in fade-in duration-300">
+          <div className="flex-1 flex flex-col items-center justify-end relative min-w-[4.5rem] h-full pb-0.5">
             <button
-              onClick={() => {
-                onTabChange('emergency');
-                setMoreMenuOpen(false);
-              }}
+              onClick={() => { onTabChange('emergency'); setMoreMenuOpen(false); }}
               title="Mulai Resusitasi"
               className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] transition-all z-50 group"
             >
               <Activity className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
             </button>
-            <span className="text-[10px] tracking-tight truncate font-semibold text-slate-500 dark:text-slate-400">
-              Resus
-            </span>
+            <span className="text-[10px] tracking-tight truncate font-semibold text-slate-500 dark:text-slate-400">Resus</span>
           </div>
         ) : (
           <button
@@ -448,79 +432,83 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                 setPhase('completed');
               }
             }}
-            className="flex flex-col items-center justify-end flex-1 min-w-0 transition-all text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+            className="flex flex-col items-center justify-end flex-1 min-w-0 transition-all text-slate-500 dark:text-slate-400"
           >
-            <div className="px-3 py-1.5 rounded-full mb-1 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-900 transition-all">
-              <X className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+            <div className="px-3 py-1.5 rounded-full mb-1 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all">
+              <X className="w-6 h-6" />
             </div>
-            <span className="text-[10px] tracking-tight truncate font-semibold">
-              Akhiri
-            </span>
+            <span className="text-[10px] tracking-tight truncate font-semibold">Akhiri</span>
           </button>
         )}
 
+        {/* Skoring */}
         <button
-          onClick={() => {
-            onTabChange('advanced');
-            setMoreMenuOpen(false);
-          }}
-          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
-            activeTab === 'advanced' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
+          onClick={() => { onTabChange('scores'); setMoreMenuOpen(false); }}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all duration-200 ${activeTab === 'scores' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'advanced' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <Stethoscope className="w-6 h-6" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${activeTab === 'scores' ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : ''}`}>
+            <ClipboardList className="w-6 h-6" />
           </div>
-          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'advanced' ? 'font-black' : 'font-semibold'}`}>
-            NICU
-          </span>
+          <span className={`text-[10px] tracking-tight truncate ${activeTab === 'scores' ? 'font-black' : 'font-semibold'}`}>Skoring</span>
         </button>
 
+        {/* Lainnya */}
         <button
-          onClick={() => {
-            setMoreMenuOpen(!moreMenuOpen);
-          }}
-          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all ${
-            moreMenuOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
+          onClick={() => setMoreMenuOpen(v => !v)}
+          className={`flex flex-col items-center justify-end flex-1 min-w-0 transition-all duration-200 ${moreMenuOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${moreMenuOpen ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : 'bg-transparent'}`}>
-            <MoreHorizontal className="w-6 h-6" />
+          <div className={`px-3 py-1.5 rounded-full mb-1 transition-all duration-300 ${moreMenuOpen ? 'bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-100/50 dark:border-indigo-500/30' : ''}`}>
+            <MoreHorizontal className={`w-6 h-6 transition-transform duration-300 ${moreMenuOpen ? 'rotate-90' : ''}`} />
           </div>
-          <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen ? 'font-black' : 'font-semibold'}`}>
-            Lainnya
-          </span>
+          <span className={`text-[10px] tracking-tight truncate ${moreMenuOpen ? 'font-black' : 'font-semibold'}`}>Lainnya</span>
         </button>
       </nav>
 
-      {/* Mobile Sidebar Collapsible Menu Drawers (Menu "Lainnya" options) */}
+      {/* Blur backdrop untuk menu Lainnya */}
       {moreMenuOpen && (
-        <div className="fixed bottom-[94px] left-4 right-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border border-slate-200 dark:border-slate-800 rounded-3xl p-5 z-50 flex flex-col gap-3 shadow-2xl animate-in slide-in-from-bottom-5 duration-300 md:hidden">
-          <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase block mb-1">Menu Lainnya</span>
-          <button
-            onClick={() => { setMoreMenuOpen(false); setMobileSidebarOpen(true); setSidebarSearchOpen(true); }}
-            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
-          >
-            <Search className="w-5 h-5 text-indigo-500" /> Cari di Aplikasi
-          </button>
-          <button
-            onClick={() => {
-              onTabChange('theory');
-              setMoreMenuOpen(false);
-            }}
-            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
-          >
-            <FileText className="w-5 h-5 text-indigo-500" /> Materi &amp; Teori Medis
-          </button>
-          <button 
-            onClick={() => {
-              onTabChange('references');
-              setMoreMenuOpen(false);
-            }}
-            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-850/80 transition-all text-slate-700 dark:text-slate-350"
-          >
-            <BookOpen className="w-5 h-5 text-emerald-500" /> Pustaka &amp; Referensi
-          </button>
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-sm md:hidden"
+          onClick={() => setMoreMenuOpen(false)}
+        />
+      )}
+
+      {/* Menu Lainnya — slide up dari bottom nav */}
+      {moreMenuOpen && (
+        <div className="fixed bottom-[88px] left-0 right-0 z-50 md:hidden animate-in slide-in-from-bottom-4 duration-300">
+          <div className="mx-4 mb-2 bg-white/98 dark:bg-slate-950/98 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="px-5 pt-4 pb-2">
+              <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase">Menu Lainnya</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+              {[
+                { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50' },
+                { id: 'theory', label: 'Materi & Teori', icon: FileText, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50' },
+                { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50' },
+                { id: 'history', label: 'Riwayat Sesi', icon: History, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50' },
+              ].map(item => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { onTabChange(item.id as TabType); setMoreMenuOpen(false); }}
+                    className={`flex items-center gap-3 p-3.5 rounded-2xl border font-bold text-xs transition-all active:scale-95 ${item.bg} ${item.color}`}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="text-left leading-snug">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3">
+              <button
+                onClick={() => { setMoreMenuOpen(false); setMobileSidebarOpen(true); setSidebarSearchOpen(true); }}
+                className="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl font-bold text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95"
+              >
+                <Search className="w-5 h-5 text-indigo-500" />
+                <span>Cari di Aplikasi</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
