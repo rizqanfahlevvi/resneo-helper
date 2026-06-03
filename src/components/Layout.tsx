@@ -341,24 +341,44 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           </div>
 
           {/* Desktop/Tablet Active Timer Indicator */}
-          {phase !== 'preparation' && phase !== 'routine_care' && (
-            <div className="hidden md:flex items-center gap-3 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-250/70 dark:border-slate-800/80 px-4 py-1.5 rounded-full shadow-inner animate-in fade-in duration-200">
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${isTimerRunning ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`} />
-                <span className="text-xs font-bold text-slate-505 dark:text-slate-400">Timer Resusitasi:</span>
-                <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-100">
-                  {Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}
-                </span>
+          {phase !== 'preparation' && phase !== 'routine_care' && (() => {
+            const elapsedMin = elapsedTime / 60;
+            let timerTextClass = 'text-slate-800 dark:text-slate-100';
+            let timerBgClass = 'bg-slate-100/50 dark:bg-slate-900/50 border-slate-250/70 dark:border-slate-800/80';
+            let timerPulse = false;
+            let showWarning = false;
+            if (elapsedMin >= 10) {
+              timerTextClass = 'text-red-500 animate-pulse';
+              timerBgClass = 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50';
+              timerPulse = true;
+              showWarning = true;
+            } else if (elapsedMin >= 5) {
+              timerTextClass = 'text-orange-500';
+              timerBgClass = 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800/50';
+            } else if (elapsedMin >= 3) {
+              timerTextClass = 'text-amber-500';
+              timerBgClass = 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50';
+            }
+            return (
+              <div className={`hidden md:flex items-center gap-3 ${timerBgClass} border px-4 py-1.5 rounded-full shadow-inner animate-in fade-in duration-200`}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${isTimerRunning ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`} />
+                  <span className="text-xs font-bold text-slate-505 dark:text-slate-400">Timer Resusitasi:</span>
+                  <span className={`text-sm font-mono font-bold ${timerTextClass}`}>
+                    {Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:{(elapsedTime % 60).toString().padStart(2, '0')}
+                  </span>
+                  {showWarning && <span className="text-[10px] font-extrabold text-red-500 uppercase tracking-wider">⚠ Evaluasi segera</span>}
+                </div>
+                <div className="h-4 w-px bg-slate-300 dark:bg-slate-700" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Fase Resusitasi:</span>
+                  <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/50">
+                    {phase.replace('_', ' ')}
+                  </span>
+                </div>
               </div>
-              <div className="h-4 w-px bg-slate-300 dark:bg-slate-700" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Fase Resusitasi:</span>
-                <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/50">
-                  {phase.replace('_', ' ')}
-                </span>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Right Section: Live Digital Clock & Theme Toggle Button */}
           <div className="flex items-center gap-2">

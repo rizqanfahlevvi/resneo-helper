@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore, Phase } from '../../store';
 import { 
   AlertTriangle, Check, CheckCircle2, Clock, 
@@ -20,6 +20,52 @@ const EQUIP_TASKS = [
   { id: 'monitor', label: 'Monitoring: Sensor Pulse Oximeter, kabel SpO2, & monitor/elektrode EKG siap' },
   { id: 'stethoscope', label: 'Diagostic: Stetoskop neonatus siap digunakan bedside' },
 ];
+
+const NRP_CHECKLIST: Record<string, { id: string; text: string }[]> = {
+  preparation: [
+    { id: 'p1', text: 'Radiant warmer menyala & prewarmed' },
+    { id: 'p2', text: 'Towel/selimut hangat tersedia' },
+    { id: 'p3', text: 'Suction bulb/mekanik siap (80–100 mmHg)' },
+    { id: 'p4', text: 'Sumber oksigen & blender tersedia' },
+    { id: 'p5', text: 'BVM ukuran sesuai tersedia' },
+    { id: 'p6', text: 'Pulse oximeter & elektroda terpasang' },
+    { id: 'p7', text: 'ETT & laringoskop siap (ukuran sesuai GA)' },
+    { id: 'p8', text: 'Adrenalin 1:10.000 sudah disiapkan' },
+    { id: 'p9', text: 'Akses IV/IO tersedia' },
+    { id: 'p10', text: 'Tim sudah di-briefing, peran dibagi' },
+  ],
+  initial_steps: [
+    { id: 'i1', text: 'Bayi dihangatkan di radiant warmer' },
+    { id: 'i2', text: 'Posisi sniffing position' },
+    { id: 'i3', text: 'Isap sekret (mulut lalu hidung) jika perlu' },
+    { id: 'i4', text: 'Keringkan & stimulasi bayi' },
+    { id: 'i5', text: 'Reposisi kepala' },
+    { id: 'i6', text: 'Evaluasi: napas, HR, tonus (60 detik)' },
+  ],
+  vtp: [
+    { id: 'v1', text: 'Sungkup menutup rapat (hidung & mulut)' },
+    { id: 'v2', text: 'Frekuensi 40–60x/menit' },
+    { id: 'v3', text: 'Tekanan awal 20–25 cmH₂O (prematur: 20–25)' },
+    { id: 'v4', text: 'Evaluasi SRIBTA setiap 30 detik' },
+    { id: 'v5', text: 'Monitor SpO₂ & target sesuai usia postnatal' },
+    { id: 'v6', text: 'Pertimbangkan OGT jika VTP > 2 menit' },
+  ],
+  compressions: [
+    { id: 'c1', text: 'VTP dengan O₂ 100% sebelum kompresi' },
+    { id: 'c2', text: 'Posisi dua jempol pada 1/3 bawah sternum' },
+    { id: 'c3', text: 'Kedalaman kompresi 1/3 diameter AP dada' },
+    { id: 'c4', text: 'Rasio kompresi:VTP = 3:1 (120 siklus/menit)' },
+    { id: 'c5', text: 'Evaluasi HR setiap 60 detik' },
+    { id: 'c6', text: 'Siapkan adrenalin jika HR < 60 setelah 60 detik' },
+    { id: 'c7', text: 'Pertimbangkan akses IV/IO' },
+  ],
+  vtp_ldj_eval: [
+    { id: 'e1', text: 'Hitung HR selama 6 detik × 10' },
+    { id: 'e2', text: 'Evaluasi pengembangan dada' },
+    { id: 'e3', text: 'Cek posisi sungkup & seal' },
+    { id: 'e4', text: 'Pertimbangkan intubasi jika VTP tidak efektif' },
+  ],
+};
 
 const ROUTINE_CARE_TASKS = [
   { id: 'skin', label: 'Lakukan kontak kulit-ke-kulit (skin-to-skin) segera antara bayi dengan ibu.' },
@@ -424,6 +470,21 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     return () => clearTimeout(t);
   }, [reminder]);
 
+  const triggeredMilestonesRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    const elapsedMin = Math.floor(elapsedTime / 60);
+    const milestones = [1, 3, 5, 10];
+    for (const m of milestones) {
+      if (elapsedMin >= m && !triggeredMilestonesRef.current.has(m)) {
+        triggeredMilestonesRef.current.add(m);
+        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+        break;
+      }
+    }
+  }, [elapsedTime, isTimerRunning]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
@@ -458,6 +519,7 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     setAdrenalinElapsed(null);
     setPhaseStartTime(null);
     setReminder(null);
+    triggeredMilestonesRef.current = new Set();
   };
 
   const handleCopyLog = () => {
@@ -508,10 +570,24 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
   const adrenalinMax = bwKg > 0 ? (0.3 * bwKg).toFixed(2) : '-';
   const volumeExp = bwKg > 0 ? (10 * bwKg).toFixed(1) : '-';
 
-  // Determine Master Timer Color based on Golden Minute Rule and SpO2 Targets
-  let timerBgClass = 'bg-emerald-500 text-white shadow-emerald-500/30';
+  // Determine Master Timer Color based on elapsed time
+  const elapsedMin = elapsedTime / 60;
+  let timerBgClass: string;
   let isFlashing = false;
-  
+  let showEvaluasiWarning = false;
+
+  if (elapsedMin >= 10) {
+    timerBgClass = 'bg-red-600 text-white shadow-red-600/30';
+    isFlashing = true;
+    showEvaluasiWarning = true;
+  } else if (elapsedMin >= 5) {
+    timerBgClass = 'bg-orange-500 text-white shadow-orange-500/30';
+  } else if (elapsedMin >= 3) {
+    timerBgClass = 'bg-amber-500 text-white shadow-amber-500/30';
+  } else {
+    timerBgClass = 'bg-emerald-500 text-white shadow-emerald-500/30';
+  }
+
   const activeSpo2Idx = [
     { min: 0, max: 60 },
     { min: 61, max: 120 },
@@ -521,12 +597,14 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
     { min: 301, max: 600 },
     { min: 601, max: Infinity }
   ].findIndex(item => elapsedTime >= item.min && elapsedTime <= item.max);
-  
+
   const isCurrentTargetAchieved = activeSpo2Idx !== -1 && !!achievedTargets[activeSpo2Idx];
 
   if (phase === 'initial_steps' && !isCurrentTargetAchieved) {
     if (elapsedTime >= 60 && elapsedTime < 75) {
       timerBgClass = 'bg-yellow-400 text-yellow-900 shadow-yellow-400/30';
+      isFlashing = false;
+      showEvaluasiWarning = false;
     } else if (elapsedTime >= 75) {
       timerBgClass = 'bg-red-600 text-white shadow-red-600/30';
       isFlashing = true;
@@ -554,6 +632,11 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     </span>
                   )}
                 </span>
+                {showEvaluasiWarning && (
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-100 animate-pulse mt-0.5">
+                    ⚠ Evaluasi segera
+                  </span>
+                )}
               </div>
             </div>
             
