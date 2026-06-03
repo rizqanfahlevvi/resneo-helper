@@ -92,8 +92,14 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   }, [sidebarSearchOpen]);
 
   const handleCheckUpdate = async () => {
+    if (checkingUpdate) return;
     setCheckingUpdate(true);
-    await forceUpdateApp(); // bersihkan cache lalu reload — tidak return
+    try {
+      await forceUpdateApp();
+    } catch {
+      // reload gagal — reset spinner
+      setCheckingUpdate(false);
+    }
   };
 
   useEffect(() => {

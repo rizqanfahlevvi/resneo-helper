@@ -4,11 +4,13 @@ export async function forceUpdateApp(): Promise<void> {
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
   }
-  // 2. Update & unregister SW agar tidak serve cache lama
+  // 2. Unregister semua SW agar tidak serve cache lama
   if ('serviceWorker' in navigator) {
     const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(regs.map(r => r.update().catch(() => r.unregister())));
+    await Promise.all(regs.map(r => r.unregister()));
   }
-  // 3. Hard reload bypass cache
-  window.location.reload();
+  // 3. Navigasi ke URL baru dengan timestamp agar browser tidak pakai HTTP cache
+  const url = new URL(window.location.href);
+  url.searchParams.set('_v', Date.now().toString());
+  window.location.replace(url.toString());
 }
