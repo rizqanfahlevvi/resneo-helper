@@ -96,6 +96,9 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
         Pertumbuhan, Cairan & Pengenceran Obat (Neonatologi)
       </h2>
 
+      {/* Nilai Normal Neonatus */}
+      <NilaiNormalCard />
+
       {/* Patient Data Sync */}
       <div className="glass-card rounded-2xl p-4 md:p-5 mb-6">
         <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-3 flex items-center gap-2">
@@ -702,6 +705,177 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
       {/* FENTON 2013 GROWTH CHART */}
       <FentonGrowthChart effectiveBW={effectiveBW} gestationalAge={effectiveGA} />
 
+    </div>
+  );
+}
+
+// ==========================================
+// NILAI NORMAL NEONATUS
+// ==========================================
+function NilaiNormalCard() {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div className="glass-card rounded-2xl overflow-hidden mb-6">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Nilai Normal Neonatus</span>
+          <span className="text-xs text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-950/40 px-2 py-0.5 rounded font-bold ml-1">Referensi Cepat</span>
+        </div>
+        <svg className={`w-4 h-4 text-teal-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-teal-100 dark:border-teal-500/20 p-4 md:p-5 space-y-5">
+
+          {/* a) Target SpO2 NRP 2021 */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-400 mb-2">a) Target SpO₂ Preduktal (NRP 2021)</h4>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-teal-50 dark:bg-teal-950/30">
+                    <th className="text-left p-2.5 font-extrabold text-teal-700 dark:text-teal-300 uppercase tracking-wider">Menit ke-</th>
+                    <th className="text-center p-2.5 font-extrabold text-teal-700 dark:text-teal-300 uppercase tracking-wider">Target SpO₂</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[['1','60–65%'],['2','65–70%'],['3','70–75%'],['4','75–80%'],['5','80–85%'],['10','85–95%']].map(([m, t]) => (
+                    <tr key={m} className="bg-white dark:bg-slate-900/30 hover:bg-teal-50/30 dark:hover:bg-teal-950/20 transition-colors">
+                      <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300">{m} menit</td>
+                      <td className="p-2.5 text-center font-bold text-teal-700 dark:text-teal-300">{t}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* b) Hemodinamik Normal */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2">b) Nilai Hemodinamik Normal</h4>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-blue-50 dark:bg-blue-950/30">
+                    <th className="text-left p-2.5 font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Parameter</th>
+                    <th className="text-center p-2.5 font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Aterm</th>
+                    <th className="text-center p-2.5 font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Prematur 34–37 mgg</th>
+                    <th className="text-center p-2.5 font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Prematur &lt;34 mgg</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[
+                    ['HR (x/mnt)','100–160','100–160','100–170'],
+                    ['RR (x/mnt)','40–60','40–60','40–70'],
+                    ['SpO₂','95–100%','95–100%','92–98%'],
+                    ['MAP (mmHg)','45–60','35–50','≥ GA (minggu)'],
+                  ].map(([p,a,b,c]) => (
+                    <tr key={p} className="bg-white dark:bg-slate-900/30 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors">
+                      <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300">{p}</td>
+                      <td className="p-2.5 text-center font-bold text-slate-800 dark:text-slate-200">{a}</td>
+                      <td className="p-2.5 text-center font-bold text-slate-800 dark:text-slate-200">{b}</td>
+                      <td className="p-2.5 text-center font-bold text-slate-800 dark:text-slate-200">{c}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* c) Gas Darah Arteri */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-2">c) Gas Darah Arteri Normal Neonatus</h4>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-indigo-50 dark:bg-indigo-950/30">
+                    <th className="text-left p-2.5 font-extrabold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Parameter</th>
+                    <th className="text-center p-2.5 font-extrabold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Normal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[['pH','7.35–7.45'],['PaCO₂','35–45 mmHg'],['PaO₂','50–80 mmHg'],['HCO₃','20–26 mEq/L'],['BE','-4 s/d +4'],['Laktat','< 2 mmol/L']].map(([p,v]) => (
+                    <tr key={p} className="bg-white dark:bg-slate-900/30 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/20 transition-colors">
+                      <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300">{p}</td>
+                      <td className="p-2.5 text-center font-bold text-indigo-700 dark:text-indigo-300">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* d) Hematologi */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-2">d) Nilai Lab Hematologi</h4>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-rose-50 dark:bg-rose-950/30">
+                    <th className="text-left p-2.5 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Parameter</th>
+                    <th className="text-center p-2.5 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Aterm</th>
+                    <th className="text-center p-2.5 font-extrabold text-rose-700 dark:text-rose-300 uppercase tracking-wider">Prematur</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[
+                    ['Hb (g/dL)','14–20','12–18'],
+                    ['Ht (%)','44–64','40–55'],
+                    ['Leukosit (/µL)','9000–30000','5000–20000'],
+                    ['Trombosit (/µL)','150000–400000','100000–300000'],
+                    ['GDS (mg/dL)','47–120','47–110'],
+                  ].map(([p,a,b]) => (
+                    <tr key={p} className="bg-white dark:bg-slate-900/30 hover:bg-rose-50/30 dark:hover:bg-rose-950/20 transition-colors">
+                      <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300">{p}</td>
+                      <td className="p-2.5 text-center font-bold text-slate-800 dark:text-slate-200">{a}</td>
+                      <td className="p-2.5 text-center font-bold text-slate-800 dark:text-slate-200">{b}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* e) Elektrolit */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">e) Elektrolit & Biokimia Normal</h4>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-amber-50 dark:bg-amber-950/30">
+                    <th className="text-left p-2.5 font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Parameter</th>
+                    <th className="text-center p-2.5 font-extrabold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Normal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {[
+                    ['Na','135–145 mEq/L'],
+                    ['K','3.5–5.5 mEq/L'],
+                    ['Ca total','8–10.5 mg/dL'],
+                    ['Ca ion','1.1–1.35 mmol/L'],
+                    ['Mg','1.5–2.5 mg/dL'],
+                    ['Cl','98–108 mEq/L'],
+                    ['Bilirubin (24j)','< 8 mg/dL'],
+                    ['Kreatinin','0.3–1.0 mg/dL'],
+                  ].map(([p,v]) => (
+                    <tr key={p} className="bg-white dark:bg-slate-900/30 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-colors">
+                      <td className="p-2.5 font-semibold text-slate-700 dark:text-slate-300">{p}</td>
+                      <td className="p-2.5 text-center font-bold text-amber-700 dark:text-amber-300">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 text-right">NRP 2021 · AAP/AHA · Nelson Textbook of Pediatrics 21st ed.</p>
+        </div>
+      )}
     </div>
   );
 }

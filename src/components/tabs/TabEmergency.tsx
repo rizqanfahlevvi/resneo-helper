@@ -189,8 +189,16 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
   const [equipItems, setEquipItems] = useState<Record<string, boolean>>({});
 
   const [sribtaChecks, setSribtaChecks] = useState<Record<string, boolean>>({});
-  
-  
+
+  // Summary modal state (Task A)
+  const [showSummary, setShowSummary] = useState(false);
+  const [summaryCopied, setSummaryCopied] = useState(false);
+
+  // NRP Checklist state (Task B)
+  const [checklistDone, setChecklistDone] = useState<Record<string, boolean>>({});
+  const [checklistOpen, setChecklistOpen] = useState(true);
+  const prevPhaseRef = useRef<string>(phase);
+
   const addLog = (msg: string) => addStoreLog(elapsedTime, msg);
 
   // Phase CPAP
@@ -470,6 +478,30 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     return () => clearTimeout(t);
   }, [reminder]);
 
+  // Show summary modal when phase becomes 'completed' (Task A)
+  useEffect(() => {
+    if (phase === 'completed') {
+      setShowSummary(true);
+    }
+  }, [phase]);
+
+  // Reset checklist items when phase changes (Task B)
+  useEffect(() => {
+    if (prevPhaseRef.current !== phase) {
+      // Reset items belonging to the previous phase
+      const prevItems = NRP_CHECKLIST[prevPhaseRef.current];
+      if (prevItems) {
+        setChecklistDone(prev => {
+          const next = { ...prev };
+          prevItems.forEach(item => { delete next[item.id]; });
+          return next;
+        });
+      }
+      prevPhaseRef.current = phase;
+      setChecklistOpen(true);
+    }
+  }, [phase]);
+
   const triggeredMilestonesRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -520,6 +552,10 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     setPhaseStartTime(null);
     setReminder(null);
     triggeredMilestonesRef.current = new Set();
+    setShowSummary(false);
+    setChecklistDone({});
+    setChecklistOpen(true);
+    prevPhaseRef.current = 'preparation';
   };
 
   const handleCopyLog = () => {
@@ -942,7 +978,54 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
             {phase === 'initial_steps' && (
               <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-          
+
+          {/* NRP Checklist */}
+          {NRP_CHECKLIST['initial_steps'] && (
+            <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <button
+                onClick={() => setChecklistOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Checklist NRP 2021 — Langkah Awal</span>
+                  <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                    {NRP_CHECKLIST['initial_steps'].filter(i => checklistDone[i.id]).length} / {NRP_CHECKLIST['initial_steps'].length} selesai
+                  </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${checklistOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {checklistOpen && (
+                <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-2">
+                  {NRP_CHECKLIST['initial_steps'].map(item => (
+                    <label key={item.id} className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                      <div className="shrink-0 relative flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={!!checklistDone[item.id]}
+                          onChange={(e) => setChecklistDone(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                          className="peer appearance-none w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded cursor-pointer checked:bg-emerald-500 checked:border-emerald-500 transition-colors"
+                        />
+                        <Check className="w-3.5 h-3.5 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                      </div>
+                      <span className={`text-sm font-medium select-none transition-colors ${checklistDone[item.id] ? 'line-through text-slate-400 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300'}`}>{item.text}</span>
+                    </label>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const reset: Record<string, boolean> = { ...checklistDone };
+                      NRP_CHECKLIST['initial_steps'].forEach(i => { delete reset[i.id]; });
+                      setChecklistDone(reset);
+                    }}
+                    className="mt-2 text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  >
+                    Reset Checklist
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Smart Alert Peringatan Prematuritas */}
           {isPremature && (
             <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-xl rounded-l-none flex items-start gap-3 shadow-sm relative overflow-hidden">
@@ -1192,6 +1275,52 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {/* PHASE 3A: VTP Stage */}
       {phase === 'vtp' && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+
+          {/* NRP Checklist VTP */}
+          <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setChecklistOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Checklist NRP 2021 — VTP</span>
+                <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                  {NRP_CHECKLIST['vtp'].filter(i => checklistDone[i.id]).length} / {NRP_CHECKLIST['vtp'].length} selesai
+                </span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${checklistOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {checklistOpen && (
+              <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-2">
+                {NRP_CHECKLIST['vtp'].map(item => (
+                  <label key={item.id} className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <div className="shrink-0 relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={!!checklistDone[item.id]}
+                        onChange={(e) => setChecklistDone(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                        className="peer appearance-none w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded cursor-pointer checked:bg-emerald-500 checked:border-emerald-500 transition-colors"
+                      />
+                      <Check className="w-3.5 h-3.5 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
+                    <span className={`text-sm font-medium select-none transition-colors ${checklistDone[item.id] ? 'line-through text-slate-400 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300'}`}>{item.text}</span>
+                  </label>
+                ))}
+                <button
+                  onClick={() => {
+                    const reset: Record<string, boolean> = { ...checklistDone };
+                    NRP_CHECKLIST['vtp'].forEach(i => { delete reset[i.id]; });
+                    setChecklistDone(reset);
+                  }}
+                  className="mt-2 text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  Reset Checklist
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="glass-card rounded-2xl shadow-sm overflow-hidden flex flex-col">
              <div className="bg-blue-600/80 backdrop-blur-md px-5 py-4 text-white flex justify-between items-center border-b border-slate-200 dark:border-white/10">
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -1403,6 +1532,52 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {/* PHASE 3B: Evaluasi LDJ Pasca-VTP */}
       {phase === 'vtp_ldj_eval' && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+
+          {/* NRP Checklist VTP LDJ Eval */}
+          <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setChecklistOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Checklist NRP 2021 — Evaluasi LDJ</span>
+                <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                  {NRP_CHECKLIST['vtp_ldj_eval'].filter(i => checklistDone[i.id]).length} / {NRP_CHECKLIST['vtp_ldj_eval'].length} selesai
+                </span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${checklistOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {checklistOpen && (
+              <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-2">
+                {NRP_CHECKLIST['vtp_ldj_eval'].map(item => (
+                  <label key={item.id} className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <div className="shrink-0 relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={!!checklistDone[item.id]}
+                        onChange={(e) => setChecklistDone(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                        className="peer appearance-none w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded cursor-pointer checked:bg-emerald-500 checked:border-emerald-500 transition-colors"
+                      />
+                      <Check className="w-3.5 h-3.5 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
+                    <span className={`text-sm font-medium select-none transition-colors ${checklistDone[item.id] ? 'line-through text-slate-400 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300'}`}>{item.text}</span>
+                  </label>
+                ))}
+                <button
+                  onClick={() => {
+                    const reset: Record<string, boolean> = { ...checklistDone };
+                    NRP_CHECKLIST['vtp_ldj_eval'].forEach(i => { delete reset[i.id]; });
+                    setChecklistDone(reset);
+                  }}
+                  className="mt-2 text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  Reset Checklist
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="glass-card rounded-2xl shadow-xl overflow-hidden flex flex-col border-blue-500/30">
             <div className="bg-blue-600/80 backdrop-blur-md px-5 py-4 text-white flex justify-between items-center border-b border-slate-200 dark:border-white/10">
               <h3 className="font-bold text-lg flex items-center gap-2">
@@ -1457,7 +1632,52 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {/* PHASE 4A: Chest Compressions */}
       {phase === 'compressions' && (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-          
+
+          {/* NRP Checklist Compressions */}
+          <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setChecklistOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-red-500" />
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">Checklist NRP 2021 — Kompresi Dada</span>
+                <span className="text-xs font-bold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
+                  {NRP_CHECKLIST['compressions'].filter(i => checklistDone[i.id]).length} / {NRP_CHECKLIST['compressions'].length} selesai
+                </span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${checklistOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {checklistOpen && (
+              <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 space-y-2">
+                {NRP_CHECKLIST['compressions'].map(item => (
+                  <label key={item.id} className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                    <div className="shrink-0 relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={!!checklistDone[item.id]}
+                        onChange={(e) => setChecklistDone(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                        className="peer appearance-none w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded cursor-pointer checked:bg-emerald-500 checked:border-emerald-500 transition-colors"
+                      />
+                      <Check className="w-3.5 h-3.5 text-white absolute pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
+                    <span className={`text-sm font-medium select-none transition-colors ${checklistDone[item.id] ? 'line-through text-slate-400 dark:text-slate-600' : 'text-slate-700 dark:text-slate-300'}`}>{item.text}</span>
+                  </label>
+                ))}
+                <button
+                  onClick={() => {
+                    const reset: Record<string, boolean> = { ...checklistDone };
+                    NRP_CHECKLIST['compressions'].forEach(i => { delete reset[i.id]; });
+                    setChecklistDone(reset);
+                  }}
+                  className="mt-2 text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  Reset Checklist
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Removed Emergency Calculator, merged into FAB */}
 
           <div className="glass-card rounded-2xl shadow-xl overflow-hidden text-slate-900 dark:text-white flex flex-col border-red-500/30">
@@ -2070,6 +2290,129 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   Tutup & Reset
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resuscitation Summary Modal (Task A) */}
+      {phase === 'completed' && showSummary && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl rounded-3xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 fade-in duration-300 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-emerald-600 px-6 py-5 text-white flex items-center gap-3 flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="font-bold text-xl tracking-tight">Ringkasan Resusitasi</h2>
+                <p className="text-emerald-200 text-xs font-medium mt-0.5">Resusitasi telah selesai</p>
+              </div>
+              <button
+                onClick={() => setShowSummary(false)}
+                className="ml-auto w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto flex-1 p-6 space-y-5">
+              {/* Duration */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+                  <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Durasi</span>
+                  <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white">{formatTime(elapsedTime)}</span>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+                  <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Fase Terakhir</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white capitalize">{phase.replace(/_/g, ' ')}</span>
+                </div>
+              </div>
+
+              {/* Anthropometry */}
+              {(anthropometry.bbl || anthropometry.pb || anthropometry.lk) && (
+                <div className="bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/40 rounded-2xl p-4">
+                  <span className="block text-[10px] font-extrabold text-teal-700 dark:text-teal-400 uppercase tracking-widest mb-2">Antropometri</span>
+                  <div className="flex flex-wrap gap-3 text-sm font-semibold text-teal-900 dark:text-teal-200">
+                    {anthropometry.bbl && <span>BB: <strong>{anthropometry.bbl} g</strong></span>}
+                    {anthropometry.pb && <span>PB: <strong>{anthropometry.pb} cm</strong></span>}
+                    {anthropometry.lk && <span>LK: <strong>{anthropometry.lk} cm</strong></span>}
+                  </div>
+                </div>
+              )}
+
+              {/* Drug Log */}
+              <div>
+                <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Obat Diberikan</span>
+                {drugLog.length === 0 ? (
+                  <p className="text-sm text-slate-400 italic">Tidak ada obat yang tercatat</p>
+                ) : (
+                  <div className="space-y-2">
+                    {drugLog.map(d => (
+                      <div key={d.id} className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-2.5 text-xs">
+                        <span className="font-bold text-rose-700 dark:text-rose-400">{d.drugName}</span>
+                        <span className="text-slate-600 dark:text-slate-400"> · {d.dose} · via {d.route}</span>
+                        <span className="text-slate-400 ml-2">{d.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Clinical Log (last 5) */}
+              <div>
+                <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Log Tindakan (5 Terakhir)</span>
+                {clinicalLog.length === 0 ? (
+                  <p className="text-sm text-slate-400 italic">Tidak ada log tindakan</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {clinicalLog.slice(-5).map((l, i) => (
+                      <div key={i} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3 py-2 text-xs font-mono">
+                        <span className="text-indigo-500 dark:text-indigo-400 font-semibold">{l.time}</span>
+                        <span className="text-slate-700 dark:text-slate-300 ml-2">{l.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+              <button
+                onClick={() => {
+                  const now = new Date();
+                  const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + ' ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+                  const drugLines = drugLog.length > 0
+                    ? drugLog.map(d => `- ${d.drugName} ${d.dose} via ${d.route} at ${d.time}`).join('\n')
+                    : '- Tidak ada obat yang tercatat';
+                  const logLines = clinicalLog.slice(-5).map(l => `${l.time} ${l.message}`).join('\n');
+                  const anthropoLine = [
+                    anthropometry.bbl ? `BB Lahir: ${anthropometry.bbl} g` : '',
+                    anthropometry.pb ? `PB: ${anthropometry.pb} cm` : '',
+                    anthropometry.lk ? `LK: ${anthropometry.lk} cm` : '',
+                  ].filter(Boolean).join(' | ') || '-';
+                  const text = `=== RINGKASAN RESUSITASI ===\nWaktu: ${dateStr}\nDurasi: ${formatTime(elapsedTime)}\n${anthropoLine}\n\nOBAT DIBERIKAN:\n${drugLines}\n\nLOG TINDAKAN (5 terakhir):\n${logLines}\n===========================`;
+                  navigator.clipboard.writeText(text);
+                  setSummaryCopied(true);
+                  setTimeout(() => setSummaryCopied(false), 2000);
+                }}
+                className={`flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${
+                  summaryCopied
+                    ? 'bg-emerald-600 text-white border-emerald-500'
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500'
+                }`}
+              >
+                <Check className={`w-4 h-4 ${summaryCopied ? '' : 'hidden'}`} />
+                {summaryCopied ? 'Tersalin!' : 'Salin Ringkasan'}
+              </button>
+              <button
+                onClick={() => setShowSummary(false)}
+                className="flex-1 py-3 rounded-2xl font-bold text-sm bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
