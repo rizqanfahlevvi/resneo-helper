@@ -9,9 +9,11 @@ import TabTheory from './components/tabs/TabTheory';
 import TabHistory from './components/tabs/TabHistory';
 import TabDashboard from './components/tabs/TabDashboard';
 import { useStore } from './store';
-import { ThemeProvider } from './components/ThemeProvider';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Lock, RefreshCw, MessageCircle, X } from 'lucide-react';
 import { TabType } from './types';
+import { useAuth } from './auth/useAuth';
+import ProfilePopup from './auth/ProfilePopup';
+import AdminPage from './auth/AdminPage';
 
 const TAB_PATHS: Record<TabType, string> = {
   home: '/',
@@ -71,11 +73,22 @@ function getTabFromHash(): TabType {
   return PATH_TABS[path] ?? 'home';
 }
 
+function fmtDateID(val: any): string {
+  const date = val?.toDate ? val.toDate() : (val ? new Date(val) : null);
+  if (!date) return 'Seumur hidup';
+  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
 export default function App() {
   const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
+  const { user, userProfile, isAuthorized, isAdmin, refreshProfile } = useAuth();
   // Shared state across tabs
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+  const [checkingAccess, setCheckingAccess] = useState(false);
 
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
@@ -104,38 +117,40 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case 'emergency':
-        return <TabEmergency 
-                 gestationalAge={gestationalAge} 
-                 setGestationalAge={setGestationalAge}
-                 birthWeight={birthWeight}
-                 setBirthWeight={setBirthWeight}
-               />;
-      case 'scores':
-        return <TabScores 
-                 gestationalAge={gestationalAge} 
-                 setGestationalAge={setGestationalAge}
-                 birthWeight={birthWeight}
-                 setBirthWeight={setBirthWeight}
-               />;
-      case 'advanced':
-        return <TabAdvanced 
-                 gestationalAge={gestationalAge} 
-                 setGestationalAge={setGestationalAge}
-                 birthWeight={birthWeight}
-                 setBirthWeight={setBirthWeight}
-               />;
-      default:
-        return null; // Handled outside Layout
+  const showDowneAlert = downeScore > 6 && activeTab !== 'emergency';
+
+  const displayName = userProfile?.namaLengkap || userProfile?.username || user?.email?.split('@')[0] || '';
+  const userInitial = displayName.trim().charAt(0).toUpperCase() || '?';
+
+  const normalizedStatus = userProfile?.subscriptionStatus?.toLowerCase() || 'inactive';
+  const isAdminUser = isAdmin;
+  const isLocked = !!user &&
+    !isAdminUser &&
+    !isAuthorized &&
+    normalizedStatus !== 'active' &&
+    normalizedStatus !== 'trial';
+  const isHomeTab = activeTab === 'home';
+
+  const waLockedLink = `https://wa.me/6287749076019?text=${encodeURIComponent(
+    `Hai dok, saya sudah daftar ResNeo Helper MD Kit, username saya ${userProfile?.username || user?.email || ''}`
+  )}`;
+  const waTrialLink = waLockedLink;
+
+  const handleCheckAccess = async () => {
+    setCheckingAccess(true);
+    try {
+      await refreshProfile();
+    } finally {
+      setCheckingAccess(false);
     }
   };
 
-  const showDowneAlert = downeScore > 6 && activeTab !== 'emergency';
+  if (adminOpen) {
+    return <AdminPage onBack={() => setAdminOpen(false)} />;
+  }
 
   return (
-    <ThemeProvider>
+    <>
       {showDowneAlert && (
         <div className="fixed top-0 left-0 w-full z-50 p-4 animate-in slide-in-from-top-4">
           <div className="max-w-2xl mx-auto bg-red-600/90 backdrop-blur-md border border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.4)] text-white p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -146,7 +161,7 @@ export default function App() {
                 <p className="text-red-100 font-medium">Skor Downe &gt; 6. Pasien mengalami Gagal CPAP klinis!</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => {
                 navigateTo('emergency');
                 setPhase('compressions');
@@ -165,44 +180,105 @@ export default function App() {
         onTabChange={navigateTo}
         birthWeight={birthWeight}
         setBirthWeight={setBirthWeight}
+        isLoggedIn={!!user}
+        userInitial={userInitial}
+        onOpenProfile={() => setProfileOpen(true)}
       >
-        <TabTransition activeTab={activeTab}>
-          {(visibleTab) => (
-            <>
-              {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
-              {visibleTab === 'emergency' && (
-                <TabEmergency
-                  gestationalAge={gestationalAge}
-                  setGestationalAge={setGestationalAge}
-                  birthWeight={birthWeight}
-                  setBirthWeight={setBirthWeight}
-                />
-              )}
-              {visibleTab === 'scores' && (
-                <TabScores
-                  gestationalAge={gestationalAge}
-                  setGestationalAge={setGestationalAge}
-                  birthWeight={birthWeight}
-                  setBirthWeight={setBirthWeight}
-                />
-              )}
-              {visibleTab === 'advanced' && (
-                <TabAdvanced
-                  gestationalAge={gestationalAge}
-                  setGestationalAge={setGestationalAge}
-                  birthWeight={birthWeight}
-                  setBirthWeight={setBirthWeight}
-                />
-              )}
-              {visibleTab === 'references' && <TabReferences />}
-              {visibleTab === 'theory' && <TabTheory />}
-              {visibleTab === 'history' && <TabHistory />}
-              {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
-            </>
+        {showBanner && normalizedStatus === 'trial' && !isLocked && (
+          <div className="mb-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+              Anda sedang dalam masa Trial. Akses Anda dibatasi hingga {fmtDateID(userProfile?.subscriptionExpiredAt)}.{' '}
+              <a href={waTrialLink} target="_blank" rel="noopener noreferrer" className="underline font-bold">Hubungi via WhatsApp</a>
+            </p>
+            <button onClick={() => setShowBanner(false)} className="text-amber-500 hover:text-amber-700 shrink-0"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+        {showBanner && normalizedStatus === 'active' && (
+          <div className="mb-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              Terima kasih telah berlangganan! Status aktif hingga {fmtDateID(userProfile?.subscriptionExpiredAt)}.
+            </p>
+            <button onClick={() => setShowBanner(false)} className="text-emerald-500 hover:text-emerald-700 shrink-0"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        <div className="relative">
+          <TabTransition activeTab={activeTab}>
+            {(visibleTab) => (
+              <>
+                {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
+                {visibleTab === 'emergency' && (
+                  <TabEmergency
+                    gestationalAge={gestationalAge}
+                    setGestationalAge={setGestationalAge}
+                    birthWeight={birthWeight}
+                    setBirthWeight={setBirthWeight}
+                  />
+                )}
+                {visibleTab === 'scores' && (
+                  <TabScores
+                    gestationalAge={gestationalAge}
+                    setGestationalAge={setGestationalAge}
+                    birthWeight={birthWeight}
+                    setBirthWeight={setBirthWeight}
+                  />
+                )}
+                {visibleTab === 'advanced' && (
+                  <TabAdvanced
+                    gestationalAge={gestationalAge}
+                    setGestationalAge={setGestationalAge}
+                    birthWeight={birthWeight}
+                    setBirthWeight={setBirthWeight}
+                  />
+                )}
+                {visibleTab === 'references' && <TabReferences />}
+                {visibleTab === 'theory' && <TabTheory />}
+                {visibleTab === 'history' && <TabHistory />}
+                {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
+              </>
+            )}
+          </TabTransition>
+
+          {isLocked && !isHomeTab && (
+            <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md rounded-2xl">
+              <div className="text-center max-w-xs">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
+                  <Lock className="w-7 h-7 text-slate-400" />
+                </div>
+                <h3 className="font-black text-slate-900 dark:text-white mb-1.5">Fitur Terkunci</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+                  Anda belum mengaktifkan langganan. Silakan hubungi kami via WhatsApp.
+                </p>
+                <a
+                  href={waLockedLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all shadow-sm mb-2"
+                >
+                  <MessageCircle className="w-4 h-4" /> Hubungi via WhatsApp
+                </a>
+                <button
+                  onClick={handleCheckAccess}
+                  disabled={checkingAccess}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl transition-all disabled:opacity-60"
+                >
+                  <RefreshCw className={`w-4 h-4 ${checkingAccess ? 'animate-spin' : ''}`} />
+                  {checkingAccess ? 'Memeriksa...' : 'Cek Status Akses'}
+                </button>
+              </div>
+            </div>
           )}
-        </TabTransition>
+        </div>
       </Layout>
-    </ThemeProvider>
+
+      <ProfilePopup
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onOpenAdmin={() => {
+          setProfileOpen(false);
+          setAdminOpen(true);
+        }}
+      />
+    </>
   );
 }
-

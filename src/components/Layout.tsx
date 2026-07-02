@@ -13,6 +13,9 @@ interface LayoutProps {
   onTabChange: (tab: TabType) => void;
   birthWeight?: string;
   setBirthWeight?: (weight: string) => void;
+  isLoggedIn?: boolean;
+  userInitial?: string;
+  onOpenProfile?: () => void;
 }
 
 const TABS = [
@@ -26,7 +29,7 @@ const TABS = [
   { id: 'history', label: 'Riwayat Sesi', icon: History },
 ] as const;
 
-export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight }: LayoutProps) {
+export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight, isLoggedIn, userInitial, onOpenProfile }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
@@ -397,6 +400,16 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             >
               {theme === 'dark' ? <><Sun className="w-4 h-4 text-amber-500 dark:text-amber-300" /> <span className="hidden sm:inline">Mode Terang</span></> : <><Moon className="w-4 h-4 text-indigo-600" /> <span className="hidden sm:inline">Mode Gelap</span></>}
             </button>
+
+            {isLoggedIn && (
+              <button
+                onClick={onOpenProfile}
+                title="Profil & Akun"
+                className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-sm hover:brightness-110 transition-all shrink-0"
+              >
+                {userInitial || '?'}
+              </button>
+            )}
           </div>
         </header>
 

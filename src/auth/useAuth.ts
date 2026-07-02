@@ -1,25 +1,42 @@
-import { useEffect } from 'react';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
 import { useAuthStore } from './useAuthStore';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
+import { signOut as firebaseSignOut } from 'firebase/auth';
 
-// Pasang listener onAuthStateChanged satu kali di root app
-export function useAuthListener() {
-  const { setUser, setInitialized } = useAuthStore();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setInitialized(true);
-    });
-    return unsubscribe;
-  }, []);
-}
-
-// Shorthand hook untuk komponen yang butuh user + status
 export function useAuth() {
-  const { user, isLoading, isInitialized } = useAuthStore();
-  return { user, isLoading, isInitialized, isLoggedIn: !!user };
+  const { user, userProfile, isLoading, isInitialized } = useAuthStore();
+
+  const isAuthenticated = !!user;
+
+  const isAuthorized =
+    isAuthenticated &&
+    userProfile !== null &&
+    (!userProfile.subscriptionExpiredAt ||
+      userProfile.subscriptionExpiredAt.toDate() > new Date());
+
+  const isAdmin =
+    userProfile?.role === 'admin' ||
+    user?.email === 'driverizqanf@gmail.com';
+
+  const refreshProfile = async () => {
+    if (!user) return;
+    const docSnap = await getDoc(doc(db, 'users', user.uid));
+    if (docSnap.exists()) {
+      useAuthStore.getState().setUserProfile(docSnap.data() as any);
+    }
+  };
+
+  return {
+    user,
+    userProfile,
+    isLoading,
+    isInitialized,
+    isLoggedIn: isAuthenticated,
+    isAuthenticated,
+    isAuthorized,
+    isAdmin,
+    refreshProfile,
+  };
 }
 
 export async function signOut() {
