@@ -89,7 +89,6 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [checkingAccess, setCheckingAccess] = useState(false);
-  const [showLockOverlay, setShowLockOverlay] = useState(true);
 
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
@@ -118,10 +117,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  useEffect(() => {
-    setShowLockOverlay(true);
-  }, [activeTab]);
-
   const showDowneAlert = downeScore > 6 && activeTab !== 'emergency';
 
   const displayName = userProfile?.namaLengkap || userProfile?.username || user?.email?.split('@')[0] || '';
@@ -133,7 +128,7 @@ export default function App() {
     !isAdminUser &&
     (normalizedStatus !== 'active' && normalizedStatus !== 'trial');
   const isHomeTab = activeTab === 'home';
-  const shouldShowOverlay = isLocked && !isHomeTab && showLockOverlay;
+  const shouldShowOverlay = isLocked && !isHomeTab;
 
   const waLockedLink = `https://wa.me/6287749076019?text=${encodeURIComponent(
     `Hai dok, saya sudah daftar ResNeo Helper MD Kit, username saya ${userProfile?.username || user?.email || ''}`
@@ -247,7 +242,8 @@ export default function App() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/30 backdrop-blur-sm">
           <div className="relative bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-[340px] w-[90%] text-center shadow-2xl border border-slate-200 dark:border-slate-800">
             <button
-              onClick={() => setShowLockOverlay(false)}
+              onClick={() => navigateTo('home')}
+              title="Kembali ke Beranda"
               style={{
                 position: 'absolute',
                 top: 12,
