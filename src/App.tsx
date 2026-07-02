@@ -81,7 +81,7 @@ function fmtDateID(val: any): string {
 
 export default function App() {
   const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
-  const { user, userProfile, isAuthorized, isAdmin, refreshProfile } = useAuth();
+  const { user, userProfile, isAdmin, refreshProfile } = useAuth();
   // Shared state across tabs
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
@@ -126,9 +126,7 @@ export default function App() {
   const isAdminUser = isAdmin;
   const isLocked = !!user &&
     !isAdminUser &&
-    !isAuthorized &&
-    normalizedStatus !== 'active' &&
-    normalizedStatus !== 'trial';
+    (normalizedStatus !== 'active' && normalizedStatus !== 'trial');
   const isHomeTab = activeTab === 'home';
 
   const waLockedLink = `https://wa.me/6287749076019?text=${encodeURIComponent(
@@ -202,74 +200,72 @@ export default function App() {
           </div>
         )}
 
-        <div className="relative">
-          <TabTransition activeTab={activeTab}>
-            {(visibleTab) => (
-              <>
-                {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
-                {visibleTab === 'emergency' && (
-                  <TabEmergency
-                    gestationalAge={gestationalAge}
-                    setGestationalAge={setGestationalAge}
-                    birthWeight={birthWeight}
-                    setBirthWeight={setBirthWeight}
-                  />
-                )}
-                {visibleTab === 'scores' && (
-                  <TabScores
-                    gestationalAge={gestationalAge}
-                    setGestationalAge={setGestationalAge}
-                    birthWeight={birthWeight}
-                    setBirthWeight={setBirthWeight}
-                  />
-                )}
-                {visibleTab === 'advanced' && (
-                  <TabAdvanced
-                    gestationalAge={gestationalAge}
-                    setGestationalAge={setGestationalAge}
-                    birthWeight={birthWeight}
-                    setBirthWeight={setBirthWeight}
-                  />
-                )}
-                {visibleTab === 'references' && <TabReferences />}
-                {visibleTab === 'theory' && <TabTheory />}
-                {visibleTab === 'history' && <TabHistory />}
-                {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
-              </>
-            )}
-          </TabTransition>
-
-          {isLocked && !isHomeTab && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md rounded-2xl">
-              <div className="text-center max-w-xs">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
-                  <Lock className="w-7 h-7 text-slate-400" />
-                </div>
-                <h3 className="font-black text-slate-900 dark:text-white mb-1.5">Fitur Terkunci</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
-                  Anda belum mengaktifkan langganan. Silakan hubungi kami via WhatsApp.
-                </p>
-                <a
-                  href={waLockedLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all shadow-sm mb-2"
-                >
-                  <MessageCircle className="w-4 h-4" /> Hubungi via WhatsApp
-                </a>
-                <button
-                  onClick={handleCheckAccess}
-                  disabled={checkingAccess}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl transition-all disabled:opacity-60"
-                >
-                  <RefreshCw className={`w-4 h-4 ${checkingAccess ? 'animate-spin' : ''}`} />
-                  {checkingAccess ? 'Memeriksa...' : 'Cek Status Akses'}
-                </button>
-              </div>
-            </div>
+        <TabTransition activeTab={activeTab}>
+          {(visibleTab) => (
+            <>
+              {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
+              {visibleTab === 'emergency' && (
+                <TabEmergency
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'scores' && (
+                <TabScores
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'advanced' && (
+                <TabAdvanced
+                  gestationalAge={gestationalAge}
+                  setGestationalAge={setGestationalAge}
+                  birthWeight={birthWeight}
+                  setBirthWeight={setBirthWeight}
+                />
+              )}
+              {visibleTab === 'references' && <TabReferences />}
+              {visibleTab === 'theory' && <TabTheory />}
+              {visibleTab === 'history' && <TabHistory />}
+              {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
+            </>
           )}
-        </div>
+        </TabTransition>
       </Layout>
+
+      {isLocked && !isHomeTab && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/30 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-[340px] w-[90%] text-center shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
+              <Lock className="w-7 h-7 text-slate-400" />
+            </div>
+            <h3 className="font-black text-slate-900 dark:text-white mb-1.5 text-lg">Fitur Terkunci</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+              Anda belum mengaktifkan langganan. Silakan hubungi kami via WhatsApp untuk verifikasi dan aktivasi akses.
+            </p>
+            <a
+              href={waLockedLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all shadow-sm mb-2.5"
+            >
+              <MessageCircle className="w-4 h-4" /> Hubungi via WhatsApp
+            </a>
+            <button
+              onClick={handleCheckAccess}
+              disabled={checkingAccess}
+              className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm rounded-xl transition-all disabled:opacity-60"
+            >
+              <RefreshCw className={`w-4 h-4 ${checkingAccess ? 'animate-spin' : ''}`} />
+              {checkingAccess ? 'Memeriksa...' : 'Cek Status Akses'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <ProfilePopup
         isOpen={profileOpen}
