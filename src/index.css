@@ -6,6 +6,15 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Font weight utilities (font-light, font-bold, dll) mengikuti offset Ketebalan Font di Setting App */
+  --font-weight-light: var(--fw-light, 300);
+  --font-weight-normal: var(--fw-normal, 400);
+  --font-weight-medium: var(--fw-medium, 500);
+  --font-weight-semibold: var(--fw-semibold, 600);
+  --font-weight-bold: var(--fw-bold, 700);
+  --font-weight-extrabold: var(--fw-extrabold, 800);
+  --font-weight-black: var(--fw-black, 900);
 }
 
 :root {
