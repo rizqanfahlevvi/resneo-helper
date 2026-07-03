@@ -8,13 +8,52 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+:root {
+  --font-scale: 1;
+}
+
 html, body {
   overscroll-behavior-y: contain;
 }
 
 html {
-  font-size: 78%;
+  font-size: calc(78% * var(--font-scale));
   scroll-behavior: smooth;
+}
+
+/* Smooth transitions when Setting App preferences change (tema, skala font, dll) */
+.theme-transition,
+.theme-transition *,
+.theme-transition::before,
+.theme-transition::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, filter, backdrop-filter, opacity;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Skema Warna Hitam-Putih (Black & White Mode) */
+html.bw-mode,
+.bw-mode {
+  filter: grayscale(100%) !important;
+}
+
+/* Reading Mode — kontras tinggi & tipografi serif, dipasang selektif di kontainer materi/teori */
+.reading-mode {
+  --font-sans: "Charter", "Georgia", "Merriweather", ui-serif, serif;
+  --font-scale: 1.08;
+}
+.reading-mode p,
+.reading-mode li {
+  line-height: 1.7;
+  font-family: var(--font-sans);
+}
+.reading-mode h1,
+.reading-mode h2,
+.reading-mode h3,
+.reading-mode h4,
+.reading-mode .font-bold {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 body {

@@ -8,12 +8,15 @@ import TabReferences from './components/tabs/TabReferences';
 import TabTheory from './components/tabs/TabTheory';
 import TabHistory from './components/tabs/TabHistory';
 import TabDashboard from './components/tabs/TabDashboard';
+import TabSettings from './components/tabs/TabSettings';
 import { useStore } from './store';
 import { AlertTriangle, Lock, RefreshCw, MessageCircle, X } from 'lucide-react';
 import { TabType } from './types';
 import { useAuth } from './auth/useAuth';
 import ProfilePopup from './auth/ProfilePopup';
 import AdminPage from './auth/AdminPage';
+import { useSettingsStore } from './settings/useSettingsStore';
+import { loadFont } from './utils/fontLoader';
 
 const TAB_PATHS: Record<TabType, string> = {
   home: '/',
@@ -24,6 +27,22 @@ const TAB_PATHS: Record<TabType, string> = {
   theory: '/theory',
   history: '/history',
   dashboard: '/dashboard',
+  settings: '/settings',
+};
+
+const FONT_FAMILY_MAP: Record<string, string> = {
+  lexend: '"Lexend", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  inter: '"Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  roboto: '"Roboto", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  jetbrains: '"JetBrains Mono", monospace',
+  system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  poppins: '"Poppins", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  montserrat: '"Montserrat", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  'plus-jakarta': '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  outfit: '"Outfit", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  'space-grotesk': '"Space Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+  'fira-code': '"Fira Code", monospace',
+  quicksand: '"Quicksand", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
 };
 
 const PATH_TABS: Record<string, TabType> = Object.fromEntries(
@@ -82,6 +101,7 @@ function fmtDateID(val: any): string {
 export default function App() {
   const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
   const { user, userProfile, isAdmin, refreshProfile } = useAuth();
+  const { fontFamily, fontScale, fontWeight, bwMode, readingMode } = useSettingsStore();
   // Shared state across tabs
   const [gestationalAge, setGestationalAge] = useState<string>('');
   const [birthWeight, setBirthWeight] = useState<string>('');
@@ -89,6 +109,46 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
   const [checkingAccess, setCheckingAccess] = useState(false);
+
+  // Terapkan preferensi Setting App (font, skala, ketebalan, skema warna) ke root document
+  useEffect(() => {
+    const root = document.documentElement;
+
+    root.style.setProperty('--font-scale', fontScale.toString());
+
+    const lightWeight = Math.max(100, Math.min(900, 300 + fontWeight));
+    const normalWeight = Math.max(100, Math.min(900, 400 + fontWeight));
+    const mediumWeight = Math.max(100, Math.min(900, 500 + fontWeight));
+    const semiboldWeight = Math.max(100, Math.min(900, 600 + fontWeight));
+    const boldWeight = Math.max(100, Math.min(900, 700 + fontWeight));
+    const extraboldWeight = Math.max(100, Math.min(900, 800 + fontWeight));
+    const blackWeight = Math.max(100, Math.min(900, 900 + fontWeight));
+
+    root.style.setProperty('--fw-light', lightWeight.toString());
+    root.style.setProperty('--fw-normal', normalWeight.toString());
+    root.style.setProperty('--fw-medium', mediumWeight.toString());
+    root.style.setProperty('--fw-semibold', semiboldWeight.toString());
+    root.style.setProperty('--fw-bold', boldWeight.toString());
+    root.style.setProperty('--fw-extrabold', extraboldWeight.toString());
+    root.style.setProperty('--fw-black', blackWeight.toString());
+
+    loadFont(fontFamily);
+    root.style.setProperty('--font-sans', FONT_FAMILY_MAP[fontFamily] || FONT_FAMILY_MAP.system);
+
+    if (bwMode) {
+      root.classList.add('bw-mode');
+    } else {
+      root.classList.remove('bw-mode');
+    }
+  }, [fontFamily, fontScale, fontWeight, bwMode]);
+
+  // Aktifkan transisi halus setelah initial load agar tidak flicker
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      document.documentElement.classList.add('theme-transition');
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sync tab ↔ URL hash
   const navigateTo = (tab: TabType) => {
@@ -230,9 +290,14 @@ export default function App() {
                 />
               )}
               {visibleTab === 'references' && <TabReferences />}
-              {visibleTab === 'theory' && <TabTheory />}
+              {visibleTab === 'theory' && (
+                <div className={readingMode ? 'reading-mode' : undefined}>
+                  <TabTheory />
+                </div>
+              )}
               {visibleTab === 'history' && <TabHistory />}
               {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
+              {visibleTab === 'settings' && <TabSettings />}
             </>
           )}
         </TabTransition>

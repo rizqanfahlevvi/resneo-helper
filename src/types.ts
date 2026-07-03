@@ -1,1 +1,1 @@
-export type TabType = 'home' | 'emergency' | 'scores' | 'advanced' | 'references' | 'theory' | 'history' | 'dashboard';
+export type TabType = 'home' | 'emergency' | 'scores' | 'advanced' | 'references' | 'theory' | 'history' | 'dashboard' | 'settings';

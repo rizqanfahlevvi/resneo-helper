@@ -193,15 +193,6 @@ const ballardReferences = [
   "Neonatal Resuscitation Program (NRP) Textbook. 8th Edition. American Academy of Pediatrics (2021)."
 ];
 
-type ApgarEval = {
-  minute: number;
-  appearance: number | null;
-  pulse: number | null;
-  grimace: number | null;
-  activity: number | null;
-  respiration: number | null;
-};
-
 interface TabScoresProps {
   gestationalAge?: string;
   setGestationalAge?: (val: string) => void;

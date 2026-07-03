@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect, useRef, useMemo } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard, RefreshCw } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard, RefreshCw, Settings } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
@@ -27,6 +27,7 @@ const TABS = [
   { id: 'theory', label: 'Materi & Teori', icon: FileText },
   { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen },
   { id: 'history', label: 'Riwayat Sesi', icon: History },
+  { id: 'settings', label: 'Pengaturan & Info', icon: Settings },
 ] as const;
 
 export default function Layout({ children, activeTab, onTabChange, birthWeight, setBirthWeight, isLoggedIn, userInitial, onOpenProfile }: LayoutProps) {
@@ -519,6 +520,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                 { id: 'theory', label: 'Materi & Teori', icon: FileText, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50' },
                 { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50' },
                 { id: 'history', label: 'Riwayat Sesi', icon: History, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50' },
+                { id: 'settings', label: 'Pengaturan & Info', icon: Settings, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700' },
               ].map(item => {
                 const Icon = item.icon;
                 return (
