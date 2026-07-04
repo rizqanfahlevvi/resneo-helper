@@ -11,6 +11,7 @@ import {
   glucoseInfusionRate,
   ballardToGestationalAge,
   gentamicinByGA,
+  gentamicinDosing,
   dailyFluidPerKg,
   isValidBirthWeightGram,
   isValidGestationalAgeWeek,
@@ -114,6 +115,28 @@ describe('Gentamisin (Neofax 2023, PNA 0–7 hari)', () => {
   });
   it('≥35 mgg: 4 mg/kg q24h', () => {
     expect(gentamicinByGA(38)).toEqual({ dosePerKg: 4, interval: 'q24h' });
+  });
+});
+
+describe('gentamicinDosing (PMA + PNA)', () => {
+  it('PMA ≤29 mgg, PNA 0-7 hr: 5 mg/kg q48h', () => {
+    expect(gentamicinDosing(28, 3)).toEqual({ dosePerKg: 5, interval: 'q48h' });
+  });
+  it('PMA ≤29 mgg, PNA 8-28 hr: 4 mg/kg q36h', () => {
+    expect(gentamicinDosing(28, 14)).toEqual({ dosePerKg: 4, interval: 'q36h' });
+  });
+  it('PMA ≤29 mgg, PNA ≥29 hr: 4 mg/kg q24h', () => {
+    expect(gentamicinDosing(28, 30)).toEqual({ dosePerKg: 4, interval: 'q24h' });
+  });
+  it('PMA 30-34 mgg, PNA ≤7 hr: 4,5 mg/kg q36h', () => {
+    expect(gentamicinDosing(32, 5)).toEqual({ dosePerKg: 4.5, interval: 'q36h' });
+  });
+  it('PMA 30-34 mgg, PNA >7 hr: 4 mg/kg q24h', () => {
+    expect(gentamicinDosing(32, 10)).toEqual({ dosePerKg: 4, interval: 'q24h' });
+  });
+  it('PMA ≥35 mgg: selalu 4 mg/kg q24h', () => {
+    expect(gentamicinDosing(38, 1)).toEqual({ dosePerKg: 4, interval: 'q24h' });
+    expect(gentamicinDosing(38, 20)).toEqual({ dosePerKg: 4, interval: 'q24h' });
   });
 });
 

@@ -112,6 +112,24 @@ export function gentamicinByGA(gaWeek: number): { dosePerKg: number; interval: s
 }
 
 /**
+ * Dosis gentamisin berdasarkan usia pasca-menstruasi (PMA = GA lahir + usia postnatal)
+ * DAN usia postnatal (PNA) — konvensi Neofax. Interval memendek seiring
+ * pematangan klirens ginjal pada PNA lanjut, terlepas dari GA saat lahir.
+ */
+export function gentamicinDosing(pmaWeek: number, pnaDay: number): { dosePerKg: number; interval: string } {
+  if (pmaWeek <= 29) {
+    if (pnaDay <= 7) return { dosePerKg: 5, interval: 'q48h' };
+    if (pnaDay <= 28) return { dosePerKg: 4, interval: 'q36h' };
+    return { dosePerKg: 4, interval: 'q24h' };
+  }
+  if (pmaWeek <= 34) {
+    if (pnaDay <= 7) return { dosePerKg: 4.5, interval: 'q36h' };
+    return { dosePerKg: 4, interval: 'q24h' };
+  }
+  return { dosePerKg: 4, interval: 'q24h' };
+}
+
+/**
  * Kebutuhan cairan (mL/kg/hari) per hari kehidupan (kolom = DOL 1–7).
  * Prinsip: makin kecil/prematur, insensible water loss makin besar →
  * kebutuhan hari-pertama makin TINGGI (Neofax/AAP).

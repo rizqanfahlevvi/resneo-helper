@@ -1,12 +1,36 @@
 import { useStore } from '../../store';
-import { Clock, Trash2, ChevronDown, ChevronUp, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { Clock, Trash2, ChevronDown, ChevronUp, FileText, Download, CloudUpload, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../auth/useAuth';
+import { getRecentSessions } from '../../lib/firestore';
+import { exportSessionPdf } from '../../utils/pdfExport';
+import { SessionRecord } from '../../store';
 
 export default function TabHistory() {
-  const { sessionHistory, clearHistory } = useStore();
+  const { sessionHistory, clearHistory, patientIdentity } = useStore();
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [cloudSessions, setCloudSessions] = useState<SessionRecord[]>([]);
+  const [syncing, setSyncing] = useState(false);
 
-  if (sessionHistory.length === 0) {
+  useEffect(() => {
+    if (!user) return;
+    setSyncing(true);
+    getRecentSessions(user.uid)
+      .then(setCloudSessions)
+      .catch((err) => console.warn('Gagal memuat riwayat cloud:', err))
+      .finally(() => setSyncing(false));
+  }, [user]);
+
+  // Gabungkan sesi lokal + cloud, dedup berdasar id (id dibuat sama di kedua sisi saat sinkron)
+  const mergedSessions = (() => {
+    const map = new Map<string, SessionRecord>();
+    cloudSessions.forEach((s) => map.set(s.id, s));
+    sessionHistory.forEach((s) => map.set(s.id, s)); // lokal menang jika ada konflik (paling baru di device ini)
+    return Array.from(map.values()).sort((a, b) => Number(b.id) - Number(a.id));
+  })();
+
+  if (mergedSessions.length === 0 && !syncing) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-600 gap-4">
         <FileText className="w-12 h-12 opacity-30" />
@@ -19,16 +43,27 @@ export default function TabHistory() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-black text-slate-800 dark:text-white">Riwayat Sesi Resusitasi</h2>
+        <div>
+          <h2 className="text-lg font-black text-slate-800 dark:text-white">Riwayat Sesi Resusitasi</h2>
+          {user && (
+            <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+              {syncing ? (
+                <><Loader2 className="w-3 h-3 animate-spin" /> Menyinkronkan dengan cloud...</>
+              ) : (
+                <><CloudUpload className="w-3 h-3" /> Tersinkronisasi ke akun Anda</>
+              )}
+            </p>
+          )}
+        </div>
         <button
-          onClick={() => { if (window.confirm('Hapus semua riwayat?')) clearHistory(); }}
+          onClick={() => { if (window.confirm('Hapus semua riwayat lokal? Data di cloud tidak terhapus.')) clearHistory(); }}
           className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
         >
-          <Trash2 className="w-3.5 h-3.5" /> Hapus Semua
+          <Trash2 className="w-3.5 h-3.5" /> Hapus Lokal
         </button>
       </div>
 
-      {sessionHistory.map(session => (
+      {mergedSessions.map(session => (
         <div key={session.id} className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
           <button
             onClick={() => setExpanded(expanded === session.id ? null : session.id)}
@@ -49,13 +84,21 @@ export default function TabHistory() {
           </button>
 
           {expanded === session.id && (
-            <div className="border-t border-slate-100 dark:border-slate-800 px-4 pb-4 pt-3 space-y-1.5">
-              {session.log.map((entry, i) => (
-                <div key={i} className="flex gap-2 text-xs">
-                  <span className="font-mono text-slate-400 dark:text-slate-500 shrink-0">{entry.time}</span>
-                  <span className="text-slate-700 dark:text-slate-300">{entry.message}</span>
-                </div>
-              ))}
+            <div className="border-t border-slate-100 dark:border-slate-800 px-4 pb-4 pt-3 space-y-3">
+              <button
+                onClick={() => exportSessionPdf({ session, patientIdentity })}
+                className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" /> Unduh PDF
+              </button>
+              <div className="space-y-1.5">
+                {session.log.map((entry, i) => (
+                  <div key={i} className="flex gap-2 text-xs">
+                    <span className="font-mono text-slate-400 dark:text-slate-500 shrink-0">{entry.time}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{entry.message}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

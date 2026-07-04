@@ -10,6 +10,16 @@ export interface PatientIdentity {
   kondisiKlinis: string;
   usia: string;
   jenisKelamin: string;
+  birthDateTime: string; // ISO datetime — dasar perhitungan usia postnatal & PMA
+}
+
+export interface ApgarEval {
+  minute: number;
+  appearance: number | null;
+  pulse: number | null;
+  grimace: number | null;
+  activity: number | null;
+  respiration: number | null;
 }
 
 export interface Anthropometry {
@@ -68,6 +78,10 @@ interface ResneoStore {
   drugLog: DrugAction[];
   addDrugLog: (elapsed: number, drugName: string, dose: string, route: string, notes?: string) => void;
   clearDrugLog: () => void;
+  apgarEvals: ApgarEval[];
+  setApgarField: (minute: number, field: keyof Omit<ApgarEval, 'minute'>, value: number | null) => void;
+  addApgarMinute: (minute: number) => void;
+  clearApgar: () => void;
 }
 
 export const useStore = create<ResneoStore>()(
@@ -97,7 +111,7 @@ export const useStore = create<ResneoStore>()(
       clearLog: () => set({ clinicalLog: [] }),
       downeScore: 0,
       setDowneScore: (downeScore) => set({ downeScore }),
-      patientIdentity: { namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '' },
+      patientIdentity: { namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '', birthDateTime: '' },
       setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
       anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
       setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
@@ -123,6 +137,26 @@ export const useStore = create<ResneoStore>()(
         set((state) => ({ drugLog: [...state.drugLog, entry] }));
       },
       clearDrugLog: () => set({ drugLog: [] }),
+      apgarEvals: [
+        { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+        { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+      ],
+      setApgarField: (minute, field, value) => set((state) => ({
+        apgarEvals: state.apgarEvals.map((ev) => ev.minute === minute ? { ...ev, [field]: value } : ev),
+      })),
+      addApgarMinute: (minute) => set((state) => {
+        if (state.apgarEvals.some((ev) => ev.minute === minute)) return state;
+        return {
+          apgarEvals: [...state.apgarEvals, { minute, appearance: null, pulse: null, grimace: null, activity: null, respiration: null }]
+            .sort((a, b) => a.minute - b.minute),
+        };
+      }),
+      clearApgar: () => set({
+        apgarEvals: [
+          { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+          { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+        ],
+      }),
     }),
     {
       name: 'resneo-store',
@@ -133,6 +167,7 @@ export const useStore = create<ResneoStore>()(
         anthropometry: state.anthropometry,
         clinicalLog: state.clinicalLog,
         drugLog: state.drugLog,
+        apgarEvals: state.apgarEvals,
         sessionHistory: state.sessionHistory,
         phase: state.phase,
         elapsedTime: state.elapsedTime,

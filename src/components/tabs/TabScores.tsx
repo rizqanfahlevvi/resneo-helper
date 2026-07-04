@@ -1,18 +1,11 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Activity, Plus, AlertTriangle, Calculator, AlertCircle, BookOpen } from 'lucide-react';
-import { useStore } from '../../store';
+import { useStore, ApgarEval } from '../../store';
 import { useRipple } from '../Ripple';
 import { FLUID_TABLE, glucoseInfusionRate, ballardToGestationalAge } from '../../clinical/doses';
-
-type ApgarEval = {
-  minute: number;
-  appearance: number | null;
-  pulse: number | null;
-  grimace: number | null;
-  activity: number | null;
-  respiration: number | null;
-};
+import { postnatalAge } from '../../clinical/pma';
+import { APGAR_PARAMS, getApgarTotal } from '../../clinical/apgar';
 
 interface TabScoresProps {
   gestationalAge?: string;
@@ -206,35 +199,21 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const [activeScoreView, setActiveScoreView] = useState<'menu' | 'apgar' | 'downe' | 'thomson' | 'ballard' | 'silverman' | 'gir' | 'surfactan' | 'inotropic' | 'fluid' | 'flacc' | 'nips'>('menu');
   const [expandedMinutes, setExpandedMinutes] = useState<Record<number, boolean>>({ 1: true, 5: true });
 
-  // APGAR State
-  const [apgarEvals, setApgarEvals] = useState<ApgarEval[]>([
-    { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
-    { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null }
-  ]);
+  // APGAR State — dibagikan lewat store agar TabEmergency bisa auto-prompt & simpan ke sesi
+  const apgarEvals = useStore((s) => s.apgarEvals);
+  const setApgarField = useStore((s) => s.setApgarField);
+  const addApgarMinute = useStore((s) => s.addApgarMinute);
 
   const addApgarEval = () => {
     const nextMinute = apgarEvals.length === 2 ? 10 : apgarEvals.length === 3 ? 15 : 20;
     if (nextMinute <= 20) {
-      setApgarEvals([...apgarEvals, { minute: nextMinute, appearance: null, pulse: null, grimace: null, activity: null, respiration: null }]);
+      addApgarMinute(nextMinute);
       setExpandedMinutes(prev => ({ ...prev, [nextMinute]: true }));
     }
   };
 
-  const updateApgar = (evalIdx: number, field: keyof ApgarEval, val: number) => {
-    const newEvals = [...apgarEvals];
-    newEvals[evalIdx] = { ...newEvals[evalIdx], [field]: val };
-    setApgarEvals(newEvals);
-  };
-
-  const getApgarTotal = (ev: ApgarEval) => {
-    let total = 0;
-    let complete = true;
-    const fields: (keyof ApgarEval)[] = ['appearance', 'pulse', 'grimace', 'activity', 'respiration'];
-    fields.forEach(f => {
-      if (ev[f] !== null) total += ev[f] as number;
-      else complete = false;
-    });
-    return { total, complete };
+  const updateApgar = (minute: number, field: keyof Omit<ApgarEval, 'minute'>, val: number) => {
+    setApgarField(minute, field, val);
   };
 
   // BALLARD State
@@ -327,6 +306,8 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const fluidTable = FLUID_TABLE;
   const dol = Math.min(parseInt(fluidDOL) || 1, 7) - 1;
   const fluidMlKgDay = fluidTable[fluidType][dol];
+  const birthDateTime = useStore((s) => s.patientIdentity.birthDateTime);
+  const autoDol = birthDateTime ? (postnatalAge(birthDateTime)?.days ?? 0) + 1 : null;
   const fluidAbsolute = fluidBB ? (fluidMlKgDay * parseFloat(fluidBB)).toFixed(0) : null;
 
   const downeDetails = [
@@ -455,13 +436,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     },
   };
 
-  const apgarDetails = [
-    { key: 'appearance', name: 'Appearance (Warna Kulit)', opts: [{val: 0, desc: 'Biru/Pucat'}, {val: 1, desc: 'Tubuh pink, ekstremitas biru'}, {val: 2, desc: 'Seluruh tubuh pink normal'}] },
-    { key: 'pulse', name: 'Pulse (Laju Jantung)', opts: [{val: 0, desc: 'Tidak ada'}, {val: 1, desc: '<100 x/m'}, {val: 2, desc: '>=100 x/m'}] },
-    { key: 'grimace', name: 'Grimace (Refleks)', opts: [{val: 0, desc: 'Tidak ada respons'}, {val: 1, desc: 'Meringis tipis'}, {val: 2, desc: 'Menangis kuat/batuk'}] },
-    { key: 'activity', name: 'Activity (Tonus Otot)', opts: [{val: 0, desc: 'Lemas/Flaccid'}, {val: 1, desc: 'Sedikit fleksi'}, {val: 2, desc: 'Gerakan aktif fleksi kuat'}] },
-    { key: 'respiration', name: 'Respiration (Usaha Napas)', opts: [{val: 0, desc: 'Tidak ada'}, {val: 1, desc: 'Lambat/merintih'}, {val: 2, desc: 'Menangis kuat'}] },
-  ];
+  const apgarDetails = APGAR_PARAMS;
 
   const RenderBackButton = () => (
     <button 
@@ -801,7 +776,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <h3 className="font-bold text-lg text-white">Skor APGAR Interaktif</h3>
             </div>
             <div className="p-4 md:p-5 space-y-4">
-              {apgarEvals.map((ev, idx) => {
+              {apgarEvals.map((ev) => {
                 const { total, complete } = getApgarTotal(ev);
                 const isExpanded = !!expandedMinutes[ev.minute];
                 return (
@@ -842,7 +817,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                                   key={opt.val} 
                                   val={opt.val} 
                                   current={ev[param.key as keyof ApgarEval]} 
-                                  onClick={() => updateApgar(idx, param.key as keyof ApgarEval, opt.val)}
+                                  onClick={() => updateApgar(ev.minute, param.key as keyof Omit<ApgarEval, 'minute'>, opt.val)}
                                   desc={opt.desc}
                                 />
                               ))}
@@ -1529,6 +1504,14 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                       <button key={d} onClick={() => setFluidDOL(String(i + 1))} className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${fluidDOL === String(i + 1) ? 'bg-sky-500 text-white border-sky-400 shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-400'}`}>{d}</button>
                     ))}
                   </div>
+                  {autoDol !== null && (
+                    <button
+                      onClick={() => setFluidDOL(String(autoDol))}
+                      className="mt-2 text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:underline"
+                    >
+                      Gunakan DOL otomatis dari waktu lahir (hari ke-{autoDol})
+                    </button>
+                  )}
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Kategori Berat Lahir</label>

@@ -1,10 +1,11 @@
 import {
-  doc, setDoc, getDoc, updateDoc,
-  collection, addDoc, getDocs,
+  doc, setDoc, getDoc, updateDoc, deleteDoc,
+  collection, getDocs,
   query, orderBy, limit,
   serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { SessionRecord } from '../store';
 
 // ─── Tipe dasar ──────────────────────────────────────────────────────────────
 
@@ -14,19 +15,6 @@ export interface UserProfile {
   displayName: string | null;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
-}
-
-export interface SessionRecord {
-  id?: string;
-  userId: string;
-  date: string;           // human-readable: "1 Juli 2026, 14:30"
-  duration: string;       // "05:42"
-  patientName: string;    // "By. Ny. Siti Aminah"
-  birthWeight: string;
-  gestationalAge: string;
-  log: { time: string; message: string }[];
-  drugLog: { drugName: string; dose: string; route: string; time: string }[];
-  createdAt?: Timestamp;
 }
 
 // ─── User Profile ─────────────────────────────────────────────────────────────
@@ -54,15 +42,21 @@ export async function updateUserProfile(uid: string, data: Partial<UserProfile>)
 }
 
 // ─── Session / Resuscitation Records ─────────────────────────────────────────
+// Dokumen Firestore memakai ID yang SAMA dengan SessionRecord.id lokal (bukan
+// auto-generated) agar sinkron antar-device tanpa perlu proses merge/dedup.
 
-export async function saveSessionRecord(record: Omit<SessionRecord, 'id' | 'createdAt'>) {
-  const ref = collection(db, 'users', record.userId, 'sessions');
-  return addDoc(ref, { ...record, createdAt: serverTimestamp() });
+export async function saveSessionRecord(uid: string, record: SessionRecord): Promise<void> {
+  const ref = doc(db, 'users', uid, 'sessions', record.id);
+  await setDoc(ref, { ...record, createdAt: serverTimestamp() });
 }
 
 export async function getRecentSessions(uid: string, count = 20): Promise<SessionRecord[]> {
   const ref = collection(db, 'users', uid, 'sessions');
   const q = query(ref, orderBy('createdAt', 'desc'), limit(count));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as SessionRecord));
+  return snap.docs.map((d) => d.data() as SessionRecord);
+}
+
+export async function deleteSessionRecord(uid: string, sessionId: string): Promise<void> {
+  await deleteDoc(doc(db, 'users', uid, 'sessions', sessionId));
 }

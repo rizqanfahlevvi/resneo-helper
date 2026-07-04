@@ -1,10 +1,43 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { useStore } from '../../store';
 import { TabType } from '../../types';
+import { postnatalAge, postmenstrualAgeWeeks, formatPMA, formatPostnatalAge } from '../../clinical/pma';
 
 interface TabDashboardProps {
   onNavigate: (tab: TabType) => void;
+}
+
+function UsiaBerjalanCard({ birthDateTime, gaWeeks }: { birthDateTime: string; gaWeeks: number }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const pna = postnatalAge(birthDateTime, now);
+  const pma = gaWeeks > 0 ? postmenstrualAgeWeeks(gaWeeks, birthDateTime, now) : null;
+
+  if (!pna) return null;
+
+  return (
+    <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-3 flex items-center gap-3">
+      <Clock className="w-5 h-5 text-indigo-500 shrink-0" />
+      <div className="flex-1 min-w-0 flex flex-wrap gap-x-5 gap-y-1">
+        <div>
+          <div className="text-[10px] font-black uppercase text-indigo-400 tracking-wider">Usia Postnatal</div>
+          <div className="font-bold text-sm text-indigo-700 dark:text-indigo-300">{formatPostnatalAge(pna)}</div>
+        </div>
+        {pma !== null && (
+          <div>
+            <div className="text-[10px] font-black uppercase text-indigo-400 tracking-wider">PMA (Usia Pasca-Menstruasi)</div>
+            <div className="font-bold text-sm text-indigo-700 dark:text-indigo-300">{formatPMA(pma)}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function getDowneInterpretation(score: number): { label: string; color: string } {
@@ -136,7 +169,23 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
                 />
               </div>
+
+              {/* Waktu Lahir */}
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 mb-1.5 tracking-wider">Waktu Lahir</label>
+                <input
+                  type="datetime-local"
+                  value={patientIdentity.birthDateTime}
+                  onChange={e => setPatientIdentity({ birthDateTime: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 transition"
+                />
+              </div>
             </div>
+
+            {/* Usia Berjalan (PNA & PMA otomatis) */}
+            {patientIdentity.birthDateTime && (
+              <UsiaBerjalanCard birthDateTime={patientIdentity.birthDateTime} gaWeeks={parseFloat(patientIdentity.usia)} />
+            )}
 
             {/* Kondisi Klinis / Pertimbangan Lain */}
             <div>

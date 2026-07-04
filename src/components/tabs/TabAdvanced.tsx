@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Activity, AlertTriangle, Droplet, CheckCircle2, FlaskConical, Scale, Info, Syringe } from 'lucide-react';
 import { useStore } from '../../store';
-import { gentamicinByGA, umbilicalCatheterDepth } from '../../clinical/doses';
+import { gentamicinDosing, umbilicalCatheterDepth } from '../../clinical/doses';
+import {
+  phototherapyThreshold,
+  exchangeTransfusionThreshold,
+  classifyBilirubin,
+  DEFAULT_BILIRUBIN_RISK,
+  BilirubinRiskFactors,
+} from '../../clinical/bilirubin';
 
 interface TabAdvancedProps {
   gestationalAge: string;
@@ -706,6 +713,9 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
       {/* FENTON 2013 GROWTH CHART */}
       <FentonGrowthChart effectiveBW={effectiveBW} gestationalAge={effectiveGA} />
 
+      {/* BILIRUBIN / FOTOTERAPI CALCULATOR */}
+      <BilirubinCalculator gestationalAge={effectiveGA} />
+
     </div>
   );
 }
@@ -1266,8 +1276,9 @@ function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
       rows.push({ drug: 'Ampisilin', dose: `${doseMg.toFixed(0)} mg (50 mg/kg)`, interval, volume: `${(doseMg / 100).toFixed(2)} mL` });
     }
 
-    // Gentamisin 10 mg/mL — Neofax 2023 (usia postnatal 0–7 hari)
-    const { dosePerKg: gentDose, interval: gentInterval } = gentamicinByGA(gaNum);
+    // Gentamisin 10 mg/mL — Neofax, berdasar PMA (GA lahir + usia postnatal) & PNA
+    const pmaNum = gaNum + ageNum / 7;
+    const { dosePerKg: gentDose, interval: gentInterval } = gentamicinDosing(pmaNum, ageNum);
     const gentMg = gentDose * bwKg;
     rows.push({ drug: 'Gentamisin', dose: `${gentMg.toFixed(1)} mg (${gentDose} mg/kg)`, interval: gentInterval, volume: `${(gentMg / 10).toFixed(2)} mL` });
 
@@ -1325,6 +1336,11 @@ function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
               </div>
             </div>
           </div>
+          {gaNum > 0 && (
+            <p className="text-[10px] text-slate-400 -mt-2">
+              PMA saat ini: <span className="font-bold text-slate-600 dark:text-slate-300">{(gaNum + ageNum / 7).toFixed(1)} minggu</span> — interval gentamisin mengikuti PMA & PNA (Neofax)
+            </p>
+          )}
           {drugs.length > 0 ? (
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
               <table className="w-full text-xs">
@@ -1681,6 +1697,124 @@ function UnitConverter({ effectiveBW }: { effectiveBW: string }) {
                 {weightInput || '—'} {weightUnit} = {weightInput ? weightConverted : '—'}
               </div>
             </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// BILIRUBIN / FOTOTERAPI CALCULATOR (aproksimasi AAP 2022)
+// ==========================================
+const RISK_FACTOR_LABELS: { key: keyof BilirubinRiskFactors; label: string }[] = [
+  { key: 'isoimunHemolitik', label: 'Inkompatibilitas ABO/Rh (isoimun hemolitik)' },
+  { key: 'defisiensiG6PD', label: 'Defisiensi G6PD' },
+  { key: 'asfiksia', label: 'Asfiksia' },
+  { key: 'letargiSignifikan', label: 'Letargi signifikan' },
+  { key: 'instabilitasSuhu', label: 'Instabilitas suhu' },
+  { key: 'sepsis', label: 'Sepsis' },
+  { key: 'asidosis', label: 'Asidosis' },
+  { key: 'albuminRendah', label: 'Albumin < 3,0 g/dL' },
+];
+
+const ZONE_STYLE: Record<string, { label: string; color: string; bg: string }> = {
+  normal: { label: 'Normal', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800' },
+  mendekati: { label: 'Mendekati Ambang', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800' },
+  fototerapi: { label: 'Indikasi Fototerapi', color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800' },
+  transfusi: { label: 'Indikasi Transfusi Tukar', color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800' },
+};
+
+function BilirubinCalculator({ gestationalAge }: { gestationalAge: string }) {
+  const [open, setOpen] = useState(false);
+  const [gaBili, setGaBili] = useState(gestationalAge || '');
+  const [ageHoursBili, setAgeHoursBili] = useState('');
+  const [tsb, setTsb] = useState('');
+  const [risk, setRisk] = useState<BilirubinRiskFactors>(DEFAULT_BILIRUBIN_RISK);
+
+  const gaNum = parseFloat(gaBili) || 0;
+  const ageNum = parseFloat(ageHoursBili) || 0;
+  const tsbNum = parseFloat(tsb) || 0;
+
+  const hasInput = gaNum > 0 && ageNum >= 0;
+  const photoThreshold = hasInput ? phototherapyThreshold(gaNum, ageNum, risk) : 0;
+  const exchThreshold = hasInput ? exchangeTransfusionThreshold(gaNum, ageNum, risk) : 0;
+  const zone = hasInput && tsbNum > 0 ? classifyBilirubin(tsbNum, gaNum, ageNum, risk) : null;
+  const zoneStyle = zone ? ZONE_STYLE[zone] : null;
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-yellow-50 dark:hover:bg-yellow-500/10 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Droplet className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Bilirubin & Fototerapi</span>
+          <span className="text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-950/40 px-2 py-0.5 rounded font-bold ml-1">Kalkulator</span>
+        </div>
+        <svg className={`w-4 h-4 text-yellow-500 transition-transform duration-200 flex-shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="border-t border-yellow-100 dark:border-yellow-500/20 p-4 md:p-6 space-y-5">
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+            ⚠️ Ambang di bawah adalah <strong>aproksimasi</strong> kurva AAP 2022 untuk pendukung keputusan cepat — bukan pengganti nomogram/BiliTool resmi. Selalu korelasikan dengan kurva jam-spesifik asli dan kebijakan RS.
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Usia Gestasi (mgg)</label>
+              <input type="number" min={22} max={44} value={gaBili} onChange={e => setGaBili(e.target.value)} placeholder="cth: 38" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Usia (jam)</label>
+              <input type="number" min={0} max={336} value={ageHoursBili} onChange={e => setAgeHoursBili(e.target.value)} placeholder="cth: 48" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Bilirubin Total (mg/dL)</label>
+              <input type="number" min={0} step={0.1} value={tsb} onChange={e => setTsb(e.target.value)} placeholder="cth: 14.5" className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Faktor Risiko Neurotoksisitas (menurunkan ambang fototerapi)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {RISK_FACTOR_LABELS.map(({ key, label }) => (
+                <label key={key} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={risk[key]}
+                    onChange={e => setRisk(r => ({ ...r, [key]: e.target.checked }))}
+                    className="accent-yellow-500"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {hasInput ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 text-center">
+                  <div className="text-[10px] font-extrabold uppercase text-orange-500 tracking-wider mb-1">Ambang Fototerapi</div>
+                  <div className="text-xl font-bold text-orange-700 dark:text-orange-300">{photoThreshold.toFixed(1)} <span className="text-xs font-normal">mg/dL</span></div>
+                </div>
+                <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-xl p-3 text-center">
+                  <div className="text-[10px] font-extrabold uppercase text-rose-500 tracking-wider mb-1">Ambang Transfusi Tukar</div>
+                  <div className="text-xl font-bold text-rose-700 dark:text-rose-300">{exchThreshold.toFixed(1)} <span className="text-xs font-normal">mg/dL</span></div>
+                </div>
+              </div>
+
+              {zoneStyle && (
+                <div className={`rounded-xl p-4 text-center border ${zoneStyle.bg}`}>
+                  <div className={`text-xs font-extrabold uppercase tracking-widest mb-1 ${zoneStyle.color}`}>{zoneStyle.label}</div>
+                  <div className={`text-sm font-semibold ${zoneStyle.color}`}>TSB {tsbNum.toFixed(1)} mg/dL pada GA {gaNum} mgg, usia {ageNum} jam</div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center text-xs text-slate-400 py-4">Isi usia gestasi dan usia bayi (jam) untuk menghitung ambang.</div>
           )}
         </div>
       )}

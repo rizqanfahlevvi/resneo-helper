@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStore, Phase } from '../../store';
 import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, isValidBirthWeightGram, isValidGestationalAgeWeek, BW_MIN_G, BW_MAX_G, GA_MIN_WK, GA_MAX_WK } from '../../clinical/doses';
+import { APGAR_PARAMS, getApgarTotal, apgarInterpretation } from '../../clinical/apgar';
+import { useAuth } from '../../auth/useAuth';
+import { saveSessionRecord } from '../../lib/firestore';
+import { exportSessionPdf } from '../../utils/pdfExport';
 import { 
   AlertTriangle, Check, CheckCircle2, Clock, 
   Play, FastForward, Activity, RotateCcw, 
-  Syringe, Pause, X, Menu, Wind, Heart, Users, ChevronDown, Waves
+  Syringe, Pause, X, Menu, Wind, Heart, Users, ChevronDown, Waves, Download
 } from 'lucide-react';
 
 const TEAM_TASKS = [
@@ -154,7 +158,23 @@ function AnthropoPanel({ setBirthWeight, compact = false }: { setBirthWeight: (v
 }
 
 export default function TabEmergency({ gestationalAge, setGestationalAge, birthWeight, setBirthWeight }: TabEmergencyProps) {
-  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry, phaseStartTime, setPhaseStartTime, saveSession, addDrugLog, drugLog } = useStore();
+  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, setElapsedTime, startTime, setStartTime, clinicalLog, clearLog, addLog: addStoreLog, anthropometry, setAnthropometry, phaseStartTime, setPhaseStartTime, saveSession, addDrugLog, drugLog, apgarEvals, setApgarField, addApgarMinute, clearApgar, sessionHistory, patientIdentity } = useStore();
+
+  const [apgarPromptMinute, setApgarPromptMinute] = useState<number | null>(null);
+  const apgarPromptedRef = useRef<Set<number>>(new Set());
+
+  const { user } = useAuth();
+
+  // Simpan sesi lokal (Zustand), lalu sinkronkan ke Firestore secara non-blocking jika login
+  const finishSession = (duration: string) => {
+    saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
+    if (user) {
+      const created = useStore.getState().sessionHistory[0];
+      if (created) {
+        saveSessionRecord(user.uid, created).catch((err) => console.warn('Gagal sinkronisasi sesi ke cloud:', err));
+      }
+    }
+  };
 
   // Phase VTP States
   const [vtpStartTime, setVtpStartTime] = useState<number | null>(null);
@@ -518,6 +538,25 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     }
   }, [elapsedTime, isTimerRunning]);
 
+  // Auto-prompt pengisian APGAR di menit 1/5/10 selama resusitasi berjalan
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    const elapsedMin = Math.floor(elapsedTime / 60);
+    const apgarMinutes = [1, 5, 10];
+    for (const m of apgarMinutes) {
+      if (elapsedMin >= m && !apgarPromptedRef.current.has(m)) {
+        apgarPromptedRef.current.add(m);
+        const existing = apgarEvals.find((ev) => ev.minute === m);
+        if (!existing) addApgarMinute(m);
+        if (!existing || !getApgarTotal(existing).complete) {
+          if ('vibrate' in navigator) navigator.vibrate([100, 60, 100, 60, 100]);
+          setApgarPromptMinute(m);
+        }
+        break;
+      }
+    }
+  }, [elapsedTime, isTimerRunning, apgarEvals, addApgarMinute]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
@@ -553,6 +592,9 @@ export default function TabEmergency({ gestationalAge, setGestationalAge, birthW
     setPhaseStartTime(null);
     setReminder(null);
     triggeredMilestonesRef.current = new Set();
+    apgarPromptedRef.current = new Set();
+    setApgarPromptMinute(null);
+    clearApgar();
     setShowSummary(false);
     setChecklistDone({});
     setChecklistOpen(true);
@@ -1926,7 +1968,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     const finalTimeStr = `[${Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}]`;
                     addLog(`Resusitasi Selesai & Log Disimpan. Total Waktu: ${finalTimeStr}`);
                     const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
-                    saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
+                    finishSession(duration);
                     setPhase('completed');
                     setIsTimerRunning(false);
                   }}
@@ -2098,7 +2140,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     const finalTimeStr = `[${Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:${(elapsedTime % 60).toString().padStart(2, '0')}]`;
                     addLog(`Perawatan Pasca Resusitasi Selesai. Total Waktu: ${finalTimeStr}`);
                     const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
-                    saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
+                    finishSession(duration);
                     setPhase('completed');
                     setIsTimerRunning(false);
                   }}
@@ -2222,7 +2264,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                       setIsTimerRunning(false);
                       addLog("Resusitasi diakhiri secara paksa oleh klinisi via panel referensi desktop.");
                       const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
-                      saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
+                      finishSession(duration);
                       setPhase('completed');
                   }}
                   className="w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
@@ -2305,6 +2347,71 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
         </div>
       )}
 
+      {/* APGAR Auto-Prompt Modal */}
+      {apgarPromptMinute !== null && (() => {
+        const ev = apgarEvals.find((e) => e.minute === apgarPromptMinute);
+        if (!ev) return null;
+        const { total, complete } = getApgarTotal(ev);
+        const interp = complete ? apgarInterpretation(total) : null;
+        return (
+          <div className="fixed inset-0 z-[75] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl rounded-3xl max-w-md w-full overflow-hidden animate-in zoom-in-95 fade-in duration-300 max-h-[90vh] flex flex-col">
+              <div className="bg-indigo-600 px-5 py-4 text-white flex items-center justify-between flex-shrink-0">
+                <div>
+                  <h2 className="font-bold text-lg tracking-tight">Isi APGAR Menit ke-{apgarPromptMinute}</h2>
+                  <p className="text-xs text-indigo-100">Saatnya evaluasi APGAR sesuai NRP 2021</p>
+                </div>
+                <button onClick={() => setApgarPromptMinute(null)} className="p-1.5 rounded-lg hover:bg-white/10">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4 overflow-y-auto">
+                {APGAR_PARAMS.map((param) => (
+                  <div key={param.key}>
+                    <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{param.name}</span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {param.opts.map((opt) => {
+                        const isActive = ev[param.key] === opt.val;
+                        return (
+                          <button
+                            key={opt.val}
+                            onClick={() => setApgarField(apgarPromptMinute, param.key, opt.val)}
+                            className={`px-2 py-2 rounded-xl border text-[10px] font-semibold transition-all ${
+                              isActive
+                                ? 'bg-indigo-500 text-white border-indigo-400 shadow-sm'
+                                : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                            }`}
+                          >
+                            <span className="font-black block">{opt.val}</span>
+                            <span className="opacity-90 leading-tight">{opt.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {interp && (
+                  <div className={`rounded-xl p-3 text-center border ${interp.color} bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700`}>
+                    <span className="text-xs font-bold uppercase tracking-wide">Skor {total}/10 — {interp.label}</span>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    addStoreLog(elapsedTime, `APGAR menit ke-${apgarPromptMinute}: ${complete ? `${total}/10 (${interp?.label})` : 'belum lengkap'}`);
+                    setApgarPromptMinute(null);
+                  }}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all"
+                >
+                  {complete ? 'Simpan & Tutup' : 'Tutup (isi nanti di tab Skor)'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Resuscitation Summary Modal (Task A) */}
       {phase === 'completed' && showSummary && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-300">
@@ -2352,6 +2459,25 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 </div>
               )}
 
+              {/* APGAR */}
+              {apgarEvals.some((ev) => getApgarTotal(ev).complete) && (
+                <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/40 rounded-2xl p-4">
+                  <span className="block text-[10px] font-extrabold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-2">Skor APGAR</span>
+                  <div className="flex flex-wrap gap-3">
+                    {apgarEvals.filter((ev) => getApgarTotal(ev).complete).map((ev) => {
+                      const { total } = getApgarTotal(ev);
+                      const interp = apgarInterpretation(total);
+                      return (
+                        <div key={ev.minute} className="text-sm">
+                          <span className="font-bold text-indigo-900 dark:text-indigo-200">Menit {ev.minute}: {total}/10</span>
+                          <span className={`ml-1.5 text-xs font-semibold ${interp.color}`}>({interp.label})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Drug Log */}
               <div>
                 <span className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Obat Diberikan</span>
@@ -2389,7 +2515,19 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
             </div>
 
             {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 flex-shrink-0">
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  const session = sessionHistory[0];
+                  if (session) {
+                    exportSessionPdf({ session, patientIdentity, gestationalAge });
+                  }
+                }}
+                className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"
+              >
+                <Download className="w-4 h-4" /> Unduh PDF
+              </button>
+              <div className="flex gap-3">
               <button
                 onClick={() => {
                   const now = new Date();
@@ -2403,7 +2541,14 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     anthropometry.pb ? `PB: ${anthropometry.pb} cm` : '',
                     anthropometry.lk ? `LK: ${anthropometry.lk} cm` : '',
                   ].filter(Boolean).join(' | ') || '-';
-                  const text = `=== RINGKASAN RESUSITASI ===\nWaktu: ${dateStr}\nDurasi: ${formatTime(elapsedTime)}\n${anthropoLine}\n\nOBAT DIBERIKAN:\n${drugLines}\n\nLOG TINDAKAN (5 terakhir):\n${logLines}\n===========================`;
+                  const apgarLines = apgarEvals
+                    .filter((ev) => getApgarTotal(ev).complete)
+                    .map((ev) => {
+                      const { total } = getApgarTotal(ev);
+                      return `- Menit ${ev.minute}: ${total}/10 (${apgarInterpretation(total).label})`;
+                    })
+                    .join('\n') || '- Tidak ada data APGAR';
+                  const text = `=== RINGKASAN RESUSITASI ===\nWaktu: ${dateStr}\nDurasi: ${formatTime(elapsedTime)}\n${anthropoLine}\n\nAPGAR:\n${apgarLines}\n\nOBAT DIBERIKAN:\n${drugLines}\n\nLOG TINDAKAN (5 terakhir):\n${logLines}\n===========================`;
                   navigator.clipboard.writeText(text);
                   setSummaryCopied(true);
                   setTimeout(() => setSummaryCopied(false), 2000);
@@ -2423,6 +2568,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               >
                 Tutup
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2569,7 +2715,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         setIsTimerRunning(false);
                         addLog("Resusitasi diakhiri secara paksa oleh klinisi via menu aksi cepat.");
                         const duration = `${Math.floor(elapsedTime/60).toString().padStart(2,'0')}:${(elapsedTime%60).toString().padStart(2,'0')}`;
-                        saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
+                        finishSession(duration);
                         setPhase('completed');
                         setFabMenuOpen(false);
                     }}
