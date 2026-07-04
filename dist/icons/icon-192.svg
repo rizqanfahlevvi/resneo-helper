@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="43" fill="#4f46e5"/>
-  <!-- Head -->
-  <circle cx="96" cy="58" r="28" fill="#fff"/>
-  <!-- Body (swaddled baby) -->
-  <path d="M66 93 Q58 116 61 143 Q64 165 96 165 Q128 165 131 143 Q134 116 126 93 Q116 86 96 85 Q76 86 66 93Z" fill="#fff"/>
-</svg>
