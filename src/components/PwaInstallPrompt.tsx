@@ -146,7 +146,7 @@ export default function PwaInstallPrompt() {
             </div>
 
             {/* Instruction Steps */}
-            <div className="p-5 space-y-4 text-xs md:text-sm text-slate-600 dark:text-slate-350">
+            <div className="p-5 space-y-4 text-xs md:text-sm text-slate-600 dark:text-slate-400">
               <p className="leading-relaxed font-semibold">
                 iOS tidak mendukung instalasi otomatis satu-klik. Ikuti langkah mudah berikut di peramban <strong>Safari</strong> Anda:
               </p>

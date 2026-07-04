@@ -13,9 +13,9 @@ import {
   Layers,
   Search
 } from 'lucide-react';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, TouchEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SEARCH_INDEX } from '../GlobalSearch';
+import { SEARCH_INDEX } from '../searchIndex';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
@@ -79,12 +79,12 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
   // Minimum swipe distance in pixels
   const minSwipeDistance = 50;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = (e: TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
@@ -128,7 +128,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-6 pt-2">
         <div className="space-y-2">
           {/* Neonatal Pill Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-105 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 font-extrabold uppercase tracking-widest text-[9px] md:text-[10px]">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 font-extrabold uppercase tracking-widest text-[9px] md:text-[10px]">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
             Your Daily Neonatal Emergency Companion
           </div>
@@ -137,7 +137,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
             <span className="text-rose-600 dark:text-rose-500">ResNeo</span>Helper
           </h1>
           
-          <p className="text-xs md:text-sm text-slate-505 dark:text-slate-400 max-w-2xl leading-relaxed">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
             Asisten kognitif cerdas penanganan resusitasi neonatus, evaluasi distres pernapasan, perhitungan dosis darurat, serta penanganan lanjutan di unit intensif bayi baru lahir.
           </p>
 
@@ -146,9 +146,9 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
               href="http://linkedin.com/in/rizqanfahlevvi/" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/70 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-slate-850 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/70 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-slate-800 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-800 transition-all hover:scale-[1.01]"
             >
-              <svg className="w-3.5 h-3.5 text-indigo-650" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
               </svg>
               MADE BY RIZQANFAHLEVVI
@@ -440,7 +440,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
         {/* Left Column: Neonatal Resuscitation Step Chronology Checklist */}
         <div className="lg:col-span-7 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between">
           <div>
-            <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100 dark:border-slate-805">
+            <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">ALGORITMA UTAMA</span>
                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Alur Kronologi Resusitasi Neonatus</h3>
@@ -456,7 +456,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
             <div className="space-y-4">
               
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-rose-105 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                <div className="w-6 h-6 rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] flex items-center justify-center shrink-0">
                   1
                 </div>
                 <div>
@@ -504,7 +504,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
               </div>
 
               <div className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800/85 text-slate-600 dark:text-slate-450 font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800/85 text-slate-600 dark:text-slate-400 font-extrabold text-[11px] flex items-center justify-center shrink-0">
                   5
                 </div>
                 <div>
@@ -522,7 +522,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
         {/* Right Column: Code Blue Meds Quick Index Reference */}
         <div className="lg:col-span-5 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between">
           <div>
-            <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100 dark:border-slate-805">
+            <div className="flex justify-between items-center pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">OBAT &amp; DOSIS DARURAT</span>
                 <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Referensi Cepat Obat Resusitasi</h3>
@@ -538,7 +538,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
             <div className="space-y-3.5">
               
               <div className="p-3 bg-red-50/50 dark:bg-red-950/10 border-l-4 border-red-500 rounded-xl rounded-l-none flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-650 shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-600 shrink-0 mt-0.5">
                   <Syringe className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5 leading-snug">
@@ -550,7 +550,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
               </div>
 
               <div className="p-3 bg-blue-50/50 dark:bg-blue-950/10 border-l-4 border-blue-500 rounded-xl rounded-l-none flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-650 shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
                   <Activity className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5 leading-snug">
@@ -562,7 +562,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
               </div>
 
               <div className="p-3 bg-amber-50/50 dark:bg-amber-950/10 border-l-4 border-amber-500 rounded-xl rounded-l-none flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-650 shrink-0 mt-0.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
                   <Wind className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5 leading-snug">
@@ -585,7 +585,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.5, ease: 'easeOut' }}
         className="mt-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200/60 dark:border-white/5 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/40 dark:shadow-none">
-        <div className="flex justify-between items-center pb-4 mb-5 border-b border-slate-100 dark:border-slate-805">
+        <div className="flex justify-between items-center pb-4 mb-5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <BookOpen className="w-4.5 h-4.5" />

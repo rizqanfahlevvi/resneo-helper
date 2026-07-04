@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, AlertTriangle, Droplet, CheckCircle2, FlaskConical, Scale, Info, Syringe } from 'lucide-react';
 import { useStore } from '../../store';
+import { gentamicinByGA, umbilicalCatheterDepth } from '../../clinical/doses';
 
 interface TabAdvancedProps {
   gestationalAge: string;
@@ -309,12 +310,12 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                           SGA (Small for Gestational Age)
                         </span>
                         <h4 className="font-extrabold text-base text-slate-900 dark:text-white pt-2">Berat Kurang Untuk Masa Kehamilan</h4>
-                        <p className="text-xs text-orange-850 dark:text-orange-200 font-medium leading-relaxed">
+                        <p className="text-xs text-orange-800 dark:text-orange-200 font-medium leading-relaxed">
                           Berat badan lahir berada di bawah **Persentil 10** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
                         </p>
                       </div>
                       <div className="mt-4 bg-orange-100/50 dark:bg-orange-600/20 text-orange-950 dark:text-white p-3.5 rounded-xl flex items-start gap-2.5 border border-orange-200 dark:border-orange-500/40">
-                        <AlertTriangle className="w-5 h-5 shrink-0 text-orange-600 dark:text-orange-350 animate-pulse mt-0.5" />
+                        <AlertTriangle className="w-5 h-5 shrink-0 text-orange-600 dark:text-orange-400 animate-pulse mt-0.5" />
                         <div className="text-left">
                           <span className="font-black text-xs block uppercase tracking-wider">Peringatan Klinis</span>
                           <span className="font-semibold text-[11px] leading-relaxed block mt-0.5">Waspada risiko tinggi terjadi **Hipoglikemia Akut**, Hipotermia berat, dan asfiksia perinatal. Siapkan protokol monitoring GDS rutin!</span>
@@ -333,7 +334,7 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                           Berat badan lahir berada di rentang normal **Persentil 10 hingga 90** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
                         </p>
                       </div>
-                      <div className="mt-4 bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-950 dark:text-emerald-250 p-3.5 rounded-xl flex items-start gap-2.5 border border-emerald-300 dark:border-emerald-500/30">
+                      <div className="mt-4 bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-950 dark:text-emerald-200 p-3.5 rounded-xl flex items-start gap-2.5 border border-emerald-300 dark:border-emerald-500/30">
                         <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
                         <div className="text-left">
                           <span className="font-black text-xs block uppercase tracking-wider text-emerald-800 dark:text-emerald-400">Rencana Terapi</span>
@@ -345,16 +346,16 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                   {status === 'LGA' && (
                     <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/40 rounded-xl p-5 shadow-sm text-center md:text-left h-full flex flex-col justify-between">
                       <div className="space-y-2">
-                        <span className="inline-block bg-indigo-550 dark:bg-indigo-650 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
+                        <span className="inline-block bg-indigo-500 dark:bg-indigo-600 text-white font-extrabold text-sm px-3.5 py-1.5 rounded-lg shadow-md uppercase tracking-wider">
                           LGA (Large for Gestational Age)
                         </span>
                         <h4 className="font-extrabold text-base text-slate-900 dark:text-white pt-2">Berat Lebih Untuk Masa Kehamilan</h4>
-                        <p className="text-xs text-indigo-850 dark:text-indigo-200 font-medium leading-relaxed">
+                        <p className="text-xs text-indigo-800 dark:text-indigo-200 font-medium leading-relaxed">
                           Berat badan lahir berada di atas **Persentil 90** kurva pertumbuhan Lubchenco untuk usia kehamilan {gaNum} minggu.
                         </p>
                       </div>
-                      <div className="mt-4 bg-indigo-100/50 dark:bg-indigo-600/20 text-indigo-950 dark:text-white p-3.5 rounded-xl flex items-start gap-2.5 border border-indigo-250 dark:border-indigo-500/30">
-                        <AlertTriangle className="w-5 h-5 shrink-0 text-indigo-550 dark:text-indigo-400 mt-0.5" />
+                      <div className="mt-4 bg-indigo-100/50 dark:bg-indigo-600/20 text-indigo-950 dark:text-white p-3.5 rounded-xl flex items-start gap-2.5 border border-indigo-200 dark:border-indigo-500/30">
+                        <AlertTriangle className="w-5 h-5 shrink-0 text-indigo-500 dark:text-indigo-400 mt-0.5" />
                         <div className="text-left">
                           <span className="font-black text-xs block uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Skrining Metabolik</span>
                           <span className="font-semibold text-[11px] leading-relaxed block mt-0.5">Pantau gejala **Hipoglikemia Reaktif** (terutama bila ibu menderita Diabetes Melitus). Skrining trauma lahir akibat makrosomia.</span>
@@ -409,8 +410,8 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                     <div className="bg-slate-100/50 dark:bg-slate-900/50 rounded-lg p-4 border border-rose-200 dark:border-rose-500/20 mb-3">
                       <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Bolus Darurat (Dextrose 10%)</span>
                       <div className="flex items-end gap-2 mb-2">
-                        <span className="text-3xl font-black text-rose-650 dark:text-rose-500 font-mono">{bolusD10}</span>
-                        <span className="text-lg font-bold text-rose-650 dark:text-rose-500 mb-1">mL</span>
+                        <span className="text-3xl font-black text-rose-600 dark:text-rose-500 font-mono">{bolusD10}</span>
+                        <span className="text-lg font-bold text-rose-600 dark:text-rose-500 mb-1">mL</span>
                       </div>
                       <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
                         (Dosis: 2 mL/kg). Berikan via IV perlahan dengan kecepatan alir 1 mL/menit.
@@ -591,7 +592,7 @@ export default function TabAdvanced({ gestationalAge, setGestationalAge, birthWe
                     <span className="block text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1 text-center">Jumlah Obat Murni Yang Di-Oplos</span>
                     <div className="flex flex-col items-center justify-center my-2">
                        <span className="text-4xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">{inotropeMg}</span>
-                       <span className="text-xl font-bold text-indigo-650 dark:text-indigo-500 mt-1">mg</span>
+                       <span className="text-xl font-bold text-indigo-600 dark:text-indigo-500 mt-1">mg</span>
                     </div>
                   </div>
                   
@@ -1265,10 +1266,8 @@ function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
       rows.push({ drug: 'Ampisilin', dose: `${doseMg.toFixed(0)} mg (50 mg/kg)`, interval, volume: `${(doseMg / 100).toFixed(2)} mL` });
     }
 
-    // Gentamisin 10 mg/mL
-    let gentDose = 4; let gentInterval = 'q24h';
-    if (gaNum < 29) { gentDose = 5; gentInterval = 'q48h'; }
-    else if (gaNum <= 34) { gentDose = 4; gentInterval = 'q36h'; }
+    // Gentamisin 10 mg/mL — Neofax 2023 (usia postnatal 0–7 hari)
+    const { dosePerKg: gentDose, interval: gentInterval } = gentamicinByGA(gaNum);
     const gentMg = gentDose * bwKg;
     rows.push({ drug: 'Gentamisin', dose: `${gentMg.toFixed(1)} mg (${gentDose} mg/kg)`, interval: gentInterval, volume: `${(gentMg / 10).toFixed(2)} mL` });
 
@@ -1369,10 +1368,7 @@ function UvcUacCalculator({ effectiveBW }: { effectiveBW: string }) {
   const bwNum = parseInt(effectiveBW) || 0;
   const bwKg = bwNum / 1000;
 
-  const uaLength = bwKg > 0 ? bwKg * 3 + 9 : 0;
-  const uvcDepth = bwKg > 0 ? (0.5 * uaLength + 1) : 0;
-  const uacHigh = bwKg > 0 ? 3 * bwKg + 9 : 0;
-  const uacLow = bwKg > 0 ? bwKg + 7 : 0;
+  const { uvc: uvcDepth, uacHigh, uacLow } = umbilicalCatheterDepth(bwKg);
 
   return (
     <div className="mt-6 glass-card rounded-2xl overflow-hidden shadow-sm">

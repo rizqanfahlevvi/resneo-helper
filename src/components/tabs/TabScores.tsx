@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Activity, Plus, AlertTriangle, Calculator, AlertCircle, BookOpen } from 'lucide-react';
 import { useStore } from '../../store';
 import { useRipple } from '../Ripple';
+import { FLUID_TABLE, glucoseInfusionRate, ballardToGestationalAge } from '../../clinical/doses';
 
 type ApgarEval = {
   minute: number;
@@ -44,11 +45,11 @@ const ClinicalTheoryAccordion = ({ title, content, references }: { title: string
         </svg>
       </button>
       {isOpen && (
-        <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-white/5 text-xs md:text-sm text-slate-650 dark:text-slate-300 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-white/5 text-xs md:text-sm text-slate-600 dark:text-slate-300 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
           {content}
           <div className="pt-4 border-t border-slate-200/60 dark:border-white/10">
             <span className="block font-bold text-xs text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">📚 Referensi Medis Terbaru:</span>
-            <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-500 dark:text-slate-450">
+            <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
               {references.map((ref, idx) => (
                 <li key={idx} className="leading-relaxed">{ref}</li>
               ))}
@@ -61,7 +62,7 @@ const ClinicalTheoryAccordion = ({ title, content, references }: { title: string
 };
 
 const apgarTheoryContent = (
-  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-400">
     <p>
       <strong>Skor APGAR</strong> pertama kali diperkenalkan oleh dr. Virginia Apgar pada tahun 1952 sebagai alat evaluasi klinis yang cepat dan terstandarisasi untuk menilai kondisi fisik bayi baru lahir segera setelah persalinan. Sistem penilaian ini berfokus pada 5 parameter vital: <em>Appearance</em> (warna kulit), <em>Pulse</em> (denyut jantung), <em>Grimace</em> (refleks/respons terhadap stimulasi), <em>Activity</em> (tonus otot), dan <em>Respiration</em> (usaha bernapas).
     </p>
@@ -69,15 +70,15 @@ const apgarTheoryContent = (
       Penilaian ini secara rutin dilakukan pada <strong>menit ke-1</strong> (merefleksikan seberapa baik bayi bertahan dari proses kelahiran) dan <strong>menit ke-5</strong> (merefleksikan adaptasi bayi di lingkungan luar rahim serta responsnya terhadap intervensi resusitasi). Jika skor menit ke-5 berada di bawah 7, evaluasi harus terus diulang setiap 5 menit (menit ke-10, 15, dan 20) sampai skor mencapai minimal 7 atau resusitasi dihentikan.
     </p>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
-      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
         <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 7 – 10 (Normal/Bugar)</span>
         <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Bayi menunjukkan adaptasi transisi ekstrauterin yang sangat baik. Cukup lakukan perawatan rutin bayi baru lahir.</p>
       </div>
-      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
         <span className="block font-black text-amber-800 dark:text-amber-300 text-xs">Skor 4 – 6 (Asfiksia Sedang)</span>
         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Menunjukkan depresi napas atau sirkulasi ringan-sedang. Butuh stimulasi taktil, pembersihan jalan napas, dan terapi oksigen/VTP.</p>
       </div>
-      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-200 dark:border-rose-500/20">
         <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor 0 – 3 (Asfiksia Berat)</span>
         <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Darurat medis kritis. Memerlukan bantuan resusitasi aktif segera (ventilasi tekanan positif, kompresi dada, obat epinefrin).</p>
       </div>
@@ -95,7 +96,7 @@ const apgarReferences = [
 ];
 
 const downeTheoryContent = (
-  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-400">
     <p>
       <strong>Skor Downe</strong> merupakan sistem penilaian klinis yang sangat berharga dan digunakan secara luas di seluruh dunia untuk mengevaluasi derajat keparahan gangguan pernapasan (*respiratory distress*) pada bayi baru lahir. Keunggulan utama Skor Downe adalah kesederhanaannya, di mana parameter penilaian hanya mengandalkan temuan fisik di tempat tidur pasien (*bedside clinical signs*), tanpa memerlukan peralatan diagnostik laboratorium yang kompleks.
     </p>
@@ -110,15 +111,15 @@ const downeTheoryContent = (
       <li><strong>Grunting (Merintih)</strong>: Suara napas ekspirasi akibat penutupan parsial glotis, mekanisme fisiologis bayi untuk mempertahankan tekanan positif akhir ekspirasi (PEEP) alami di alveoli.</li>
     </ul>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
-      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
         <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 1 – 3 (Gangguan Ringan)</span>
         <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Bayi mengalami sesak ringan. Biasanya cukup dengan pemantauan ketat atau terapi oksigen aliran bebas (nasal kanul).</p>
       </div>
-      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
-        <span className="block font-black text-amber-805 dark:text-amber-300 text-xs">Skor 4 – 5 (Gangguan Sedang)</span>
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
+        <span className="block font-black text-amber-800 dark:text-amber-300 text-xs">Skor 4 – 5 (Gangguan Sedang)</span>
         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Memerlukan bantuan tekanan positif non-invasif segera menggunakan mesin <strong>CPAP (Continuous Positive Airway Pressure)</strong>.</p>
       </div>
-      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-200 dark:border-rose-500/20">
         <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor &ge; 6 (Gangguan Berat / Gagal CPAP)</span>
         <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Indikasi kritis kegagalan pernapasan. Bayi memerlukan tindakan intubasi endotrakeal (ETT) serta ventilasi mekanik invasif.</p>
       </div>
@@ -133,7 +134,7 @@ const downeReferences = [
 ];
 
 const thomsonTheoryContent = (
-  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-400">
     <p>
       <strong>Skor Thomson</strong> adalah sistem klasifikasi neurologis khusus yang dirancang oleh dr. Alastair J. Thomson dan timnya pada tahun 1997 untuk mengevaluasi derajat Ensefalopati Hipoksik Iskemik (HIE) pada neonatus dengan riwayat asfiksia perinatal. HIE adalah cedera otak non-progresif yang diakibatkan oleh kurangnya aliran darah atau suplai oksigen ke otak janin/bayi selama proses persalinan.
     </p>
@@ -141,15 +142,15 @@ const thomsonTheoryContent = (
       Skor Thomson sangat disukai dalam dunia klinis praktis karena bersifat cepat, kuantitatif, dan tidak memerlukan keahlian neurologis tingkat tinggi atau mesin EEG yang mahal. Skor ini menilai 9 parameter neurologis: tingkat kesadaran (lok), tonus otot (tone), postur tubuh, refleks Moro, kekuatan mengisap (suck), frekuensi/karakter kejang (fits), ketegangan fontanela, pola respirasi, dan ada tidaknya refleks faring (gag).
     </p>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
-      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-250 dark:border-emerald-500/20">
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
         <span className="block font-black text-emerald-800 dark:text-emerald-300 text-xs">Skor 0 – 4 (HIE Ringan)</span>
         <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 leading-normal">Risiko gangguan jangka panjang sangat rendah. Lakukan observasi ketat dan perawatan suportif di ruangan rawat gabung/NICU level rendah.</p>
       </div>
-      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-250 dark:border-amber-500/20">
-        <span className="block font-black text-amber-850 dark:text-amber-300 text-xs">Skor 5 – 10 (HIE Sedang)</span>
+      <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
+        <span className="block font-black text-amber-800 dark:text-amber-300 text-xs">Skor 5 – 10 (HIE Sedang)</span>
         <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 leading-normal">Memerlukan pemantauan intensif di NICU. Merupakan kriteria penting untuk mempertimbangkan inisiasi <strong>Hipotermia Terapeutik (Cooling Therapy)</strong> dalam jendela waktu 6 jam pertama pasca lahir.</p>
       </div>
-      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-250 dark:border-rose-500/20">
+      <div className="p-3 bg-rose-50 dark:bg-rose-500/10 rounded-xl border border-rose-200 dark:border-rose-500/20">
         <span className="block font-black text-rose-800 dark:text-rose-300 text-xs">Skor 11 – 22 (HIE Berat)</span>
         <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-1 leading-normal">Indikasi kerusakan neurologis berat dengan risiko kematian atau disabilitas jangka panjang (Cerebral Palsy) yang tinggi. Butuh terapi pendinginan segera dan tata laksana antikejang yang agresif.</p>
       </div>
@@ -164,7 +165,7 @@ const thomsonReferences = [
 ];
 
 const ballardTheoryContent = (
-  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-350">
+  <div className="space-y-3 leading-relaxed text-slate-600 dark:text-slate-400">
     <p>
       Sistem penilaian <strong>New Ballard Score (NBS)</strong> adalah instrumen klinis standar emas yang dikembangkan oleh Jeanne L. Ballard pada tahun 1991 (sebagai penyempurnaan dari Ballard Score tahun 1979) untuk mengestimasi usia kehamilan (*gestational age*) bayi baru lahir. NBS dirancang khusus agar dapat secara akurat menilai bayi yang sangat prematur (hingga usia gestasi 20 minggu dengan skor total -10).
     </p>
@@ -176,7 +177,7 @@ const ballardTheoryContent = (
       <li><strong>Kematangan Fisik (6 Parameter)</strong>: Menilai perkembangan anatomis permukaan tubuh terluar yang meliputi: Kulit, Lanugo (rambut halus), Permukaan Plantar kaki, Payudara (breast bud), Mata/Telinga, dan Alat Kelamin (Genitalia pria/wanita).</li>
     </ul>
     <div className="bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-white/5 space-y-2">
-      <span className="block font-bold text-xs text-slate-700 dark:text-slate-350">Cara Kerja Rumus Estimasi Usia Gestasi:</span>
+      <span className="block font-bold text-xs text-slate-700 dark:text-slate-400">Cara Kerja Rumus Estimasi Usia Gestasi:</span>
       <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
         Total skor berkisar dari -10 (setara 20 minggu gestasi) hingga 50 (setara 44 minggu gestasi). Setiap kenaikan 5 poin pada total skor merepresentasikan pertambahan usia kehamilan sebanyak 2 minggu secara linier. Rumus matematis konversi yang digunakan pada sistem ini adalah:
       </p>
@@ -254,7 +255,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   };
   
   const ballardTotal = getBallardTotal();
-  const estimatedGestationalAge = 24 + ballardTotal * 0.4; // 2 Weeks per 5 score points
+  const estimatedGestationalAge = ballardToGestationalAge(ballardTotal); // 2 minggu per 5 poin
 
   // THOMSON State
   const thomsonDetails = [
@@ -299,7 +300,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const [girRate, setGirRate] = useState('');
   const [girDextrose, setGirDextrose] = useState('10');
   const [girPreterm, setGirPreterm] = useState(false);
-  const girValue = girBB && girRate ? (parseFloat(girRate) * parseFloat(girDextrose)) / (6 * parseFloat(girBB)) : null;
+  const girValue = girBB && girRate ? glucoseInfusionRate(parseFloat(girRate), parseFloat(girDextrose), parseFloat(girBB)) : null;
 
   // Surfaktan Kalkulator State
   const [surfBB, setSurfBB] = useState('');
@@ -323,12 +324,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   const [fluidBB, setFluidBB] = useState('');
   const [fluidDOL, setFluidDOL] = useState('1');
   const [fluidType, setFluidType] = useState<'term' | 'preterm-1500' | 'bblr' | 'bblsr'>('term');
-  const fluidTable: Record<string, number[]> = {
-    'term':         [80, 90, 100, 120, 120, 130, 150],
-    'preterm-1500': [80, 90, 100, 110, 120, 130, 150],
-    'bblr':         [70, 80, 100, 110, 120, 130, 150],
-    'bblsr':        [60, 70, 80,  100, 110, 120, 150],
-  };
+  const fluidTable = FLUID_TABLE;
   const dol = Math.min(parseInt(fluidDOL) || 1, 7) - 1;
   const fluidMlKgDay = fluidTable[fluidType][dol];
   const fluidAbsolute = fluidBB ? (fluidMlKgDay * parseFloat(fluidBB)).toFixed(0) : null;
@@ -521,7 +517,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-sky-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
             >
               <div className="space-y-2">
-                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-sky-100 dark:bg-sky-955 text-sky-700 dark:text-sky-400 rounded">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400 rounded">
                   Skor Downe
                 </span>
                 <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Evaluasi Distres Pernapasan</h4>
@@ -541,7 +537,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-white/5 hover:border-amber-500/30 hover:-translate-y-1 shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between min-h-[160px]"
             >
               <div className="space-y-2">
-                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-955 text-amber-700 dark:text-amber-400 rounded">
+                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded">
                   Skor Thomson
                 </span>
                 <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Screener HIE (Asfiksia)</h4>
@@ -650,7 +646,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Hitung volume cairan harian (mL/kg/hari) dan absolut (mL/hari) berdasarkan hari kehidupan dan berat lahir.</p>
               </div>
               <div className="pt-3 border-t border-slate-100 dark:border-white/5 mt-3 flex justify-between items-center text-[10px] font-bold text-slate-400">
-                <span>Aterm 80–150 · BBLSR 60–150 mL/kg/hari</span>
+                <span>Aterm 60–150 · BBLSR 90–160 mL/kg/hari</span>
                 <span className="text-sky-500 dark:text-sky-400 group-hover:translate-x-1 transition-transform flex items-center gap-0.5">Buka →</span>
               </div>
             </div>
@@ -839,7 +835,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                       <div className="space-y-4 pt-4 animate-in fade-in slide-in-from-top-1 duration-200">
                         {apgarDetails.map(param => (
                           <div key={param.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                             <span className="text-xs font-bold text-slate-655 dark:text-slate-350 w-44">{param.name}</span>
+                             <span className="text-xs font-bold text-slate-600 dark:text-slate-400 w-44">{param.name}</span>
                              <div className="flex gap-1.5 flex-1 items-stretch min-h-[3.5rem]">
                               {param.opts.map(opt => (
                                 <DetailedScoreOption 
@@ -863,7 +859,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               {apgarEvals.length < 5 && (
                 <button 
                   onClick={addApgarEval}
-                  className="w-full bg-white dark:bg-white/5 border border-dashed border-indigo-300 dark:border-indigo-500/50 text-indigo-650 dark:text-indigo-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-indigo-455 py-3.5 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-sm text-xs"
+                  className="w-full bg-white dark:bg-white/5 border border-dashed border-indigo-300 dark:border-indigo-500/50 text-indigo-600 dark:text-indigo-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:border-indigo-400 py-3.5 rounded-xl font-bold transition-all flex justify-center items-center gap-2 shadow-sm text-xs"
                 >
                   <Plus className="w-4 h-4" />
                   Tambah Evaluasi {apgarEvals.length === 2 ? '10' : apgarEvals.length === 3 ? '15' : '20'} Menit Berikutnya
@@ -893,7 +889,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <div className="space-y-5 mb-6">
                 {downeDetails.map(param => (
                   <div key={param.id} className="flex flex-col gap-2">
-                    <span className="text-xs font-bold text-slate-650 dark:text-slate-350">{param.label}</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{param.label}</span>
                     <div className="flex gap-1.5 items-stretch min-h-[3.5rem]">
                       {param.opts.map(opt => (
                         <DetailedScoreOption 
@@ -995,7 +991,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
 
               {thomsonTotal >= 5 && (
                 <div className="bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 p-4 rounded-xl animate-in zoom-in duration-300 flex items-start gap-3">
-                  <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-405" />
+                  <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                   <div>
                     <h4 className="font-bold text-lg leading-tight uppercase tracking-wide">⚠️ Indikasi HIE {thomsonTotal >= 11 ? 'Berat' : 'Sedang'}</h4>
                     <p className="mt-1 font-semibold text-sm leading-relaxed text-amber-800 dark:text-amber-100">
@@ -1295,7 +1291,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <ClinicalTheoryAccordion
                 title="Teori Medis & Panduan Skor Silverman-Anderson"
                 content={
-                  <div className="space-y-3 text-slate-600 dark:text-slate-350">
+                  <div className="space-y-3 text-slate-600 dark:text-slate-400">
                     <p><strong>Skor Silverman-Anderson</strong> (1956) adalah sistem penilaian klinis 5-parameter untuk mengevaluasi keparahan gangguan pernapasan pada neonatus, terutama bayi prematur dengan Respiratory Distress Syndrome (RDS). Setiap parameter dinilai 0–2, menghasilkan total skor 0–10. Skor yang lebih tinggi menunjukkan distres yang lebih berat.</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       {[['0–3','Ringan','bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400','O₂ nasal cannula / hood. Observasi ketat.'],['4–6','Sedang','bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400','CPAP diindikasikan. Pertimbangkan surfaktan.'],['7–10','Berat / Gagal Napas','bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400','Intubasi + Ventilasi Mekanik segera.']].map(([s,g,cls,t]) => (
@@ -1362,7 +1358,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <ClinicalTheoryAccordion
                 title="Teori & Panduan GIR Neonatus"
                 content={
-                  <div className="space-y-3 text-slate-600 dark:text-slate-350">
+                  <div className="space-y-3 text-slate-600 dark:text-slate-400">
                     <p>GIR adalah ukuran kecepatan glukosa yang diterima neonatus per satuan waktu. Pemantauan GIR penting untuk mencegah hipoglikemia (GIR terlalu rendah) dan hiperglikemia (GIR terlalu tinggi) pada neonatus yang bergantung pada infus glukosa.</p>
                     <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-xl border border-amber-200/60 dark:border-amber-800/30 font-mono text-xs">GIR = (Rate mL/jam × Konsentrasi %) ÷ (6 × BB kg)</div>
                     <p>Hipoglikemia neonatus didefinisikan sebagai GDA &lt;47 mg/dL. Tatalaksana awal: bolus D10% 2 mL/kg IV dalam 5 menit, diikuti peningkatan GIR secara bertahap.</p>
@@ -1422,7 +1418,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <ClinicalTheoryAccordion
                 title="Teori & Panduan Terapi Surfaktan"
                 content={
-                  <div className="space-y-3 text-slate-600 dark:text-slate-350">
+                  <div className="space-y-3 text-slate-600 dark:text-slate-400">
                     <p>Terapi surfaktan diindikasikan untuk RDS akibat defisiensi surfaktan, terutama pada bayi prematur &lt;32 minggu. Surfaktan eksogen menurunkan tegangan permukaan alveolar dan mencegah kolaps alveoli.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="bg-violet-50 dark:bg-violet-950/20 p-3 rounded-xl border border-violet-200/60 dark:border-violet-800/30">
@@ -1490,7 +1486,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <ClinicalTheoryAccordion
                 title="Teori & Panduan Terapi Inotropik Neonatus"
                 content={
-                  <div className="space-y-3 text-slate-600 dark:text-slate-350">
+                  <div className="space-y-3 text-slate-600 dark:text-slate-400">
                     <p>Terapi inotropik diindikasikan pada syok neonatus (distributif, kardiogenik) yang tidak responsif terhadap resusitasi cairan. Dopamin dan dobutamin adalah agen lini pertama.</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="bg-cyan-50 dark:bg-cyan-950/20 p-3 rounded-xl border border-cyan-200/60 dark:border-cyan-800/30">
@@ -1594,7 +1590,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               <ClinicalTheoryAccordion
                 title="Panduan Kebutuhan Cairan Neonatus"
                 content={
-                  <div className="space-y-3 text-slate-600 dark:text-slate-350">
+                  <div className="space-y-3 text-slate-600 dark:text-slate-400">
                     <p>Manajemen cairan neonatus dimulai konservatif pada DOL 1 untuk menghindari overload cairan (risiko PDA, edema paru, NEC). Volume ditingkatkan bertahap seiring penurunan berat fisiologis dan kemampuan ginjal yang meningkat.</p>
                     <ul className="list-disc list-inside space-y-1 text-sm">
                       <li>Gunakan <strong>berat lahir</strong> sebagai acuan hingga bayi melampaui berat lahir kembali</li>

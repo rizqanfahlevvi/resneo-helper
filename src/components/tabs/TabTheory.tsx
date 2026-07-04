@@ -5,7 +5,7 @@ export default function TabTheory() {
     <div className="w-full h-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-36">
       
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-450 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
           <BookText className="w-6 h-6" />
         </div>
         <div>
@@ -28,11 +28,11 @@ export default function TabTheory() {
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-white">The Golden Minute (Menit Emas)</h3>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <p>
                 Konsep <strong className="text-slate-800 dark:text-slate-200">The Golden Minute</strong> menegaskan bahwa neonatus harus mulai bernapas sendiri atau diberikan ventilasi bantuan dalam <strong className="text-orange-600 dark:text-orange-400">60 detik pertama kehidupan</strong>. Kegagalan melakukan hal ini dapat menyebabkan asfiksia berkepanjangan, kerusakan otak ireversibel (HIE - Hypoxic Ischemic Encephalopathy), dan kematian.
               </p>
-              <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-805">
+              <div className="bg-slate-50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
                 <ul className="list-disc list-inside space-y-2 m-0 text-sm">
                   <li><strong>Penilaian Awal (0-30 detik):</strong> Evaluasi tonus otot, usaha napas / menangis, dan usia gestasi saat bayi lahir. Lakukan langkah awal (hangatkan, posisikan kepala, isap lendir, keringkan, stimulasi).</li>
                   <li><strong>Intervensi Cepat (30-60 detik):</strong> Kaji LDJ (Laju Denyut Jantung). Bila bayi megap-megap, apnu, atau LDJ &lt; 100x/menit, segera inisiasi Ventilasi Tekanan Positif (VTP).</li>
@@ -48,7 +48,7 @@ export default function TabTheory() {
               </div>
               <h3 className="text-xl font-black text-slate-900 dark:text-white">Fisiologi Transisi Kardiopulmonal</h3>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed text-justify space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed text-justify space-y-4">
               <p>
                 Ketika bayi lahir, paru-paru yang tadinya penuh cairan harus segera digantikan oleh udara. Pemotongan tali pusat menghentikan aliran darah kaya oksigen dari plasenta, mengakibatkan <strong>hiperkarbia sementara</strong> (peningkatan CO₂) dan stimulasi kemoreseptor yang memicu napas pertama.
               </p>
@@ -97,7 +97,7 @@ export default function TabTheory() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-sky-500">NRP 8th Ed. 2021 · AAP</span>
               </div>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <p>
                 Panduan NRP 2021 menegaskan bahwa pemberian oksigen harus <strong className="text-slate-800 dark:text-slate-200">berbasis target SpO₂ pre-duktal</strong>, bukan berdasarkan intuisi klinis. Oksigen 100% rutin tidak lagi direkomendasikan karena risiko toksisitas oksigen (ROP, kerusakan otak oksidatif).
               </p>
@@ -139,7 +139,7 @@ export default function TabTheory() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500">NRP 2021 · Aziz et al. Pediatrics 2020</span>
               </div>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <p>
                 <strong>Meconium Stained Amniotic Fluid (MSAF)</strong> terjadi pada ~10–15% persalinan. Pedoman NRP 2021 mengubah pendekatan secara signifikan: <strong className="text-amber-700 dark:text-amber-400">suction trakea rutin tidak lagi direkomendasikan</strong> untuk semua bayi MSAF.
               </p>
@@ -170,7 +170,7 @@ export default function TabTheory() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500">NRP 8th Ed. 2021 · ILCOR 2021</span>
               </div>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <div className="bg-violet-50/80 dark:bg-violet-950/20 border border-violet-200/60 dark:border-violet-800/30 rounded-xl p-4 text-sm">
                 <strong className="text-violet-800 dark:text-violet-300 text-xs uppercase tracking-wider block mb-2">Indikasi Intubasi ET</strong>
                 <ul className="list-disc list-inside space-y-1 text-xs text-violet-700 dark:text-violet-400">
@@ -225,7 +225,7 @@ export default function TabTheory() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500">NRP 8th Ed. 2021 · ILCOR CoSTR 2020</span>
               </div>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <p>
                 Kompresi dada diindikasikan bila <strong className="text-rose-600 dark:text-rose-400">HR &lt;60 x/menit</strong> setelah 30 detik VTP adekuat (dada mengembang) dengan oksigen 100%. Sebelum memulai kompresi, pastikan ventilasi benar-benar efektif.
               </p>
@@ -262,7 +262,7 @@ export default function TabTheory() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-500">NICE IPG347 2021 · BAPM 2020 · ILCOR 2020</span>
               </div>
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-350 leading-relaxed space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
               <p>
                 Hipotermia terapeutik adalah satu-satunya neuroproteksi berbasis bukti untuk HIE sedang–berat. Terapi ini bekerja dengan <strong>menurunkan metabolisme serebral</strong> dan menghambat apoptosis sel neuron pasca-asfiksia.
               </p>

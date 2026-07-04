@@ -4,8 +4,10 @@ import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
-import { SEARCH_INDEX } from './GlobalSearch';
+import LiveClock from './LiveClock';
+import { SEARCH_INDEX } from './searchIndex';
 import { forceUpdateApp } from '../hooks/usePwaUpdate';
+import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, adrenalinEtt } from '../clinical/doses';
 
 interface LayoutProps {
   children: ReactNode;
@@ -56,21 +58,6 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   
-  const [clockStr, setClockStr] = useState('');
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hrs = now.getHours().toString().padStart(2, '0');
-      const mins = now.getMinutes().toString().padStart(2, '0');
-      const secs = now.getSeconds().toString().padStart(2, '0');
-      setClockStr(`${hrs}:${mins}:${secs}`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, addLog } = useStore();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
@@ -122,12 +109,14 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
   const bwNum = parseInt(birthWeight || '0') || 0;
   const bwKg = bwNum / 1000;
-  const ettSize = bwKg > 0 ? (bwKg < 1 ? '2.5' : bwKg < 2 ? '3.0' : bwKg < 3 ? '3.5' : '4.0') : '-';
-  const ettDepth = bwKg > 0 ? (bwKg + 6).toFixed(1) : '-';
-  const adrenalinMin = bwKg > 0 ? (0.1 * bwKg).toFixed(1) : '-';
-  const adrenalinMax = bwKg > 0 ? (0.3 * bwKg).toFixed(1) : '-';
-  const ettAdrenalinMin = bwKg > 0 ? (0.5 * bwKg).toFixed(1) : '-';
-  const ettAdrenalinMax = bwKg > 0 ? (1.0 * bwKg).toFixed(1) : '-';
+  const ettSize = ettSizeByWeight(bwKg);
+  const ettDepth = ettDepthAtLip(bwKg);
+  const adrenalinIvDose = adrenalinIv(bwKg);
+  const adrenalinMin = adrenalinIvDose.min;
+  const adrenalinMax = adrenalinIvDose.max;
+  const adrenalinEttDose = adrenalinEtt(bwKg);
+  const ettAdrenalinMin = adrenalinEttDose.min;
+  const ettAdrenalinMax = adrenalinEttDose.max;
 
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0B132B] overflow-hidden text-slate-900 dark:text-slate-100 relative transition-colors duration-300">
@@ -283,7 +272,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 rounded-xl bg-slate-55 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all shadow-sm"
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all shadow-sm"
               title={sidebarCollapsed ? "Perbesar Sidebar" : "Perkecil Sidebar"}
             >
               {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -301,7 +290,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           <div className="md:hidden flex items-center gap-2">
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all shadow-sm"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all shadow-sm"
               title="Buka Menu Sidebar"
             >
               <Menu className="w-5 h-5" />
@@ -339,7 +328,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           {phase !== 'preparation' && phase !== 'routine_care' && (() => {
             const elapsedMin = elapsedTime / 60;
             let timerTextClass = 'text-slate-800 dark:text-slate-100';
-            let timerBgClass = 'bg-slate-100/50 dark:bg-slate-900/50 border-slate-250/70 dark:border-slate-800/80';
+            let timerBgClass = 'bg-slate-100/50 dark:bg-slate-900/50 border-slate-200/70 dark:border-slate-800/80';
             let timerPulse = false;
             let showWarning = false;
             if (elapsedMin >= 10) {
@@ -358,7 +347,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
               <div className={`hidden md:flex items-center gap-3 ${timerBgClass} border px-4 py-1.5 rounded-full shadow-inner animate-in fade-in duration-200`}>
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${isTimerRunning ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`} />
-                  <span className="text-xs font-bold text-slate-505 dark:text-slate-400">Timer Resusitasi:</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Timer Resusitasi:</span>
                   <span className={`text-sm font-mono font-bold ${timerTextClass}`}>
                     {Math.floor(elapsedTime / 60).toString().padStart(2, '0')}:{(elapsedTime % 60).toString().padStart(2, '0')}
                   </span>
@@ -377,13 +366,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
           {/* Right Section: Live Digital Clock & Theme Toggle Button */}
           <div className="flex items-center gap-2">
-            {/* Real-time Ticking Clock */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs md:text-sm font-bold font-mono shadow-sm">
-              <svg className="w-3.5 h-3.5 text-indigo-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{clockStr || '--:--:--'}</span>
-            </div>
+            <LiveClock />
 
             <button
               onClick={handleCheckUpdate}
@@ -397,7 +380,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
 
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-750 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-bold shadow-sm"
+              className="flex items-center gap-2 p-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800/80 transition-all text-sm font-bold shadow-sm"
             >
               {theme === 'dark' ? <><Sun className="w-4 h-4 text-amber-500 dark:text-amber-300" /> <span className="hidden sm:inline">Mode Terang</span></> : <><Moon className="w-4 h-4 text-indigo-600" /> <span className="hidden sm:inline">Mode Gelap</span></>}
             </button>
@@ -463,7 +446,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             onClick={() => {
               if (window.confirm("Apakah Anda yakin ingin mengakhiri sesi resusitasi ini? Semua log tindakan akan disimpan.")) {
                 setIsTimerRunning(false);
-                addLog("Resusitasi diakhiri secara paksa oleh klinisi melalui tombol navigasi bawah.");
+                addLog(elapsedTime, "Resusitasi diakhiri secara paksa oleh klinisi melalui tombol navigasi bawah.");
                 setPhase('completed');
               }
             }}
@@ -568,7 +551,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
               {/* PAUSE/RESUME Button */}
               <button 
                 onClick={() => setIsTimerRunning(!isTimerRunning)}
-                className={`bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-3 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-150 dark:hover:bg-slate-800 transition-colors w-12 h-12 ${isTimerRunning ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+                className={`bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-3 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors w-12 h-12 ${isTimerRunning ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}
               >
                 {isTimerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
               </button>
@@ -591,7 +574,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                    setFabMenuOpen(false);
                    onTabChange('emergency');
                 }}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-slate-600 dark:text-slate-300 p-3 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-850 hover:text-slate-900 dark:hover:text-white transition-colors w-12 h-12 relative overflow-hidden"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 p-3 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors w-12 h-12 relative overflow-hidden"
               >
                 <RotateCcw className="w-5 h-5 relative z-10" />
               </button>
@@ -602,7 +585,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
           <button 
             onClick={() => setFabMenuOpen(!fabMenuOpen)}
             className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform ${
-              fabMenuOpen ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-slate-300/50 dark:shadow-slate-950/55 rotate-90 scale-105 border border-slate-200 dark:border-slate-800' : 'bg-red-600 dark:bg-red-600/90 hover:bg-red-700 text-white shadow-red-300/40 dark:shadow-red-950/50'
+              fabMenuOpen ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-slate-300/50 dark:shadow-slate-950/55 rotate-90 scale-100 border border-slate-200 dark:border-slate-800' : 'bg-red-600 dark:bg-red-600/90 hover:bg-red-700 text-white shadow-red-300/40 dark:shadow-red-950/50'
             }`}
           >
             {fabMenuOpen ? <X className="w-6 h-6" /> : <Syringe className="w-6 h-6" />}
@@ -625,7 +608,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
              <div className="p-5 space-y-4">
                {bwKg > 0 ? (
                  <>
-                   <div className="bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                   <div className="bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                      <label className="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1.5">
                        Edit Berat Lahir (Gram)
                      </label>
@@ -655,11 +638,11 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                  </>
                ) : (
                  <div className="space-y-4">
-                   <p className="text-xs text-slate-605 dark:text-slate-400 font-medium leading-relaxed">
+                   <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
                      Berat Lahir (BB) belum diinput. Anda dapat memasukkannya langsung di bawah ini untuk melihat dosis instan, atau beralih ke Fase 0 (Persiapan).
                    </p>
                    
-                   <div className="bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
+                   <div className="bg-slate-50 dark:bg-slate-950/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                      <label className="block text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 mb-1.5">
                        Input Berat Lahir (Gram)
                      </label>

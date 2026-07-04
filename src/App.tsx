@@ -1,22 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Layout from './components/Layout';
 import TabEmergency from './components/tabs/TabEmergency';
 import TabScores from './components/tabs/TabScores';
 import TabAdvanced from './components/tabs/TabAdvanced';
 import TabHome from './components/tabs/TabHome';
-import TabReferences from './components/tabs/TabReferences';
-import TabTheory from './components/tabs/TabTheory';
 import TabHistory from './components/tabs/TabHistory';
 import TabDashboard from './components/tabs/TabDashboard';
-import TabSettings from './components/tabs/TabSettings';
 import { useStore } from './store';
 import { AlertTriangle, Lock, RefreshCw, MessageCircle, X } from 'lucide-react';
 import { TabType } from './types';
 import { useAuth } from './auth/useAuth';
 import ProfilePopup from './auth/ProfilePopup';
-import AdminPage from './auth/AdminPage';
 import { useSettingsStore } from './settings/useSettingsStore';
+import { FONT_FAMILY_MAP } from './settings/fontMap';
 import { loadFont } from './utils/fontLoader';
+
+// Halaman non-kritis di-lazy-load agar chunk awal (resusitasi) tetap kecil
+const TabReferences = lazy(() => import('./components/tabs/TabReferences'));
+const TabTheory = lazy(() => import('./components/tabs/TabTheory'));
+const TabSettings = lazy(() => import('./components/tabs/TabSettings'));
+const AdminPage = lazy(() => import('./auth/AdminPage'));
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-24 text-slate-400 text-sm font-semibold animate-pulse">
+    Memuat...
+  </div>
+);
 
 const TAB_PATHS: Record<TabType, string> = {
   home: '/',
@@ -28,21 +37,6 @@ const TAB_PATHS: Record<TabType, string> = {
   history: '/history',
   dashboard: '/dashboard',
   settings: '/settings',
-};
-
-const FONT_FAMILY_MAP: Record<string, string> = {
-  lexend: '"Lexend", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  inter: '"Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  roboto: '"Roboto", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  jetbrains: '"JetBrains Mono", monospace',
-  system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  poppins: '"Poppins", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  montserrat: '"Montserrat", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  'plus-jakarta': '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  outfit: '"Outfit", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  'space-grotesk': '"Space Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-  'fira-code': '"Fira Code", monospace',
-  quicksand: '"Quicksand", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
 };
 
 const PATH_TABS: Record<string, TabType> = Object.fromEntries(
@@ -205,7 +199,11 @@ export default function App() {
   };
 
   if (adminOpen) {
-    return <AdminPage onBack={() => setAdminOpen(false)} />;
+    return (
+      <Suspense fallback={<TabFallback />}>
+        <AdminPage onBack={() => setAdminOpen(false)} />
+      </Suspense>
+    );
   }
 
   return (
@@ -289,15 +287,19 @@ export default function App() {
                   setBirthWeight={setBirthWeight}
                 />
               )}
-              {visibleTab === 'references' && <TabReferences />}
+              {visibleTab === 'references' && (
+                <Suspense fallback={<TabFallback />}><TabReferences /></Suspense>
+              )}
               {visibleTab === 'theory' && (
                 <div className={readingMode ? 'reading-mode' : undefined}>
-                  <TabTheory />
+                  <Suspense fallback={<TabFallback />}><TabTheory /></Suspense>
                 </div>
               )}
               {visibleTab === 'history' && <TabHistory />}
               {visibleTab === 'dashboard' && <TabDashboard onNavigate={navigateTo} />}
-              {visibleTab === 'settings' && <TabSettings />}
+              {visibleTab === 'settings' && (
+                <Suspense fallback={<TabFallback />}><TabSettings /></Suspense>
+              )}
             </>
           )}
         </TabTransition>

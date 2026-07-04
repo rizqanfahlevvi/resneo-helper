@@ -19,6 +19,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useSettingsStore, FontFamily } from '../../settings/useSettingsStore';
+import { getFontFamilyStyle } from '../../settings/fontMap';
 import { getStorageEstimate, refreshCacheAndReload, performHardReset, StorageEstimateInfo } from '../../utils/cacheUtils';
 
 const WA_NUMBER = '6287749076019';
@@ -28,24 +29,6 @@ export default function TabSettings() {
   const [estimate, setEstimate] = useState<StorageEstimateInfo>({ used: '0 Bytes', quota: '0 Bytes', percentage: 0 });
   const [isOpenChangelog, setIsOpenChangelog] = useState<{ [key: string]: boolean }>({ v1: true });
   const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
-
-  const getFontFamilyStyle = (fontId: string) => {
-    const fontsMap: Record<string, string> = {
-      lexend: '"Lexend", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      inter: '"Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      roboto: '"Roboto", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      jetbrains: '"JetBrains Mono", monospace',
-      system: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      poppins: '"Poppins", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      montserrat: '"Montserrat", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      'plus-jakarta': '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      outfit: '"Outfit", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      'space-grotesk': '"Space Grotesk", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-      'fira-code': '"Fira Code", monospace',
-      quicksand: '"Quicksand", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-    };
-    return fontsMap[fontId] || fontsMap.system;
-  };
 
   const {
     fontFamily,

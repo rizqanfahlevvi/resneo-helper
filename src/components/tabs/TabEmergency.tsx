@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStore, Phase } from '../../store';
+import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, isValidBirthWeightGram, isValidGestationalAgeWeek, BW_MIN_G, BW_MAX_G, GA_MIN_WK, GA_MAX_WK } from '../../clinical/doses';
 import { 
   AlertTriangle, Check, CheckCircle2, Clock, 
   Play, FastForward, Activity, RotateCcw, 
@@ -600,10 +601,9 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
   // Emergency Calculator values
   const bwKg = bwNum / 1000;
-  const ettSize = bwKg > 0 ? (bwKg < 1 ? '2.5' : bwKg < 2 ? '3.0' : bwKg < 3 ? '3.5' : '4.0') : '-';
-  const ettDepth = bwKg > 0 ? (bwKg + 6).toFixed(1) : '-';
-  const adrenalinMin = bwKg > 0 ? (0.1 * bwKg).toFixed(2) : '-';
-  const adrenalinMax = bwKg > 0 ? (0.3 * bwKg).toFixed(2) : '-';
+  const ettSize = ettSizeByWeight(bwKg);
+  const ettDepth = ettDepthAtLip(bwKg);
+  const { min: adrenalinMin, max: adrenalinMax } = adrenalinIv(bwKg);
   const volumeExp = bwKg > 0 ? (10 * bwKg).toFixed(1) : '-';
 
   // Determine Master Timer Color based on elapsed time
@@ -794,6 +794,11 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 placeholder="cth: 38"
                 className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
               />
+              {gestationalAge !== '' && !isValidGestationalAgeWeek(parseFloat(gestationalAge)) && (
+                <p className="text-[10px] text-red-600 dark:text-red-400 mt-2 font-bold">
+                  ⚠ Di luar rentang wajar ({GA_MIN_WK}–{GA_MAX_WK} minggu) — periksa kembali input.
+                </p>
+              )}
             </div>
             <div className="glass-card rounded-2xl p-4 shadow-sm">
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Estimasi Berat Lahir (Gram)</label>
@@ -804,6 +809,11 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 placeholder="cth: 3200 (taksiran)"
                 className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/20 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
               />
+              {birthWeight !== '' && !isValidBirthWeightGram(parseFloat(birthWeight)) && (
+                <p className="text-[10px] text-red-600 dark:text-red-400 mt-2 font-bold">
+                  ⚠ Di luar rentang wajar ({BW_MIN_G}–{BW_MAX_G} g) — semua dosis di app mengikuti angka ini, periksa kembali.
+                </p>
+              )}
               <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-semibold flex items-center gap-1">
                 <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
                 Nilai estimasi untuk panduan dosis. Antropometri aktual diisi setelah resusitasi selesai.
@@ -1083,7 +1093,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-start gap-2">
                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                  <p className="text-amber-800 dark:text-amber-200 text-xs font-semibold leading-relaxed">
-                   Jika salah satu "TIDAK", segera potong tali pusat & berikan <strong className="font-bold text-amber-950 dark:text-amber-450">Langkah Awal</strong> di pemancar panas.
+                   Jika salah satu "TIDAK", segera potong tali pusat & berikan <strong className="font-bold text-amber-950 dark:text-amber-400">Langkah Awal</strong> di pemancar panas.
                  </p>
                </div>
             )}
@@ -1478,7 +1488,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         {/* Step 1: Lepas (1) */}
                         <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                           vtpBeatStage === 1
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-105'
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-100'
                             : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
                         }`}>
                           <Waves className={`w-6 h-6 mb-1 ${vtpBeatStage === 1 ? 'animate-pulse' : ''}`} />
@@ -1489,7 +1499,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         {/* Step 2: Lepas (2) */}
                         <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                           vtpBeatStage === 2
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-105'
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.6)] scale-100'
                             : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
                         }`}>
                           <Waves className={`w-6 h-6 mb-1 ${vtpBeatStage === 2 ? 'animate-pulse' : ''}`} />
@@ -1500,7 +1510,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         {/* Step 3: Pompa */}
                         <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                           vtpBeatStage === 0
-                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-[0_0_25px_rgba(16,185,129,0.7)] scale-105'
+                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-[0_0_25px_rgba(16,185,129,0.7)] scale-100'
                             : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
                         }`}>
                           <Wind className={`w-6 h-6 mb-1 ${vtpBeatStage === 0 ? 'animate-bounce' : ''}`} />
@@ -1726,7 +1736,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   {/* Step 1: SATU */}
                   <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                     audioEnabled && compBeatStage === 0
-                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-100 font-extrabold shadow-red-500/50'
                       : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
                   }`}>
                     <span className="text-lg font-black tracking-tight leading-none">1</span>
@@ -1736,7 +1746,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   {/* Step 2: DUA */}
                   <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                     audioEnabled && compBeatStage === 1
-                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-100 font-extrabold shadow-red-500/50'
                       : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
                   }`}>
                     <span className="text-lg font-black tracking-tight leading-none">2</span>
@@ -1746,7 +1756,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   {/* Step 3: TIGA */}
                   <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                     audioEnabled && compBeatStage === 2
-                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-105 font-extrabold shadow-red-500/50'
+                      ? 'bg-red-600 border-red-500 text-white shadow-[0_0_20px_rgba(220,38,38,0.7)] scale-100 font-extrabold shadow-red-500/50'
                       : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
                   }`}>
                     <span className="text-lg font-black tracking-tight leading-none">3</span>
@@ -1756,7 +1766,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                   {/* Step 4: POMPA */}
                   <div className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-150 ${
                     audioEnabled && compBeatStage === 3
-                      ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_25px_rgba(37,99,235,0.7)] scale-105 font-extrabold shadow-blue-500/50'
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_25px_rgba(37,99,235,0.7)] scale-100 font-extrabold shadow-blue-500/50'
                       : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600'
                   }`}>
                     <span className="text-lg font-black tracking-tight leading-none">💨</span>
@@ -1839,12 +1849,12 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
       {showVtpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="bg-indigo-600 p-5 text-white flex items-center gap-3 border-b border-light-200 dark:border-slate-850">
+            <div className="bg-indigo-600 p-5 text-white flex items-center gap-3 border-b border-light-200 dark:border-slate-800">
               <AlertTriangle className="w-6 h-6 text-amber-300" />
               <h3 className="font-bold text-lg tracking-tight">Evaluasi VTP (15 Detik)</h3>
             </div>
             <div className="p-6">
-              <p className="text-slate-850 dark:text-slate-50 mb-6 font-semibold text-center text-lg leading-snug">Apakah dada bayi mengembang saat VTP diberikan?</p>
+              <p className="text-slate-800 dark:text-slate-50 mb-6 font-semibold text-center text-lg leading-snug">Apakah dada bayi mengembang saat VTP diberikan?</p>
               <div className="space-y-4">
                 <button 
                   onClick={() => {
@@ -1852,7 +1862,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     setShowVtpModal(false);
                     setPhase('vtp_ldj_eval');
                   }}
-                  className="w-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-605 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 py-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)] focus:ring-2 focus:ring-emerald-500/50"
+                  className="w-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 py-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)] focus:ring-2 focus:ring-emerald-500/50"
                 >
                   YA, Dada Mengembang
                 </button>
@@ -1862,7 +1872,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     setShowVtpModal(false);
                     setSribtaMode(true);
                   }}
-                  className="w-full bg-rose-50 dark:bg-rose-500/10 text-rose-605 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-500/20 py-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.1)] focus:ring-2 focus:ring-rose-500/50"
+                  className="w-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 hover:bg-rose-100 dark:hover:bg-rose-500/20 py-4 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(244,63,94,0.1)] focus:ring-2 focus:ring-rose-500/50"
                 >
                   TIDAK, Dada Tidak Mengembang
                 </button>
@@ -2109,7 +2119,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-xl border border-slate-200 dark:border-slate-800/80 flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                     <Syringe className="w-5 h-5 text-red-600 dark:text-red-450" />
+                     <Syringe className="w-5 h-5 text-red-600 dark:text-red-400" />
                    </div>
                    <div>
                       <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Referensi Dosis & Alat</h3>
@@ -2126,7 +2136,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         value={birthWeight}
                         onChange={(e) => setBirthWeight(e.target.value)}
                         placeholder="cth: 3000"
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-505 focus:outline-none focus:border-indigo-505 font-mono"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none focus:border-indigo-500 font-mono"
                       />
                       <span className="text-xs font-bold text-slate-400 self-center">Gram</span>
                    </div>
@@ -2141,54 +2151,54 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 <AnthropoPanel setBirthWeight={setBirthWeight} compact />
 
                 {bwKg <= 0 ? (
-                   <div className="text-center p-4 bg-red-50/40 dark:bg-red-950/15 rounded-xl border border-red-205/50 dark:border-red-950/40">
-                      <p className="text-xs text-red-750 dark:text-red-400 font-bold mb-1">Berat Badan Belum Diinput</p>
+                   <div className="text-center p-4 bg-red-50/40 dark:bg-red-950/15 rounded-xl border border-red-200/50 dark:border-red-950/40">
+                      <p className="text-xs text-red-700 dark:text-red-400 font-bold mb-1">Berat Badan Belum Diinput</p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">Silakan masukkan berat badan (BB) pada input di atas untuk melihat pedoman dosis & ukuran alat secara instan.</p>
                    </div>
                 ) : (
                    <div className="space-y-4 text-xs font-medium">
                       <div className="grid grid-cols-2 gap-2">
-                         <div className="bg-slate-50 dark:bg-slate-950/30 rounded-lg p-2.5 border border-slate-150/50 dark:border-slate-800/60">
+                         <div className="bg-slate-50 dark:bg-slate-950/30 rounded-lg p-2.5 border border-slate-100/50 dark:border-slate-800/60">
                             <span className="block text-[10px] text-slate-500 font-bold uppercase mb-0.5">Ukuran ETT</span>
                             <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">{ettSize} mm</span>
                          </div>
-                         <div className="bg-slate-50 dark:bg-slate-950/30 rounded-lg p-2.5 border border-slate-150/50 dark:border-slate-800/60">
+                         <div className="bg-slate-50 dark:bg-slate-950/30 rounded-lg p-2.5 border border-slate-100/50 dark:border-slate-800/60">
                             <span className="block text-[10px] text-slate-500 font-bold uppercase mb-0.5">Batas Bibir</span>
                             <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">{ettDepth} cm</span>
                          </div>
                       </div>
 
-                      <div className="bg-slate-50 dark:bg-slate-955/30 rounded-lg p-2.5 border border-slate-150/50 dark:border-slate-800/60">
+                      <div className="bg-slate-50 dark:bg-slate-950/30 rounded-lg p-2.5 border border-slate-100/50 dark:border-slate-800/60">
                          <span className="block text-[10px] text-slate-500 font-bold uppercase mb-1">Salin Normal (10 mL/kg)</span>
                          <span className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">{volumeExp} <span className="text-[10px] font-medium text-slate-400">mL</span></span>
                       </div>
 
-                      <div className="bg-red-50 dark:bg-red-955/20 rounded-xl p-3 border border-red-100 dark:border-red-900/40">
+                      <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-3 border border-red-100 dark:border-red-900/40">
                          <div className="flex justify-between items-center mb-1">
                             <span className="text-[10px] text-red-700 dark:text-red-400 font-bold uppercase">Adrenalin IV/IO</span>
-                            <span className="text-[9px] bg-red-100 dark:bg-red-950/40 text-red-750 dark:text-red-400 px-1 py-0.5 rounded font-extrabold uppercase">1:10.000 (0.1-0.3 mL)</span>
+                            <span className="text-[9px] bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400 px-1 py-0.5 rounded font-extrabold uppercase">1:10.000 (0.1-0.3 mL)</span>
                          </div>
-                         <div className="font-extrabold text-base text-red-650 dark:text-red-400 tracking-tight">{adrenalinMin} - {adrenalinMax} <span className="text-xs font-normal text-slate-500">mL</span></div>
+                         <div className="font-extrabold text-base text-red-600 dark:text-red-400 tracking-tight">{adrenalinMin} - {adrenalinMax} <span className="text-xs font-normal text-slate-500">mL</span></div>
                       </div>
 
-                      <div className="bg-rose-50 dark:bg-rose-955/20 rounded-xl p-3 border border-rose-100 dark:border-rose-900/40">
+                      <div className="bg-rose-50 dark:bg-rose-950/20 rounded-xl p-3 border border-rose-100 dark:border-rose-900/40">
                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-[10px] text-rose-700 dark:text-rose-450 font-bold uppercase">Adrenalin via ETT</span>
-                            <span className="text-[9px] bg-rose-100 dark:bg-rose-950/40 text-rose-750 dark:text-rose-400 px-1 py-0.5 rounded font-extrabold uppercase">1:10.000 (0.5-1.0 mL)</span>
+                            <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase">Adrenalin via ETT</span>
+                            <span className="text-[9px] bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 px-1 py-0.5 rounded font-extrabold uppercase">1:10.000 (0.5-1.0 mL)</span>
                          </div>
-                         <div className="font-extrabold text-sm text-rose-650 dark:text-rose-455 tracking-tight">{(0.5 * bwKg).toFixed(2)} - {(1.0 * bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></div>
+                         <div className="font-extrabold text-sm text-rose-600 dark:text-rose-400 tracking-tight">{(0.5 * bwKg).toFixed(2)} - {(1.0 * bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                         <div className="bg-amber-50 dark:bg-amber-955/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
+                         <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
                             <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">Dextrose 10% Bolus</span>
                             <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(2 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
                             <span className="block text-[8px] text-slate-400 mt-0.5">2 mL/kg (Hipoglikemia)</span>
                          </div>
-                         <div className="bg-emerald-50 dark:bg-emerald-955/20 rounded-xl p-2.5 border border-emerald-100 dark:border-emerald-900/40">
+                         <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-2.5 border border-emerald-100 dark:border-emerald-900/40">
                             <span className="block text-[9px] text-emerald-700 dark:text-emerald-400 font-bold uppercase mb-0.5">Meylon / NaBic 4.2%</span>
-                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(4 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
-                            <span className="block text-[8px] text-slate-400 mt-0.5">2 mEq/kg (Asidosis)</span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(2 * bwKg).toFixed(1)}–{(4 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
+                            <span className="block text-[8px] text-slate-400 mt-0.5">1–2 mEq/kg (Asidosis)</span>
                          </div>
                       </div>
 
@@ -2197,7 +2207,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                            addLog(`Sidebar: Berikan Adrenalin (${adrenalinMin}-${adrenalinMax} mL)`);
                            setAdrenalinDoses([...adrenalinDoses, Date.now()]);
                         }}
-                        className="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold uppercase tracking-wider transition-all flex justify-center items-center gap-2 shadow-md border border-red-550 hover:scale-[1.01]"
+                        className="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold uppercase tracking-wider transition-all flex justify-center items-center gap-2 shadow-md border border-red-500 hover:scale-[1.01]"
                       >
                          <Syringe className="w-4 h-4" />
                          Berikan Adrenalin
@@ -2215,7 +2225,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                       saveSession({ duration, log: clinicalLog, anthropometry, birthWeight: birthWeight || '' });
                       setPhase('completed');
                   }}
-                  className="w-full bg-red-650 hover:bg-red-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
+                  className="w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
                 >
                   <X className="w-4 h-4 text-white" />
                   Akhiri Resusitasi
@@ -2458,7 +2468,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700">
                         <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">ETT / BATAS (cm)</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{bwKg > 0 ? (bwKg < 1 ? '2.5' : bwKg < 2 ? '3.0' : '3.5') : '-'} <span className="font-normal text-xs text-slate-500">/ Bts: {ettDepth}</span></span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{ettSize} <span className="font-normal text-xs text-slate-500">/ Bts: {ettDepth}</span></span>
                       </div>
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700">
                         <span className="block text-[10px] text-slate-500 dark:text-slate-400 font-bold mb-0.5">C. EXP. (10mL/kg)</span>
@@ -2477,8 +2487,8 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(2 * bwKg).toFixed(1)} mL` : '-'}</span>
                       </div>
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
-                        <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Meylon 4.2% (4 mL/kg)</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(4 * bwKg).toFixed(1)} mL` : '-'}</span>
+                        <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Meylon 4.2% (2–4 mL/kg)</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(2 * bwKg).toFixed(1)}–${(4 * bwKg).toFixed(1)} mL` : '-'}</span>
                       </div>
                     </div>
 
@@ -2563,7 +2573,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                         setPhase('completed');
                         setFabMenuOpen(false);
                     }}
-                    className="w-full text-left bg-red-650 hover:bg-red-500 text-white p-3 rounded-xl flex items-center gap-2 transition-all text-sm font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
+                    className="w-full text-left bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl flex items-center gap-2 transition-all text-sm font-black shadow-lg shadow-red-500/20 active:scale-95 cursor-pointer"
                   >
                     <X className="w-4 h-4 text-white" />
                     Akhiri Resusitasi
