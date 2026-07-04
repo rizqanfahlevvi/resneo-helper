@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Admin ditentukan dari dokumen profil pengguna itu sendiri (role == 'admin').
+    // get() di sini TIDAK dievaluasi ulang terhadap rules — aman dari rekursi.
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Field yang boleh diubah pengguna biasa pada profilnya sendiri.
+    // role/subscriptionStatus/isAdmin/verificationStatus SENGAJA tidak masuk daftar ini
+    // agar pengguna tidak bisa menaikkan hak akses/langganan dirinya sendiri dari client.
+    function onlySelfServiceFields() {
+      let allowed = ['uid', 'email', 'username', 'namaLengkap', 'lastLogin', 'createdAt', 'googleFormSubmitted', 'profileCompleted'];
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+
+      // Dokumen baru hanya boleh dibuat oleh pemiliknya sendiri, dan HARUS mulai
+      // dari status non-privileged (pending/inactive/bukan admin).
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.role == 'pending'
+        && request.resource.data.subscriptionStatus == 'inactive'
+        && request.resource.data.isAdmin == false;
+
+      // Admin bebas mengubah profil siapa pun (Admin Panel).
+      // Pengguna biasa hanya boleh menyentuh field self-service (bukan langganan/peran).
+      allow update: if isAdmin() || (isOwner(uid) && onlySelfServiceFields());
+
+      allow delete: if isAdmin();
+
+      // Riwayat sesi resusitasi — data klinis pasien, hanya pemilik akun yang boleh akses.
+      match /sessions/{sessionId} {
+        allow read, write, delete: if isOwner(uid);
+      }
+    }
+
+    // Default deny — apa pun di luar path di atas ditolak.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

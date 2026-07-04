@@ -17,10 +17,15 @@ import {
   Info,
   Linkedin,
   BookOpen,
+  Bug,
+  Trash2,
+  Copy,
+  ChevronRight,
 } from 'lucide-react';
 import { useSettingsStore, FontFamily } from '../../settings/useSettingsStore';
 import { getFontFamilyStyle } from '../../settings/fontMap';
 import { getStorageEstimate, refreshCacheAndReload, performHardReset, StorageEstimateInfo } from '../../utils/cacheUtils';
+import { getErrorLog, clearErrorLog, ErrorLogEntry } from '../../utils/errorLog';
 
 const WA_NUMBER = '6287749076019';
 
@@ -456,6 +461,9 @@ export default function TabSettings() {
                 </div>
               </div>
 
+              {/* Error Log */}
+              <ErrorLogCard />
+
               {/* Reset Section */}
               <div className="bg-red-50/40 dark:bg-red-950/10 rounded-2xl border border-red-200/60 dark:border-red-900/40 shadow-sm p-4 space-y-3">
                 <div>
@@ -659,6 +667,79 @@ export default function TabSettings() {
           )}
         </AnimatePresence>
       </div>
+    </div>
+  );
+}
+
+function ErrorLogCard() {
+  const [open, setOpen] = useState(false);
+  const [entries, setEntries] = useState<ErrorLogEntry[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (open) setEntries(getErrorLog());
+  }, [open]);
+
+  const handleCopy = () => {
+    const text = entries.map((e) => `[${e.timestamp}] (${e.source}) ${e.message}\n${e.stack || ''}`).join('\n\n');
+    navigator.clipboard.writeText(text || 'Tidak ada error tercatat');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleClear = () => {
+    clearErrorLog();
+    setEntries([]);
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between p-4 text-left"
+      >
+        <span className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+          <Bug className="w-4 h-4 text-slate-400" />
+          Log Error Aplikasi
+        </span>
+        <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && (
+        <div className="border-t border-slate-100 dark:border-slate-800 p-4 space-y-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Jejak teknis jika aplikasi mengalami crash — kirimkan ke pengembang saat melapor bug.
+          </p>
+          {entries.length === 0 ? (
+            <p className="text-xs text-slate-400 italic text-center py-3">Tidak ada error tercatat.</p>
+          ) : (
+            <div className="space-y-2 max-h-56 overflow-y-auto">
+              {entries.map((e, i) => (
+                <div key={i} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 text-[10.5px] font-mono text-slate-600 dark:text-slate-300">
+                  <div className="flex justify-between gap-2 mb-0.5">
+                    <span className="font-bold text-red-500">{e.source}</span>
+                    <span className="text-slate-400 shrink-0">{new Date(e.timestamp).toLocaleString('id-ID')}</span>
+                  </div>
+                  <p className="break-words">{e.message}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={handleCopy}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" /> {copied ? 'Tersalin!' : 'Salin Log'}
+            </button>
+            <button
+              onClick={handleClear}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold text-xs rounded-xl hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Hapus Log
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
