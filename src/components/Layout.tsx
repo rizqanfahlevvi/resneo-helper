@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect, useRef, useMemo } from 'react';
 import { TabType } from '../types';
-import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard, RefreshCw, Settings } from 'lucide-react';
+import { Baby, Activity, ClipboardList, Stethoscope, Sun, Moon, RotateCcw, Pause, Syringe, X, Menu, Play, ChevronLeft, ChevronRight, BookOpen, FileText, MoreHorizontal, Home, Search, History, LayoutDashboard, RefreshCw, Settings, Calculator } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useStore } from '../store';
 import PwaInstallPrompt from './PwaInstallPrompt';
@@ -24,8 +24,9 @@ const TABS = [
   { id: 'home', label: 'Beranda', icon: Home },
   { id: 'dashboard', label: 'Dashboard Pasien', icon: LayoutDashboard },
   { id: 'emergency', label: 'Alur Resusitasi', icon: Activity },
-  { id: 'scores', label: 'Skor & Kalkulator', icon: ClipboardList },
-  { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope },
+  { id: 'scores', label: 'Skor & Penilaian', icon: ClipboardList },
+  { id: 'calculators', label: 'Kalkulator Klinis', icon: Calculator },
+  { id: 'advanced', label: 'Pertumbuhan & Referensi', icon: Stethoscope },
   { id: 'theory', label: 'Materi & Teori', icon: FileText },
   { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen },
   { id: 'history', label: 'Riwayat Sesi', icon: History },
@@ -499,7 +500,8 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             </div>
             <div className="grid grid-cols-2 gap-2 px-4 pb-4">
               {[
-                { id: 'advanced', label: 'Stabilisasi NICU', icon: Stethoscope, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50' },
+                { id: 'calculators', label: 'Kalkulator Klinis', icon: Calculator, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/50' },
+                { id: 'advanced', label: 'Pertumbuhan & Referensi', icon: Stethoscope, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/30 border-teal-100 dark:border-teal-900/50' },
                 { id: 'theory', label: 'Materi & Teori', icon: FileText, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/50' },
                 { id: 'references', label: 'Pustaka & Referensi', icon: BookOpen, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50' },
                 { id: 'history', label: 'Riwayat Sesi', icon: History, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50' },

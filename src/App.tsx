@@ -19,6 +19,7 @@ import { loadFont } from './utils/fontLoader';
 const TabReferences = lazy(() => import('./components/tabs/TabReferences'));
 const TabTheory = lazy(() => import('./components/tabs/TabTheory'));
 const TabSettings = lazy(() => import('./components/tabs/TabSettings'));
+const TabCalculators = lazy(() => import('./components/tabs/TabCalculators'));
 const AdminPage = lazy(() => import('./auth/AdminPage'));
 
 const TabFallback = () => (
@@ -31,6 +32,7 @@ const TAB_PATHS: Record<TabType, string> = {
   home: '/',
   emergency: '/emergency',
   scores: '/scores',
+  calculators: '/calculators',
   advanced: '/advanced',
   references: '/references',
   theory: '/theory',
@@ -278,6 +280,16 @@ export default function App() {
                   birthWeight={birthWeight}
                   setBirthWeight={setBirthWeight}
                 />
+              )}
+              {visibleTab === 'calculators' && (
+                <Suspense fallback={<TabFallback />}>
+                  <TabCalculators
+                    gestationalAge={gestationalAge}
+                    setGestationalAge={setGestationalAge}
+                    birthWeight={birthWeight}
+                    setBirthWeight={setBirthWeight}
+                  />
+                </Suspense>
               )}
               {visibleTab === 'advanced' && (
                 <TabAdvanced
