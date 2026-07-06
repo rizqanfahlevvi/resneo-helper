@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, AlertTriangle, Droplet, FlaskConical, Info, Syringe, CheckCircle2, Calculator } from 'lucide-react';
 import { useStore } from '../../store';
-import { gentamicinDosing, umbilicalCatheterDepth, FLUID_TABLE } from '../../clinical/doses';
+import { gentamicinDosing, umbilicalCatheterDepth, FLUID_TABLE, ettSizeByWeight, ettDepthAtLip } from '../../clinical/doses';
 import {
   phototherapyThreshold,
   exchangeTransfusionThreshold,
@@ -89,6 +89,8 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
   const [open, setOpen] = useState(true);
   const bwNum = parseInt(effectiveBW) || 0;
   const wtKg = bwNum / 1000;
+  const ettSize = ettSizeByWeight(wtKg);
+  const ettDepth = ettDepthAtLip(wtKg);
 
   return (
     <div className="mt-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
@@ -100,7 +102,7 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
           <Syringe className="w-4 h-4 text-red-600 dark:text-red-400" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Kalkulator Dosis Darurat</h3>
+          <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Kalkulator ETT & Dosis Darurat</h3>
           <p className="text-[10px] text-red-500 dark:text-red-400 font-semibold uppercase tracking-wider">Berdasarkan BB: {bwNum > 0 ? `${bwNum} g (${wtKg.toFixed(3)} kg)` : 'Belum diinput'}</p>
         </div>
         <svg className={`w-4 h-4 text-red-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
@@ -108,6 +110,12 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
       {open && (
         bwNum > 0 ? (
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Ukuran ETT (NRP 8th Ed)</div>
+              <div className="text-xl font-bold font-mono text-slate-800 dark:text-slate-200">{ettSize} mm</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Kedalaman di bibir: {ettDepth} cm (BB + 6)</div>
+              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-wide">Konfirmasi dgn auskultasi/rontgen</div>
+            </div>
             {[
               { name: 'Adrenalin IV/IO', desc: '0.1–0.3 mL/kg (1:10.000)', value: `${(0.1 * wtKg).toFixed(2)} – ${(0.3 * wtKg).toFixed(2)} mL`, note: 'IV/IO bolus cepat', color: 'red' },
               { name: 'Adrenalin via ETT', desc: '0.5–1.0 mL/kg (1:10.000)', value: `${(0.5 * wtKg).toFixed(2)} – ${(1.0 * wtKg).toFixed(2)} mL`, note: 'Intratrakeal', color: 'rose' },
