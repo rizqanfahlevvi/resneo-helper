@@ -10,6 +10,7 @@ import {
   BilirubinRiskFactors,
 } from '../../clinical/bilirubin';
 import { postnatalAge } from '../../clinical/pma';
+import { getVentilatorSettings, VENTILATOR_SCENARIOS, BLOOD_GAS_TARGET, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
 
 interface TabCalculatorsProps {
@@ -65,6 +66,7 @@ export default function TabCalculators({ gestationalAge, setGestationalAge, birt
       </div>
 
       <DosisDaruratCalculator effectiveBW={effectiveBW} />
+      <VentilatorSettingCalculator effectiveBW={effectiveBW} gestationalAge={effectiveGA} />
       <GdsHipoglikemiaCalculator effectiveBW={effectiveBW} />
       <TitrasiCairanGirCalculator effectiveBW={effectiveBW} />
       <GirCalculator />
@@ -139,6 +141,150 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
             <p>Input Berat Lahir (BB) di panel Antropometri atau pada tab Alur Resusitasi untuk melihat dosis otomatis.</p>
           </div>
         )
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// SETTING VENTILATOR MEKANIK NEONATUS
+// ==========================================
+function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiveBW: string; gestationalAge: string }) {
+  const [open, setOpen] = useState(false);
+  const [scenario, setScenario] = useState<VentilatorScenario>('normal');
+  const bwNum = parseInt(effectiveBW) || 0;
+  const gaNum = parseFloat(gestationalAge) || 0;
+  const setting = getVentilatorSettings(scenario);
+  const vtLow = setting.targetVt && bwNum > 0 ? ((setting.targetVt[0] * bwNum) / 1000).toFixed(1) : null;
+  const vtHigh = setting.targetVt && bwNum > 0 ? ((setting.targetVt[1] * bwNum) / 1000).toFixed(1) : null;
+
+  return (
+    <div className="mt-6 glass-card rounded-2xl overflow-hidden">
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-indigo-500" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Setting Ventilator Mekanik Neonatus</span>
+          <span className="text-xs text-indigo-700 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-950/40 px-2 py-0.5 rounded font-bold ml-1">Baru</span>
+        </div>
+        <svg className={`w-4 h-4 text-indigo-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="p-4 md:p-5 border-t border-indigo-100 dark:border-indigo-500/20 space-y-5">
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+            ⚠️ Ini adalah <strong>titik awal</strong> — sesuaikan dengan analisa gas darah, radiologi toraks, dan compliance paru individual pasien. Bukan pengganti judgment klinis dokter yang merawat.
+          </div>
+
+          {(bwNum > 0 || gaNum > 0) && (
+            <p className="text-[10px] text-slate-400">
+              Pasien saat ini: {bwNum > 0 ? `BB ${bwNum} g` : 'BB belum diisi'}{gaNum > 0 ? ` · GA ${gaNum} minggu` : ''}
+            </p>
+          )}
+
+          <div>
+            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Skenario Klinis</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {(Object.keys(VENTILATOR_SCENARIOS) as VentilatorScenario[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setScenario(key)}
+                  className={`px-3 py-2.5 rounded-xl text-left border transition-all ${scenario === key ? 'bg-indigo-500 text-white border-indigo-400 shadow-sm' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400'}`}
+                >
+                  <span className="block text-xs font-bold">{VENTILATOR_SCENARIOS[key].label}</span>
+                  <span className={`block text-[10px] mt-0.5 ${scenario === key ? 'text-indigo-100' : 'text-slate-400'}`}>{VENTILATOR_SCENARIOS[key].description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 text-center">
+              <div className="text-[10px] font-extrabold uppercase text-indigo-500 tracking-wider">PIP</div>
+              <div className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-300">{setting.pip[0]}–{setting.pip[1]}</div>
+              <div className="text-[9px] text-slate-400">cmH₂O</div>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 text-center">
+              <div className="text-[10px] font-extrabold uppercase text-indigo-500 tracking-wider">PEEP</div>
+              <div className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-300">{setting.peep[0]}–{setting.peep[1]}</div>
+              <div className="text-[9px] text-slate-400">cmH₂O</div>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 text-center">
+              <div className="text-[10px] font-extrabold uppercase text-indigo-500 tracking-wider">RR</div>
+              <div className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-300">{setting.rr[0]}–{setting.rr[1]}</div>
+              <div className="text-[9px] text-slate-400">x/menit</div>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 text-center">
+              <div className="text-[10px] font-extrabold uppercase text-indigo-500 tracking-wider">Ti</div>
+              <div className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-300">{setting.ti[0]}–{setting.ti[1]}</div>
+              <div className="text-[9px] text-slate-400">detik</div>
+            </div>
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 text-center">
+              <div className="text-[10px] font-extrabold uppercase text-indigo-500 tracking-wider">Flow</div>
+              <div className="text-lg font-bold font-mono text-indigo-700 dark:text-indigo-300">{setting.flow[0]}–{setting.flow[1]}</div>
+              <div className="text-[9px] text-slate-400">L/menit</div>
+            </div>
+            {vtLow && vtHigh && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-center">
+                <div className="text-[10px] font-extrabold uppercase text-emerald-500 tracking-wider">VT Target</div>
+                <div className="text-lg font-bold font-mono text-emerald-700 dark:text-emerald-300">{vtLow}–{vtHigh}</div>
+                <div className="text-[9px] text-slate-400">mL (BB {bwNum}g)</div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800 rounded-xl p-3">
+            <span className="block text-[10px] font-extrabold uppercase text-sky-600 dark:text-sky-400 tracking-wider mb-1">FiO₂</span>
+            <p className="text-xs text-slate-700 dark:text-slate-300">{setting.fio2Note}</p>
+          </div>
+
+          {setting.notes.length > 0 && (
+            <div>
+              <span className="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Catatan Klinis — {VENTILATOR_SCENARIOS[scenario].label}</span>
+              <ul className="space-y-1.5">
+                {setting.notes.map((note, i) => (
+                  <li key={i} className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2">
+                    <span className="text-indigo-400 mt-0.5">•</span>
+                    <span>{note}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div>
+            <span className="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Target Analisa Gas Darah</span>
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full text-xs">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">pH</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.ph[0]}–{BLOOD_GAS_TARGET.ph[1]}</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaCO₂ (permissive hypercapnia)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.paco2[0]}–{BLOOD_GAS_TARGET.paco2[1]} mmHg</td></tr>
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaO₂</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.pao2[0]}–{BLOOD_GAS_TARGET.pao2[1]} mmHg</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">SpO₂ preduktal (SUPPORT Trial)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.spo2[0]}–{BLOOD_GAS_TARGET.spo2[1]}%</td></tr>
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">HCO₃</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.hco3[0]}–{BLOOD_GAS_TARGET.hco3[1]} mEq/L</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">Base Excess</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.be[0]} s/d {BLOOD_GAS_TARGET.be[1]}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <ClinicalTheoryAccordion
+            title="Kriteria Weaning & Ekstubasi"
+            content={
+              <ul className="space-y-1.5 text-slate-600 dark:text-slate-400">
+                {WEANING_CRITERIA.map((c, i) => (
+                  <li key={i} className="flex items-start gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" /><span>{c}</span></li>
+                ))}
+              </ul>
+            }
+            references={[
+              'Sweet DG et al. European Consensus Guidelines on the Management of RDS: 2022 Update. Neonatology. 2023;120(1):3–23.',
+              'Neonatal Resuscitation Program (NRP) 8th Edition. AAP/AHA. 2021.',
+              'STABLE Program 6th Edition — Post-Resuscitation/Pre-Transport Stabilization.',
+              'Keszler M. State of the Art in Conventional Mechanical Ventilation. J Perinatol. 2009;29:262–275.',
+              'SUPPORT Study Group. Target Ranges of Oxygen Saturation in Extremely Preterm Infants. N Engl J Med. 2010;362:1959–1969.',
+              'IDAI. Panduan Pelayanan Medis Neonatologi (referensi lokal Indonesia).',
+            ]}
+          />
+        </div>
       )}
     </div>
   );

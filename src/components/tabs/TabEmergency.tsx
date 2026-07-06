@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useStore, Phase } from '../../store';
 import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, isValidBirthWeightGram, isValidGestationalAgeWeek, BW_MIN_G, BW_MAX_G, GA_MIN_WK, GA_MAX_WK } from '../../clinical/doses';
 import { APGAR_PARAMS, getApgarTotal, apgarInterpretation } from '../../clinical/apgar';
+import { getVentilatorSettings } from '../../clinical/ventilator';
 import { useAuth } from '../../auth/useAuth';
 import { saveSessionRecord } from '../../lib/firestore';
 import { exportSessionPdf } from '../../utils/pdfExport';
@@ -2023,27 +2024,21 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                 </div>
               </div>
 
-              {/* Setting Grid */}
+              {/* Setting Grid — bersumber dari clinical/ventilator.ts (satu sumber kebenaran dengan tab Kalkulator Klinis) */}
               {(() => {
                 const bbKg = parseFloat(ventBB || birthWeight) / 1000 || 0;
-                const tvMin = bbKg > 0 ? (4 * bbKg).toFixed(1) : '-';
-                const tvMax = bbKg > 0 ? (6 * bbKg).toFixed(1) : '-';
-                const mapMin = lungCondition === 'rds' ? (bbKg > 0 ? (8 * bbKg).toFixed(0) : '-') : '-';
-                const settings = {
-                  normal: { pip: '15–20', peep: '5', rr: '40–50', ti: '0.35–0.45', fio2: gaNum >= 35 ? '21%' : '21–30%', mode: 'AC/PC' },
-                  rds:    { pip: '20–25', peep: '5–6', rr: '40–60', ti: '0.3–0.4', fio2: '30–40%', mode: 'AC/PC' },
-                  mas:    { pip: '25–30', peep: '3–4', rr: '40–50', ti: '0.4–0.5', fio2: '40–60%', mode: 'SIMV+PS' },
-                };
-                const s = settings[lungCondition];
+                const s = getVentilatorSettings(lungCondition);
+                const tvMin = s.targetVt && bbKg > 0 ? (s.targetVt[0] * bbKg).toFixed(1) : '-';
+                const tvMax = s.targetVt && bbKg > 0 ? (s.targetVt[1] * bbKg).toFixed(1) : '-';
+                const modeLabel = lungCondition === 'mas' ? 'SIMV+PS' : 'AC/PC';
                 const cards = [
-                  { label: 'Mode', value: s.mode, sub: 'atau SIMV + PS', color: 'text-cyan-500' },
-                  { label: 'FiO2 Awal', value: s.fio2, sub: 'Titrasi ke SpO2 target', color: 'text-sky-500' },
-                  { label: 'Rate (RR)', value: s.rr, sub: 'x / menit', color: '' },
-                  { label: 'PIP', value: s.pip, sub: 'cmH₂O', color: '' },
-                  { label: 'PEEP', value: s.peep, sub: 'cmH₂O', color: '' },
-                  { label: 'Ti', value: s.ti, sub: 'detik', color: '' },
-                  { label: 'Tidal Volume', value: bbKg > 0 ? `${tvMin}–${tvMax}` : '4–6 mL/kg', sub: bbKg > 0 ? `mL (4–6 mL/kg × ${bbKg.toFixed(2)} kg)` : 'mL — isi BB', color: 'text-emerald-500' },
-                  ...(lungCondition === 'rds' && bbKg > 0 ? [{ label: 'MAP Target', value: mapMin, sub: 'cmH₂O (~8× BB kg) — RDS', color: 'text-violet-500' }] : []),
+                  { label: 'Mode', value: modeLabel, sub: 'atau SIMV + PS', color: 'text-cyan-500' },
+                  { label: 'FiO2 Awal', value: gaNum >= 35 ? '21%' : '21–30%', sub: s.fio2Note, color: 'text-sky-500' },
+                  { label: 'Rate (RR)', value: `${s.rr[0]}–${s.rr[1]}`, sub: 'x / menit', color: '' },
+                  { label: 'PIP', value: `${s.pip[0]}–${s.pip[1]}`, sub: 'cmH₂O', color: '' },
+                  { label: 'PEEP', value: `${s.peep[0]}–${s.peep[1]}`, sub: 'cmH₂O', color: '' },
+                  { label: 'Ti', value: `${s.ti[0]}–${s.ti[1]}`, sub: 'detik', color: '' },
+                  { label: 'Tidal Volume', value: s.targetVt && bbKg > 0 ? `${tvMin}–${tvMax}` : `${s.targetVt?.[0] ?? 4}–${s.targetVt?.[1] ?? 6} mL/kg`, sub: bbKg > 0 ? `mL (× ${bbKg.toFixed(2)} kg)` : 'mL — isi BB', color: 'text-emerald-500' },
                 ];
                 return (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -2073,7 +2068,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
 
               {/* Referensi */}
               <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                Ref: NRP 8th Ed (AAP/AHA 2021) · ILCOR CoSTR 2022 · Klingenberg et al. Arch Dis Child Fetal 2011 · Sweet et al. ESPGHAN/ESPR Guidelines 2023
+                Ref: NRP 8th Ed (AAP/AHA 2021) · Sweet DG et al. Neonatology 2023;120:3–23 · STABLE Program 6th Ed. Skenario lain (Apnea, PPHN) & kriteria weaning tersedia di tab Kalkulator Klinis.
               </p>
 
               <div className="pt-2 border-t border-slate-200 dark:border-slate-700">

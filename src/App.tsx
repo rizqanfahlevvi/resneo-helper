@@ -95,12 +95,10 @@ function fmtDateID(val: any): string {
 }
 
 export default function App() {
-  const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime } = useStore();
+  const { activeTab, setActiveTab, downeScore, setPhase, addLog, elapsedTime, gestationalAge, setGestationalAge, birthWeight, setBirthWeight } = useStore();
   const { user, userProfile, isAdmin, refreshProfile } = useAuth();
   const { fontFamily, fontScale, fontWeight, bwMode, readingMode } = useSettingsStore();
-  // Shared state across tabs
-  const [gestationalAge, setGestationalAge] = useState<string>('');
-  const [birthWeight, setBirthWeight] = useState<string>('');
+  // Shared state across tabs (persisted di Zustand agar data bayi tetap ada meski app ditutup)
   const [profileOpen, setProfileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);

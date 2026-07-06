@@ -70,6 +70,10 @@ interface ResneoStore {
   setPatientIdentity: (p: Partial<PatientIdentity>) => void;
   anthropometry: Anthropometry;
   setAnthropometry: (a: Partial<Anthropometry>) => void;
+  gestationalAge: string;
+  setGestationalAge: (ga: string) => void;
+  birthWeight: string;
+  setBirthWeight: (bw: string) => void;
   phaseStartTime: number | null;
   setPhaseStartTime: (t: number | null) => void;
   sessionHistory: SessionRecord[];
@@ -115,6 +119,10 @@ export const useStore = create<ResneoStore>()(
       setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
       anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
       setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
+      gestationalAge: '',
+      setGestationalAge: (gestationalAge) => set({ gestationalAge }),
+      birthWeight: '',
+      setBirthWeight: (birthWeight) => set({ birthWeight }),
       phaseStartTime: null,
       setPhaseStartTime: (phaseStartTime) => set({ phaseStartTime }),
       sessionHistory: [],
@@ -165,6 +173,8 @@ export const useStore = create<ResneoStore>()(
       partialize: (state) => ({
         patientIdentity: state.patientIdentity,
         anthropometry: state.anthropometry,
+        gestationalAge: state.gestationalAge,
+        birthWeight: state.birthWeight,
         clinicalLog: state.clinicalLog,
         drugLog: state.drugLog,
         apgarEvals: state.apgarEvals,
