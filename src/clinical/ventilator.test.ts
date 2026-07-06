@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { getVentilatorSettings, VENTILATOR_SCENARIOS, BLOOD_GAS_TARGET, WEANING_CRITERIA, VentilatorScenario } from './ventilator';
+import {
+  getVentilatorSettings,
+  VENTILATOR_SCENARIOS,
+  BLOOD_GAS_TARGET,
+  getBloodGasTarget,
+  getGaTier,
+  WEANING_CRITERIA,
+  VentilatorScenario,
+} from './ventilator';
 
-describe('getVentilatorSettings', () => {
+describe('getVentilatorSettings (tanpa GA)', () => {
   const scenarios: VentilatorScenario[] = ['normal', 'rds', 'mas', 'apnea', 'pphn'];
 
   it('mengembalikan setting untuk semua skenario', () => {
@@ -40,6 +48,73 @@ describe('getVentilatorSettings', () => {
       expect(VENTILATOR_SCENARIOS[s]).toBeDefined();
       expect(VENTILATOR_SCENARIOS[s].label.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe('getGaTier', () => {
+  it('mengklasifikasikan tier dengan benar', () => {
+    expect(getGaTier(26)).toBe('extremely_preterm');
+    expect(getGaTier(30)).toBe('very_preterm');
+    expect(getGaTier(34)).toBe('late_preterm');
+    expect(getGaTier(39)).toBe('term');
+  });
+
+  it('batas tepat tier terklasifikasi benar', () => {
+    expect(getGaTier(27.9)).toBe('extremely_preterm');
+    expect(getGaTier(28)).toBe('very_preterm');
+    expect(getGaTier(31.9)).toBe('very_preterm');
+    expect(getGaTier(32)).toBe('late_preterm');
+    expect(getGaTier(36.9)).toBe('late_preterm');
+    expect(getGaTier(37)).toBe('term');
+  });
+});
+
+describe('getVentilatorSettings (dengan GA — stratifikasi prematur)', () => {
+  it('RDS pada ekstrem prematur memakai VT target lebih rendah (gentle ventilation)', () => {
+    const extremePreterm = getVentilatorSettings('rds', 26);
+    const lateTerm = getVentilatorSettings('rds', 38);
+    expect(extremePreterm.targetVt![1]).toBeLessThan(lateTerm.targetVt![1]);
+  });
+
+  it('RDS pada ekstrem prematur memakai PIP atas lebih rendah dari default', () => {
+    const extremePreterm = getVentilatorSettings('rds', 26);
+    const noGa = getVentilatorSettings('rds');
+    expect(extremePreterm.pip[1]).toBeLessThanOrEqual(noGa.pip[1]);
+  });
+
+  it('menambahkan catatan spesifik GA di awal daftar notes', () => {
+    const extremePreterm = getVentilatorSettings('normal', 25);
+    expect(extremePreterm.notes[0]).toContain('Ekstrem prematur');
+  });
+
+  it('MAS tidak disesuaikan oleh GA (epidemiologis dominan aterm)', () => {
+    const masWithGa = getVentilatorSettings('mas', 39);
+    const masNoGa = getVentilatorSettings('mas');
+    expect(masWithGa.pip).toEqual(masNoGa.pip);
+    expect(masWithGa.peep).toEqual(masNoGa.peep);
+  });
+
+  it('GA 0 atau tidak diberikan → sama dengan default (backward compatible)', () => {
+    const withZero = getVentilatorSettings('rds', 0);
+    const withoutGa = getVentilatorSettings('rds');
+    expect(withZero).toEqual(withoutGa);
+  });
+});
+
+describe('getBloodGasTarget', () => {
+  it('default sama dengan BLOOD_GAS_TARGET bila GA tidak diberikan', () => {
+    expect(getBloodGasTarget()).toEqual(BLOOD_GAS_TARGET);
+  });
+
+  it('ekstrem prematur: permissive hypercapnia lebih longgar & SpO2 atas lebih rendah (cegah ROP)', () => {
+    const target = getBloodGasTarget(25);
+    expect(target.ph[0]).toBeLessThan(BLOOD_GAS_TARGET.ph[0]);
+    expect(target.paco2[1]).toBeGreaterThan(BLOOD_GAS_TARGET.paco2[1]);
+    expect(target.spo2[1]).toBeLessThan(BLOOD_GAS_TARGET.spo2[1]);
+  });
+
+  it('aterm memakai target standar', () => {
+    expect(getBloodGasTarget(39)).toEqual(BLOOD_GAS_TARGET);
   });
 });
 

@@ -10,7 +10,7 @@ import {
   BilirubinRiskFactors,
 } from '../../clinical/bilirubin';
 import { postnatalAge } from '../../clinical/pma';
-import { getVentilatorSettings, VENTILATOR_SCENARIOS, BLOOD_GAS_TARGET, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
+import { getVentilatorSettings, VENTILATOR_SCENARIOS, getBloodGasTarget, getGaTier, GA_TIER_LABELS, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
 
 interface TabCalculatorsProps {
@@ -154,7 +154,9 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
   const [scenario, setScenario] = useState<VentilatorScenario>('normal');
   const bwNum = parseInt(effectiveBW) || 0;
   const gaNum = parseFloat(gestationalAge) || 0;
-  const setting = getVentilatorSettings(scenario);
+  const setting = getVentilatorSettings(scenario, gaNum);
+  const bloodGasTarget = getBloodGasTarget(gaNum);
+  const gaTier = gaNum > 0 ? getGaTier(gaNum) : null;
   const vtLow = setting.targetVt && bwNum > 0 ? ((setting.targetVt[0] * bwNum) / 1000).toFixed(1) : null;
   const vtHigh = setting.targetVt && bwNum > 0 ? ((setting.targetVt[1] * bwNum) / 1000).toFixed(1) : null;
 
@@ -175,9 +177,16 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
           </div>
 
           {(bwNum > 0 || gaNum > 0) && (
-            <p className="text-[10px] text-slate-400">
-              Pasien saat ini: {bwNum > 0 ? `BB ${bwNum} g` : 'BB belum diisi'}{gaNum > 0 ? ` · GA ${gaNum} minggu` : ''}
-            </p>
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-2.5">
+              <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                Pasien saat ini: {bwNum > 0 ? `BB ${bwNum} g` : 'BB belum diisi'}{gaNum > 0 ? ` · GA ${gaNum} minggu` : ''}
+              </p>
+              {gaTier && (
+                <p className="text-[10px] text-indigo-500 dark:text-indigo-400 mt-0.5">
+                  Kategori: <strong>{GA_TIER_LABELS[gaTier]}</strong> — setting di bawah sudah disesuaikan untuk kategori ini
+                </p>
+              )}
+            </div>
           )}
 
           <div>
@@ -251,16 +260,18 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
           )}
 
           <div>
-            <span className="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">Target Analisa Gas Darah</span>
+            <span className="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2">
+              Target Analisa Gas Darah {gaTier === 'extremely_preterm' && <span className="text-amber-500 normal-case font-semibold">(disesuaikan untuk ekstrem prematur)</span>}
+            </span>
             <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
               <table className="w-full text-xs">
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">pH</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.ph[0]}–{BLOOD_GAS_TARGET.ph[1]}</td></tr>
-                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaCO₂ (permissive hypercapnia)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.paco2[0]}–{BLOOD_GAS_TARGET.paco2[1]} mmHg</td></tr>
-                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaO₂</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.pao2[0]}–{BLOOD_GAS_TARGET.pao2[1]} mmHg</td></tr>
-                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">SpO₂ preduktal (SUPPORT Trial)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.spo2[0]}–{BLOOD_GAS_TARGET.spo2[1]}%</td></tr>
-                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">HCO₃</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.hco3[0]}–{BLOOD_GAS_TARGET.hco3[1]} mEq/L</td></tr>
-                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">Base Excess</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{BLOOD_GAS_TARGET.be[0]} s/d {BLOOD_GAS_TARGET.be[1]}</td></tr>
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">pH</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.ph[0]}–{bloodGasTarget.ph[1]}</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaCO₂ (permissive hypercapnia)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.paco2[0]}–{bloodGasTarget.paco2[1]} mmHg</td></tr>
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">PaO₂</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.pao2[0]}–{bloodGasTarget.pao2[1]} mmHg</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">SpO₂ preduktal (SUPPORT/STOP-ROP Trial)</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.spo2[0]}–{bloodGasTarget.spo2[1]}%</td></tr>
+                  <tr className="bg-white dark:bg-slate-900/30"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">HCO₃</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.hco3[0]}–{bloodGasTarget.hco3[1]} mEq/L</td></tr>
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/10"><td className="p-2 font-semibold text-slate-600 dark:text-slate-300">Base Excess</td><td className="p-2 text-right font-mono font-bold text-slate-800 dark:text-slate-200">{bloodGasTarget.be[0]} s/d {bloodGasTarget.be[1]}</td></tr>
                 </tbody>
               </table>
             </div>
@@ -312,7 +323,10 @@ function GdsHipoglikemiaCalculator({ effectiveBW }: { effectiveBW: string }) {
         <svg className={`w-4 h-4 text-rose-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
-        <div className="p-4 md:p-5 border-t border-rose-100 dark:border-rose-500/20">
+        <div className="p-4 md:p-5 border-t border-rose-100 dark:border-rose-500/20 space-y-3">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-lg p-2">
+            Bayi prematur, KMK (kecil masa kehamilan)/SGA, dan BMK/LGA merupakan kelompok risiko tinggi hipoglikemia — lakukan skrining GDS lebih dini &amp; lebih sering (mis. jam 1, 2, 4, 6 pasca-lahir) dibanding bayi aterm sehat.
+          </p>
           {!showGds ? (
             <button
               onClick={() => setShowGds(true)}

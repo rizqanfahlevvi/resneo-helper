@@ -2027,7 +2027,7 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
               {/* Setting Grid — bersumber dari clinical/ventilator.ts (satu sumber kebenaran dengan tab Kalkulator Klinis) */}
               {(() => {
                 const bbKg = parseFloat(ventBB || birthWeight) / 1000 || 0;
-                const s = getVentilatorSettings(lungCondition);
+                const s = getVentilatorSettings(lungCondition, gaNum);
                 const tvMin = s.targetVt && bbKg > 0 ? (s.targetVt[0] * bbKg).toFixed(1) : '-';
                 const tvMax = s.targetVt && bbKg > 0 ? (s.targetVt[1] * bbKg).toFixed(1) : '-';
                 const modeLabel = lungCondition === 'mas' ? 'SIMV+PS' : 'AC/PC';

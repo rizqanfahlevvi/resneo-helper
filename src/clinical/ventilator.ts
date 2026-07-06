@@ -1,6 +1,9 @@
 // ============================================================
 // Setting Ventilator Mekanik Neonatus — panduan awal berbasis
-// evidence untuk ventilasi konvensional (CMV/SIMV).
+// evidence untuk ventilasi konvensional (CMV/SIMV), distratifikasi
+// per skenario klinis DAN kategori usia gestasi (GA tier) karena
+// toleransi tekanan, target gas darah, dan strategi ventilasi
+// berbeda signifikan antara bayi ekstrem prematur dan aterm.
 //
 // ⚠️ Ini adalah TITIK AWAL yang harus disesuaikan dengan analisa
 // gas darah, radiologi toraks, compliance paru individual, dan
@@ -10,18 +13,38 @@
 // Referensi utama:
 // - Sweet DG et al. European Consensus Guidelines on the
 //   Management of RDS: 2022 Update. Neonatology. 2023;120(1):3–23.
+//   (secara eksplisit menstratifikasi tata laksana RDS per GA)
 // - Neonatal Resuscitation Program (NRP) 8th Edition. AAP/AHA. 2021.
 // - STABLE Program 6th Edition — Post-Resuscitation/Pre-Transport
 //   Stabilization.
 // - Keszler M. State of the Art in Conventional Mechanical
 //   Ventilation. J Perinatol. 2009;29:262–275.
-// - SUPPORT Study Group. Target Ranges of Oxygen Saturation in
-//   Extremely Preterm Infants. N Engl J Med. 2010;362:1959–1969.
+// - SUPPORT Study Group; BOOST-II; STOP-ROP. Target oksigenasi &
+//   risiko ROP pada bayi ekstrem prematur. N Engl J Med. 2010;
+//   362:1959–1969.
+// - Sant'Anna GM & Keszler M. Weaning Preterm Infants from
+//   Mechanical Ventilation. NeoReviews.
 // - IDAI. Panduan Pelayanan Medis Neonatologi (referensi lokal
 //   Indonesia).
 // ============================================================
 
 export type VentilatorScenario = 'normal' | 'rds' | 'mas' | 'apnea' | 'pphn';
+
+export type GaTier = 'extremely_preterm' | 'very_preterm' | 'late_preterm' | 'term';
+
+export function getGaTier(gaWeek: number): GaTier {
+  if (gaWeek > 0 && gaWeek < 28) return 'extremely_preterm';
+  if (gaWeek < 32) return 'very_preterm';
+  if (gaWeek < 37) return 'late_preterm';
+  return 'term';
+}
+
+export const GA_TIER_LABELS: Record<GaTier, string> = {
+  extremely_preterm: 'Ekstrem Prematur (<28 minggu)',
+  very_preterm: 'Sangat Prematur (28–31 minggu)',
+  late_preterm: 'Prematur Lanjut (32–36 minggu)',
+  term: 'Aterm (≥37 minggu)',
+};
 
 export interface VentilatorSettingRange {
   pip: [number, number];        // cmH2O
@@ -81,6 +104,7 @@ const SETTINGS: Record<VentilatorScenario, VentilatorSettingRange> = {
       'Gunakan rate lebih rendah & perpanjang waktu ekspirasi untuk mencegah air-trapping akibat obstruksi parsial jalan napas.',
       'Hindari PEEP terlalu tinggi — risiko air-trapping dan pneumotoraks meningkat.',
       'Risiko pneumotoraks tinggi — siapkan monitoring & alat dekompresi. Pertimbangkan HFOV bila refrakter.',
+      'MAS praktis hanya terjadi pada bayi aterm/post-term — stratifikasi GA prematur tidak relevan untuk skenario ini.',
     ],
   },
   apnea: {
@@ -112,8 +136,49 @@ const SETTINGS: Record<VentilatorScenario, VentilatorSettingRange> = {
   },
 };
 
-export function getVentilatorSettings(scenario: VentilatorScenario): VentilatorSettingRange {
-  return SETTINGS[scenario];
+/**
+ * Penyesuaian per tier GA — hanya diterapkan bermakna pada skenario yang
+ * insidennya lintas-GA (normal, RDS, PPHN). MAS/Apnea tidak disesuaikan
+ * karena secara epidemiologis dominan pada kelompok GA tertentu saja.
+ */
+function applyGaAdjustment(base: VentilatorSettingRange, scenario: VentilatorScenario, tier: GaTier): VentilatorSettingRange {
+  const adjusted: VentilatorSettingRange = { ...base, notes: [...base.notes] };
+
+  if (scenario !== 'normal' && scenario !== 'rds' && scenario !== 'pphn') {
+    return adjusted;
+  }
+
+  if (tier === 'extremely_preterm') {
+    adjusted.pip = [base.pip[0], Math.max(base.pip[0] + 2, base.pip[1] - 2)];
+    if (base.targetVt) adjusted.targetVt = [4, 5];
+    adjusted.notes.unshift(
+      'Ekstrem prematur (<28 mgg): utamakan dukungan napas non-invasif (nCPAP/NIPPV) bila memungkinkan — ventilasi invasif menaikkan risiko BPD.',
+      'Strategi "gentle ventilation": PIP seminimal mungkin untuk chest rise adekuat, VT target lebih rendah (4–5 mL/kg) untuk mengurangi volutrauma.',
+      'Permissive hypercapnia lebih longgar dapat diterima (PaCO₂ hingga 55–60 mmHg, pH >7,20) — prioritaskan menghindari volutrauma dibanding normokapnia ketat.',
+      'Target SpO₂ atas DIPERKETAT ke ≤94% — hindari hiperoksia (risiko retinopati prematuritas/ROP, evidence STOP-ROP & BOOST-II).',
+      'Pertimbangkan kafein sitrat dini (dalam 24 jam) untuk turunkan risiko kegagalan ekstubasi & apnea prematuritas.',
+    );
+  } else if (tier === 'very_preterm') {
+    adjusted.notes.unshift(
+      'Sangat prematur (28–31 mgg): pertimbangkan nCPAP/NIPPV sebagai lini pertama sebelum intubasi bila distres napas tidak berat.',
+      'Target SpO₂ atas tetap ≤95% — hindari hiperoksia berkepanjangan (risiko ROP menurun tapi belum hilang pada kelompok ini).',
+    );
+  } else if (tier === 'late_preterm') {
+    adjusted.notes.unshift('Prematur lanjut (32–36 mgg): risiko RDS/TTN masih ada namun umumnya lebih ringan; evaluasi respons terhadap CPAP dini sebelum eskalasi ke ventilasi invasif.');
+  } else {
+    if (scenario === 'rds') {
+      adjusted.notes.unshift('RDS pada bayi aterm jarang — pertimbangkan penyebab sekunder (aspirasi, pneumonia, TTN berat) dan permissive hypercapnia TIDAK perlu seagresif pada prematur (target pH mendekati normal, 7,30–7,40).');
+    }
+  }
+
+  return adjusted;
+}
+
+export function getVentilatorSettings(scenario: VentilatorScenario, gaWeek?: number): VentilatorSettingRange {
+  const base = SETTINGS[scenario];
+  if (!gaWeek || gaWeek <= 0) return base;
+  const tier = getGaTier(gaWeek);
+  return applyGaAdjustment(base, scenario, tier);
 }
 
 export interface BloodGasTarget {
@@ -135,6 +200,24 @@ export const BLOOD_GAS_TARGET: BloodGasTarget = {
   be: [-4, 4],
 };
 
+/**
+ * Target gas darah disesuaikan GA — ekstrem prematur mendapat rentang
+ * pH bawah & PaCO2 atas lebih longgar (permissive hypercapnia lebih
+ * agresif untuk kurangi volutrauma), serta batas atas SpO2 lebih rendah
+ * untuk mengurangi risiko ROP (STOP-ROP, BOOST-II, SUPPORT Trial).
+ */
+export function getBloodGasTarget(gaWeek?: number): BloodGasTarget {
+  if (!gaWeek || gaWeek <= 0) return BLOOD_GAS_TARGET;
+  const tier = getGaTier(gaWeek);
+  if (tier === 'extremely_preterm') {
+    return { ...BLOOD_GAS_TARGET, ph: [7.20, 7.40], paco2: [45, 60], spo2: [90, 94] };
+  }
+  if (tier === 'very_preterm') {
+    return { ...BLOOD_GAS_TARGET, spo2: [90, 95] };
+  }
+  return BLOOD_GAS_TARGET;
+}
+
 export const WEANING_CRITERIA: string[] = [
   'FiO₂ < 30–40%',
   'PIP < 14–16 cmH2O',
@@ -142,5 +225,5 @@ export const WEANING_CRITERIA: string[] = [
   'RR ventilator < 20 x/menit (mode SIMV) dengan usaha napas spontan adekuat',
   'Analisa gas darah stabil dalam target',
   'Tidak ada apnea signifikan & hemodinamik stabil',
-  'Pertimbangkan kafein sitrat sebelum ekstubasi pada bayi prematur',
+  'Pertimbangkan kafein sitrat sebelum ekstubasi pada bayi prematur (idealnya sudah dimulai sejak dini)',
 ];
