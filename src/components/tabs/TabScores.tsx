@@ -254,6 +254,14 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     useStore.getState().setDowneScore(downeTotal);
   }, [downeTotal]);
 
+  useEffect(() => {
+    useStore.getState().setThomsonScore(thomsonTotal);
+  }, [thomsonTotal]);
+
+  useEffect(() => {
+    useStore.getState().setSilvermanScore(silvermanTotal);
+  }, [silvermanTotal]);
+
   const DetailedScoreOption = ({ val, current, onClick, desc, svg, activeColor = 'bg-blue-600 border-blue-500 shadow-blue-500/30' }: { key?: string | number, val: number, current: number | null, onClick: () => void, desc?: string, svg?: React.ReactNode, activeColor?: string }) => {
     const { addRipple, ripplesContainer } = useRipple();
     return (

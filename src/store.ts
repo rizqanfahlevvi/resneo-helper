@@ -66,6 +66,10 @@ interface ResneoStore {
   clearLog: () => void;
   downeScore: number;
   setDowneScore: (score: number) => void;
+  thomsonScore: number;
+  setThomsonScore: (score: number) => void;
+  silvermanScore: number;
+  setSilvermanScore: (score: number) => void;
   patientIdentity: PatientIdentity;
   setPatientIdentity: (p: Partial<PatientIdentity>) => void;
   anthropometry: Anthropometry;
@@ -115,6 +119,10 @@ export const useStore = create<ResneoStore>()(
       clearLog: () => set({ clinicalLog: [] }),
       downeScore: 0,
       setDowneScore: (downeScore) => set({ downeScore }),
+      thomsonScore: 0,
+      setThomsonScore: (thomsonScore) => set({ thomsonScore }),
+      silvermanScore: 0,
+      setSilvermanScore: (silvermanScore) => set({ silvermanScore }),
       patientIdentity: { namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '', birthDateTime: '' },
       setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
       anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
@@ -182,6 +190,8 @@ export const useStore = create<ResneoStore>()(
         phase: state.phase,
         elapsedTime: state.elapsedTime,
         downeScore: state.downeScore,
+        thomsonScore: state.thomsonScore,
+        silvermanScore: state.silvermanScore,
         activeTab: state.activeTab,
       }),
     }

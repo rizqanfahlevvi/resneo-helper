@@ -3,6 +3,13 @@ import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, Ch
 import { useStore } from '../../store';
 import { TabType } from '../../types';
 import { postnatalAge, postmenstrualAgeWeeks, formatPMA, formatPostnatalAge } from '../../clinical/pma';
+import { getApgarTotal, apgarInterpretation } from '../../clinical/apgar';
+
+function getThomsonInterpretation(score: number): { label: string; color: string } {
+  if (score <= 10) return { label: 'HIE Ringan', color: 'text-emerald-600 dark:text-emerald-400' };
+  if (score <= 14) return { label: 'HIE Sedang', color: 'text-amber-600 dark:text-amber-400' };
+  return { label: 'HIE Berat', color: 'text-rose-600 dark:text-rose-400' };
+}
 
 interface TabDashboardProps {
   onNavigate: (tab: TabType) => void;
@@ -54,11 +61,17 @@ function formatElapsed(secs: number): string {
 }
 
 export default function TabDashboard({ onNavigate }: TabDashboardProps) {
-  const { patientIdentity, setPatientIdentity, anthropometry, downeScore, phase, elapsedTime, clinicalLog, drugLog } = useStore();
+  const { patientIdentity, setPatientIdentity, anthropometry, downeScore, thomsonScore, silvermanScore, apgarEvals, phase, elapsedTime, clinicalLog, drugLog } = useStore();
   const [identityExpanded, setIdentityExpanded] = useState(true);
 
   const hasBbl = !!anthropometry.bbl;
   const downeInterp = getDowneInterpretation(downeScore);
+  const thomsonInterp = getThomsonInterpretation(thomsonScore);
+
+  const filledApgarEvals = apgarEvals.filter(ev => getApgarTotal(ev).complete);
+  const latestApgar = filledApgarEvals.length > 0 ? filledApgarEvals[filledApgarEvals.length - 1] : null;
+  const latestApgarTotal = latestApgar ? getApgarTotal(latestApgar).total : null;
+  const apgarInterp = latestApgarTotal !== null ? apgarInterpretation(latestApgarTotal) : null;
 
   const lastLogs = clinicalLog.slice(-3).reverse();
 
@@ -230,9 +243,18 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* APGAR */}
         <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">APGAR</span>
-          <span className="text-2xl font-black text-slate-400 dark:text-slate-600">—</span>
-          <button onClick={() => onNavigate('scores')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Isi Skor <ArrowRight className="w-3 h-3" /></button>
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">APGAR{latestApgar ? ` (mnt ${latestApgar.minute})` : ''}</span>
+          {latestApgarTotal !== null && apgarInterp ? (
+            <>
+              <span className={`text-2xl font-black ${apgarInterp.color}`}>{latestApgarTotal}<span className="text-xs font-normal text-slate-400">/10</span></span>
+              <span className={`text-xs font-bold ${apgarInterp.color}`}>{apgarInterp.label}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-2xl font-black text-slate-400 dark:text-slate-600">—</span>
+              <button onClick={() => onNavigate('scores')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Isi Skor <ArrowRight className="w-3 h-3" /></button>
+            </>
+          )}
         </div>
         {/* Downe */}
         <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
@@ -252,8 +274,17 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
         {/* Thomson */}
         <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
           <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Thomson</span>
-          <span className="text-2xl font-black text-slate-400 dark:text-slate-600">—</span>
-          <button onClick={() => onNavigate('scores')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Isi Skor <ArrowRight className="w-3 h-3" /></button>
+          {thomsonScore > 0 ? (
+            <>
+              <span className={`text-2xl font-black ${thomsonInterp.color}`}>{thomsonScore}<span className="text-xs font-normal text-slate-400">/22</span></span>
+              <span className={`text-xs font-bold ${thomsonInterp.color}`}>{thomsonInterp.label}</span>
+            </>
+          ) : (
+            <>
+              <span className="text-2xl font-black text-slate-400 dark:text-slate-600">—</span>
+              <button onClick={() => onNavigate('scores')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Isi Skor <ArrowRight className="w-3 h-3" /></button>
+            </>
+          )}
         </div>
         {/* Resusitasi */}
         <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
@@ -286,7 +317,14 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
               • Distres napas: <span className="font-bold">{downeInterp.label}</span> (Skor Downe {downeScore}/10)
             </li>
           ) : (
-            <li className="text-sm text-slate-400 dark:text-slate-500">• Skor distres napas belum diisi</li>
+            <li className="text-sm text-slate-400 dark:text-slate-500">• Skor distres napas (Downe) belum diisi</li>
+          )}
+          {silvermanScore > 0 ? (
+            <li className="text-sm text-slate-700 dark:text-slate-300">
+              • Skor Silverman-Anderson: <span className="font-bold">{silvermanScore}/10</span>
+            </li>
+          ) : (
+            <li className="text-sm text-slate-400 dark:text-slate-500">• Skor Silverman-Anderson belum diisi</li>
           )}
           {hasBbl ? (
             <li className="text-sm text-slate-700 dark:text-slate-300">
