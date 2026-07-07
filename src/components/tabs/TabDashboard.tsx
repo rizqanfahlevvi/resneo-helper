@@ -11,6 +11,23 @@ function getThomsonInterpretation(score: number): { label: string; color: string
   return { label: 'HIE Berat', color: 'text-rose-600 dark:text-rose-400' };
 }
 
+const LUBCHENCO_LIMITS: Record<number, [number, number]> = {
+  24: [500, 800], 25: [550, 900], 26: [600, 1000], 27: [650, 1150],
+  28: [750, 1300], 29: [850, 1500], 30: [1000, 1700], 31: [1150, 1900],
+  32: [1300, 2150], 33: [1500, 2400], 34: [1700, 2700], 35: [1900, 2950],
+  36: [2100, 3200], 37: [2300, 3450], 38: [2500, 3700], 39: [2700, 3950],
+  40: [2850, 4100], 41: [2950, 4250], 42: [3000, 4350],
+};
+
+function getLubchencoStatus(ga: number, bw: number): { label: string; color: string } | null {
+  if (!ga || !bw) return null;
+  const effectiveGa = Math.max(24, Math.min(42, ga));
+  const [p10, p90] = LUBCHENCO_LIMITS[effectiveGa];
+  if (bw < p10) return { label: 'SGA (Kecil Masa Kehamilan)', color: 'text-amber-600 dark:text-amber-400' };
+  if (bw > p90) return { label: 'LGA (Besar Masa Kehamilan)', color: 'text-sky-600 dark:text-sky-400' };
+  return { label: 'AGA (Sesuai Masa Kehamilan)', color: 'text-emerald-600 dark:text-emerald-400' };
+}
+
 interface TabDashboardProps {
   onNavigate: (tab: TabType) => void;
 }
@@ -61,8 +78,9 @@ function formatElapsed(secs: number): string {
 }
 
 export default function TabDashboard({ onNavigate }: TabDashboardProps) {
-  const { patientIdentity, setPatientIdentity, anthropometry, downeScore, thomsonScore, silvermanScore, apgarEvals, phase, elapsedTime, clinicalLog, drugLog } = useStore();
+  const { patientIdentity, setPatientIdentity, anthropometry, gestationalAge, downeScore, thomsonScore, silvermanScore, apgarEvals, phase, elapsedTime, clinicalLog, drugLog } = useStore();
   const [identityExpanded, setIdentityExpanded] = useState(true);
+  const [logExpanded, setLogExpanded] = useState(false);
 
   const hasBbl = !!anthropometry.bbl;
   const downeInterp = getDowneInterpretation(downeScore);
@@ -72,6 +90,10 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
   const latestApgar = filledApgarEvals.length > 0 ? filledApgarEvals[filledApgarEvals.length - 1] : null;
   const latestApgarTotal = latestApgar ? getApgarTotal(latestApgar).total : null;
   const apgarInterp = latestApgarTotal !== null ? apgarInterpretation(latestApgarTotal) : null;
+
+  const gaNum = parseInt(gestationalAge || patientIdentity.usia) || 0;
+  const bwNum = parseInt(anthropometry.bbl) || 0;
+  const lubchencoStatus = getLubchencoStatus(gaNum, bwNum);
 
   const lastLogs = clinicalLog.slice(-3).reverse();
 
@@ -286,20 +308,18 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
             </>
           )}
         </div>
-        {/* Resusitasi */}
+        {/* Lubchenco */}
         <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-2">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resusitasi</span>
-          {resusActive ? (
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Lubchenco</span>
+          {lubchencoStatus ? (
             <>
-              <span className={`text-sm font-black ${resusCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                {resusCompleted ? 'Selesai' : 'Aktif'}
-              </span>
-              <span className="text-xs font-mono text-slate-500">{formatElapsed(elapsedTime)}</span>
+              <span className={`text-sm font-black leading-tight ${lubchencoStatus.color}`}>{lubchencoStatus.label}</span>
+              <button onClick={() => onNavigate('advanced')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Lihat Kurva <ArrowRight className="w-3 h-3" /></button>
             </>
           ) : (
             <>
               <span className="text-2xl font-black text-slate-400 dark:text-slate-600">—</span>
-              <button onClick={() => onNavigate('emergency')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Mulai <ArrowRight className="w-3 h-3" /></button>
+              <button onClick={() => onNavigate('advanced')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Isi Data <ArrowRight className="w-3 h-3" /></button>
             </>
           )}
         </div>
@@ -335,40 +355,59 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
           ) : (
             <li className="text-sm text-slate-400 dark:text-slate-500">• Antropometri belum diisi</li>
           )}
-          {resusActive ? (
-            <li className="text-sm text-slate-700 dark:text-slate-300">
-              • Resusitasi: <span className={`font-bold ${resusCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                {resusCompleted ? `Selesai (${formatElapsed(elapsedTime)})` : `Berjalan — ${formatElapsed(elapsedTime)} | Fase: ${phase.replace(/_/g, ' ')}`}
-              </span>
-            </li>
-          ) : (
-            <li className="text-sm text-slate-400 dark:text-slate-500">• Resusitasi belum dimulai</li>
-          )}
         </ul>
       </div>
 
       {/* Log Ringkas */}
-      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
+      <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+        <button
+          onClick={() => setLogExpanded(v => !v)}
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+        >
           <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
             <History className="w-4 h-4 text-indigo-400" />
             Log Tindakan Terakhir {clinicalLog.length > 0 && <span className="text-xs font-normal text-slate-400">({clinicalLog.length} entri)</span>}
           </h3>
-          {clinicalLog.length > 0 && (
-            <button onClick={() => onNavigate('history')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Lihat Riwayat <ArrowRight className="w-3 h-3" /></button>
-          )}
-        </div>
-        {lastLogs.length > 0 ? (
-          <div className="space-y-2">
-            {lastLogs.map((log, i) => (
-              <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 font-mono text-xs text-slate-700 dark:text-slate-300">
-                <span className="text-indigo-500 dark:text-indigo-400 font-bold">{log.time}</span> {log.message}
+          {logExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </button>
+
+        {logExpanded && (
+          <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+            {/* Status Resusitasi */}
+            <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[10px] font-black uppercase text-indigo-400 tracking-wider">Status Resusitasi</div>
+                {resusActive ? (
+                  <div className={`font-bold text-sm ${resusCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-700 dark:text-indigo-300'}`}>
+                    {resusCompleted ? `Selesai — ${formatElapsed(elapsedTime)}` : `Aktif — ${formatElapsed(elapsedTime)} · Fase: ${phase.replace(/_/g, ' ')}`}
+                  </div>
+                ) : (
+                  <div className="font-bold text-sm text-slate-400 dark:text-slate-500">Belum dimulai</div>
+                )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-slate-400 dark:text-slate-500 text-sm text-center py-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-            Belum ada log tindakan. Mulai sesi resusitasi untuk mencatat tindakan.
+              {!resusActive && (
+                <button onClick={() => onNavigate('emergency')} className="shrink-0 text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Mulai <ArrowRight className="w-3 h-3" /></button>
+              )}
+            </div>
+
+            {clinicalLog.length > 0 && (
+              <div className="flex justify-end">
+                <button onClick={() => onNavigate('history')} className="text-xs text-indigo-500 font-semibold hover:underline flex items-center gap-1">Lihat Riwayat <ArrowRight className="w-3 h-3" /></button>
+              </div>
+            )}
+            {lastLogs.length > 0 ? (
+              <div className="space-y-2">
+                {lastLogs.map((log, i) => (
+                  <div key={i} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 font-mono text-xs text-slate-700 dark:text-slate-300">
+                    <span className="text-indigo-500 dark:text-indigo-400 font-bold">{log.time}</span> {log.message}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-slate-400 dark:text-slate-500 text-sm text-center py-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                Belum ada log tindakan. Mulai sesi resusitasi untuk mencatat tindakan.
+              </div>
+            )}
           </div>
         )}
       </div>
