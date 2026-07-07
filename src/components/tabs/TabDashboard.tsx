@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, ChevronDown, ChevronUp, Clock } from 'lucide-react';
-import { useStore } from '../../store';
+import { LayoutDashboard, Baby, ClipboardList, Activity, History, ArrowRight, ChevronDown, ChevronUp, Clock, Users, Plus, Trash2 } from 'lucide-react';
+import { useStore, PatientRecord } from '../../store';
 import { TabType } from '../../types';
 import { postnatalAge, postmenstrualAgeWeeks, formatPMA, formatPostnatalAge } from '../../clinical/pma';
 import { getApgarTotal, apgarInterpretation } from '../../clinical/apgar';
@@ -77,6 +77,87 @@ function formatElapsed(secs: number): string {
   return `${m}:${s}`;
 }
 
+function patientDisplayName(r: PatientRecord): string {
+  return r.patientIdentity.namaIbu ? `By. Ny. ${r.patientIdentity.namaIbu}` : 'Pasien Baru (belum diisi)';
+}
+
+function PatientDatabaseCard() {
+  const { patients, activePatientId, addPatient, selectPatient, deletePatient } = useStore();
+  const [expanded, setExpanded] = useState(true);
+
+  const handleDelete = (e: React.MouseEvent, r: PatientRecord) => {
+    e.stopPropagation();
+    if (window.confirm(`Hapus data "${patientDisplayName(r)}" secara permanen dari perangkat ini?`)) {
+      deletePatient(r.id);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Users className="w-4 h-4 text-indigo-400" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Database Pasien</span>
+          <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold bg-indigo-50 dark:bg-indigo-950/30 px-2 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900">
+            {patients.length} bayi
+          </span>
+        </div>
+        {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 space-y-2 border-t border-slate-100 dark:border-slate-800 pt-4">
+          {patients.length === 0 && (
+            <div className="text-slate-400 dark:text-slate-500 text-sm text-center py-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+              Belum ada data bayi tersimpan.
+            </div>
+          )}
+          {patients.map((r) => {
+            const isActive = r.id === activePatientId;
+            return (
+              <button
+                key={r.id}
+                onClick={() => selectPatient(r.id)}
+                className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-all ${
+                  isActive
+                    ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800'
+                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-indigo-200'
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className={`font-bold text-sm truncate ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {patientDisplayName(r)}
+                    {isActive && <span className="ml-2 text-[10px] font-black uppercase text-indigo-500">Aktif</span>}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {(() => { const ga = r.patientIdentity.usia || r.gestationalAge; return ga ? `GA ${ga} mgg` : 'GA —'; })()} · {(r.anthropometry.bbl || r.birthWeight) ? `${r.anthropometry.bbl || r.birthWeight} g` : 'BB —'}
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => handleDelete(e, r)}
+                  className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                  aria-label="Hapus pasien"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </button>
+            );
+          })}
+          <button
+            onClick={() => addPatient()}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-indigo-300 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-sm hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Pasien Baru
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TabDashboard({ onNavigate }: TabDashboardProps) {
   const { patientIdentity, setPatientIdentity, anthropometry, gestationalAge, downeScore, thomsonScore, silvermanScore, apgarEvals, phase, elapsedTime, clinicalLog, drugLog } = useStore();
   const [identityExpanded, setIdentityExpanded] = useState(true);
@@ -106,6 +187,9 @@ export default function TabDashboard({ onNavigate }: TabDashboardProps) {
         <LayoutDashboard className="w-7 h-7 text-indigo-400" />
         Dashboard Pasien
       </h2>
+
+      {/* Database Pasien (banyak bayi) */}
+      <PatientDatabaseCard />
 
       {/* Identitas Pasien */}
       <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">

@@ -50,6 +50,70 @@ export interface DrugAction {
   notes: string;
 }
 
+// Snapshot bayi tersimpan di database pasien — memungkinkan banyak bayi
+// tersimpan sekaligus, masing-masing dengan identitas & data klinisnya sendiri.
+export interface PatientRecord {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  patientIdentity: PatientIdentity;
+  anthropometry: Anthropometry;
+  gestationalAge: string;
+  birthWeight: string;
+  apgarEvals: ApgarEval[];
+  downeScore: number;
+  thomsonScore: number;
+  silvermanScore: number;
+  clinicalLog: { time: string; message: string }[];
+  drugLog: DrugAction[];
+  phase: Phase;
+  elapsedTime: number;
+}
+
+const blankPatientIdentity = (): PatientIdentity => ({
+  namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '', birthDateTime: '',
+});
+const blankAnthropometry = (): Anthropometry => ({ bbl: '', pb: '', lk: '', ld: '', lila: '' });
+const blankApgarEvals = (): ApgarEval[] => [
+  { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+  { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
+];
+
+type ActivePatientFields = Pick<ResneoStore,
+  'patientIdentity' | 'anthropometry' | 'gestationalAge' | 'birthWeight' | 'apgarEvals' |
+  'downeScore' | 'thomsonScore' | 'silvermanScore' | 'clinicalLog' | 'drugLog' | 'phase' | 'elapsedTime'
+>;
+
+const blankActivePatientFields = (): ActivePatientFields => ({
+  patientIdentity: blankPatientIdentity(),
+  anthropometry: blankAnthropometry(),
+  gestationalAge: '',
+  birthWeight: '',
+  apgarEvals: blankApgarEvals(),
+  downeScore: 0,
+  thomsonScore: 0,
+  silvermanScore: 0,
+  clinicalLog: [],
+  drugLog: [],
+  phase: 'preparation',
+  elapsedTime: 0,
+});
+
+const patientFieldsFromRecord = (r: PatientRecord): ActivePatientFields => ({
+  patientIdentity: r.patientIdentity,
+  anthropometry: r.anthropometry,
+  gestationalAge: r.gestationalAge,
+  birthWeight: r.birthWeight,
+  apgarEvals: r.apgarEvals,
+  downeScore: r.downeScore,
+  thomsonScore: r.thomsonScore,
+  silvermanScore: r.silvermanScore,
+  clinicalLog: r.clinicalLog,
+  drugLog: r.drugLog,
+  phase: r.phase,
+  elapsedTime: r.elapsedTime,
+});
+
 interface ResneoStore {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
@@ -90,6 +154,12 @@ interface ResneoStore {
   setApgarField: (minute: number, field: keyof Omit<ApgarEval, 'minute'>, value: number | null) => void;
   addApgarMinute: (minute: number) => void;
   clearApgar: () => void;
+  patients: PatientRecord[];
+  activePatientId: string | null;
+  addPatient: () => void;
+  selectPatient: (id: string) => void;
+  deletePatient: (id: string) => void;
+  ensureActivePatient: () => void;
 }
 
 export const useStore = create<ResneoStore>()(
@@ -123,9 +193,9 @@ export const useStore = create<ResneoStore>()(
       setThomsonScore: (thomsonScore) => set({ thomsonScore }),
       silvermanScore: 0,
       setSilvermanScore: (silvermanScore) => set({ silvermanScore }),
-      patientIdentity: { namaIbu: '', diagnosisIbu: '', kondisiKlinis: '', usia: '', jenisKelamin: '', birthDateTime: '' },
+      patientIdentity: blankPatientIdentity(),
       setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
-      anthropometry: { bbl: '', pb: '', lk: '', ld: '', lila: '' },
+      anthropometry: blankAnthropometry(),
       setAnthropometry: (a) => set((state) => ({ anthropometry: { ...state.anthropometry, ...a } })),
       gestationalAge: '',
       setGestationalAge: (gestationalAge) => set({ gestationalAge }),
@@ -153,10 +223,7 @@ export const useStore = create<ResneoStore>()(
         set((state) => ({ drugLog: [...state.drugLog, entry] }));
       },
       clearDrugLog: () => set({ drugLog: [] }),
-      apgarEvals: [
-        { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
-        { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
-      ],
+      apgarEvals: blankApgarEvals(),
       setApgarField: (minute, field, value) => set((state) => ({
         apgarEvals: state.apgarEvals.map((ev) => ev.minute === minute ? { ...ev, [field]: value } : ev),
       })),
@@ -167,11 +234,57 @@ export const useStore = create<ResneoStore>()(
             .sort((a, b) => a.minute - b.minute),
         };
       }),
-      clearApgar: () => set({
-        apgarEvals: [
-          { minute: 1, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
-          { minute: 5, appearance: null, pulse: null, grimace: null, activity: null, respiration: null },
-        ],
+      clearApgar: () => set({ apgarEvals: blankApgarEvals() }),
+      patients: [],
+      activePatientId: null,
+      addPatient: () => set((state) => {
+        const id = Date.now().toString();
+        const now = new Date().toISOString();
+        const blank = blankActivePatientFields();
+        const record: PatientRecord = { id, createdAt: now, updatedAt: now, ...blank };
+        return {
+          ...blank,
+          patients: [record, ...state.patients],
+          activePatientId: id,
+        };
+      }),
+      selectPatient: (id) => set((state) => {
+        const target = state.patients.find((p) => p.id === id);
+        if (!target) return state;
+        return { activePatientId: id, ...patientFieldsFromRecord(target) };
+      }),
+      deletePatient: (id) => set((state) => {
+        const remaining = state.patients.filter((p) => p.id !== id);
+        if (state.activePatientId !== id) return { patients: remaining };
+        const next = remaining[0];
+        return {
+          patients: remaining,
+          activePatientId: next ? next.id : null,
+          ...(next ? patientFieldsFromRecord(next) : blankActivePatientFields()),
+        };
+      }),
+      ensureActivePatient: () => set((state) => {
+        if (state.activePatientId || state.patients.length > 0) return state;
+        const hasData = !!(state.patientIdentity.namaIbu || state.anthropometry.bbl || state.gestationalAge);
+        if (!hasData) return state;
+        const id = Date.now().toString();
+        const now = new Date().toISOString();
+        const record: PatientRecord = {
+          id, createdAt: now, updatedAt: now,
+          patientIdentity: state.patientIdentity,
+          anthropometry: state.anthropometry,
+          gestationalAge: state.gestationalAge,
+          birthWeight: state.birthWeight,
+          apgarEvals: state.apgarEvals,
+          downeScore: state.downeScore,
+          thomsonScore: state.thomsonScore,
+          silvermanScore: state.silvermanScore,
+          clinicalLog: state.clinicalLog,
+          drugLog: state.drugLog,
+          phase: state.phase,
+          elapsedTime: state.elapsedTime,
+        };
+        return { patients: [record], activePatientId: id };
       }),
     }),
     {
@@ -193,7 +306,51 @@ export const useStore = create<ResneoStore>()(
         thomsonScore: state.thomsonScore,
         silvermanScore: state.silvermanScore,
         activeTab: state.activeTab,
+        patients: state.patients,
+        activePatientId: state.activePatientId,
       }),
     }
   )
 );
+
+// Sinkron otomatis: setiap perubahan data pasien aktif (identitas, skor, log, dll)
+// disalin ke record-nya di database `patients`, agar tidak perlu tombol "simpan" manual
+// dan data setiap bayi tetap terpisah saat berpindah pasien.
+useStore.subscribe((state, prevState) => {
+  if (!state.activePatientId || state.activePatientId !== prevState.activePatientId) return;
+  const changed =
+    state.patientIdentity !== prevState.patientIdentity ||
+    state.anthropometry !== prevState.anthropometry ||
+    state.gestationalAge !== prevState.gestationalAge ||
+    state.birthWeight !== prevState.birthWeight ||
+    state.apgarEvals !== prevState.apgarEvals ||
+    state.downeScore !== prevState.downeScore ||
+    state.thomsonScore !== prevState.thomsonScore ||
+    state.silvermanScore !== prevState.silvermanScore ||
+    state.clinicalLog !== prevState.clinicalLog ||
+    state.drugLog !== prevState.drugLog ||
+    state.phase !== prevState.phase ||
+    state.elapsedTime !== prevState.elapsedTime;
+  if (!changed) return;
+
+  const idx = state.patients.findIndex((p) => p.id === state.activePatientId);
+  if (idx === -1) return;
+  const patients = [...state.patients];
+  patients[idx] = {
+    ...patients[idx],
+    updatedAt: new Date().toISOString(),
+    patientIdentity: state.patientIdentity,
+    anthropometry: state.anthropometry,
+    gestationalAge: state.gestationalAge,
+    birthWeight: state.birthWeight,
+    apgarEvals: state.apgarEvals,
+    downeScore: state.downeScore,
+    thomsonScore: state.thomsonScore,
+    silvermanScore: state.silvermanScore,
+    clinicalLog: state.clinicalLog,
+    drugLog: state.drugLog,
+    phase: state.phase,
+    elapsedTime: state.elapsedTime,
+  };
+  useStore.setState({ patients });
+});

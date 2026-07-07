@@ -104,6 +104,11 @@ export default function App() {
   const [showBanner, setShowBanner] = useState(true);
   const [checkingAccess, setCheckingAccess] = useState(false);
 
+  // Migrasi satu kali: bungkus data pasien lama (sebelum fitur database multi-pasien) jadi record pertama
+  useEffect(() => {
+    useStore.getState().ensureActivePatient();
+  }, []);
+
   // Terapkan preferensi Setting App (font, skala, ketebalan, skema warna) ke root document
   useEffect(() => {
     const root = document.documentElement;
