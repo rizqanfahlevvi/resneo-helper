@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, BookMarked, ExternalLink } from 'lucide-react';
+import { ChevronDown, BookMarked, ExternalLink, Star } from 'lucide-react';
 
 export interface TheoryReference {
   n: number;
@@ -48,6 +48,8 @@ export default function TheorySection({
   onToggle,
   children,
   refs,
+  favorite,
+  onToggleFavorite,
 }: {
   id?: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -58,6 +60,8 @@ export default function TheorySection({
   onToggle: () => void;
   children: React.ReactNode;
   refs?: TheoryReference[];
+  favorite?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const a = ACCENTS[accent] ?? ACCENTS.indigo;
   return (
@@ -74,6 +78,18 @@ export default function TheorySection({
           <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">{title}</h3>
           {badge && <span className={`block text-[10px] font-bold uppercase tracking-widest mt-0.5 ${a.badge}`}>{badge}</span>}
         </div>
+        {onToggleFavorite && (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label={favorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); onToggleFavorite(); } }}
+            className={`shrink-0 p-1.5 rounded-lg transition-colors cursor-pointer ${favorite ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'}`}
+          >
+            <Star className="w-5 h-5" fill={favorite ? 'currentColor' : 'none'} />
+          </span>
+        )}
         <ChevronDown className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 

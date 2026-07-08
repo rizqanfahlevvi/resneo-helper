@@ -11,6 +11,7 @@ import {
 } from '../../clinical/bilirubin';
 import { postnatalAge } from '../../clinical/pma';
 import { getVentilatorSettings, VENTILATOR_SCENARIOS, getBloodGasTarget, getGaTier, GA_TIER_LABELS, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
+import { INOTROPES, InotropeId, doseToRate, rateToDose, doseZone, ruleOfSix, ruleVariantFor } from '../../clinical/inotropes';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
 
 interface TabCalculatorsProps {
@@ -71,7 +72,7 @@ export default function TabCalculators({ gestationalAge, setGestationalAge, birt
       <TitrasiCairanGirCalculator effectiveBW={effectiveBW} />
       <GirCalculator />
       <SurfaktanCalculator />
-      <InotropikKonversiCalculator />
+      <InotropikDripCalculator effectiveBW={effectiveBW} />
       <PompaSyringeInotropikCalculator effectiveBW={effectiveBW} />
       <KebutuhanCairanCalculator />
       <TpnCalculator effectiveBW={effectiveBW} />
@@ -635,59 +636,138 @@ function SurfaktanCalculator() {
 // ==========================================
 // INOTROPIK — KONVERSI DOSIS KE RATE
 // ==========================================
-function InotropikKonversiCalculator() {
+function InotropikDripCalculator({ effectiveBW }: { effectiveBW: string }) {
   const [open, setOpen] = useState(false);
-  const [inoBB, setInoBB] = useState('');
-  const [inoDrug, setInoDrug] = useState<'dopamine' | 'dobutamine'>('dopamine');
-  const [inoConc, setInoConc] = useState('');
-  const [inoDose, setInoDose] = useState('5');
-  const inoRate = inoBB && inoConc && inoDose ? ((parseFloat(inoDose) * parseFloat(inoBB) * 60) / (parseFloat(inoConc) * 1000)).toFixed(2) : null;
+  const [drug, setDrug] = useState<InotropeId>('dopamine');
+  const [mode, setMode] = useState<'doseToRate' | 'rateToDose'>('doseToRate');
+  const [bbKg, setBbKg] = useState('');
+  const [conc, setConc] = useState('');
+  const [dose, setDose] = useState('5');
+  const [rate, setRate] = useState('1');
+
+  const d = INOTROPES[drug];
+  // BB dari input manual, atau autofill dari BB lahir (gram → kg)
+  const autoKg = effectiveBW ? (parseInt(effectiveBW) / 1000) : 0;
+  const wtKg = parseFloat(bbKg) || autoKg;
+  const concNum = parseFloat(conc) || 0;
+
+  const selectDrug = (id: InotropeId) => {
+    setDrug(id);
+    setDose(String(INOTROPES[id].presets[Math.min(1, INOTROPES[id].presets.length - 1)]));
+    if (!conc) return; // biarkan konsentrasi apa adanya bila sudah diisi
+  };
+
+  const applyRuleOfSix = () => {
+    const variant = ruleVariantFor(drug);
+    const total = 50; // spuit 50 mL standar NICU
+    const r = ruleOfSix(wtKg, total, variant);
+    if (r) setConc(r.concMgPerMl.toFixed(4).replace(/0+$/, '').replace(/\.$/, ''));
+  };
+  const ros = wtKg > 0 ? ruleOfSix(wtKg, 50, ruleVariantFor(drug)) : null;
+
+  const rateResult = mode === 'doseToRate' ? doseToRate(parseFloat(dose), wtKg, concNum) : null;
+  const doseResult = mode === 'rateToDose' ? rateToDose(parseFloat(rate), wtKg, concNum) : null;
+
+  const effectiveDose = mode === 'doseToRate' ? (parseFloat(dose) || 0) : (doseResult ?? 0);
+  const zone = effectiveDose > 0 ? doseZone(drug, effectiveDose) : null;
+  const zoneStyle: Record<string, { box: string; label: string; text: string }> = {
+    below: { box: 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700', label: 'Di bawah rentang lazim', text: 'text-slate-500' },
+    usual: { box: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800', label: 'Dalam rentang lazim', text: 'text-emerald-600 dark:text-emerald-400' },
+    high: { box: 'bg-amber-50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800', label: 'Di atas rentang lazim — waspada', text: 'text-amber-600 dark:text-amber-400' },
+    over: { box: 'bg-rose-50 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800', label: 'MELEBIHI dosis maksimum!', text: 'text-rose-600 dark:text-rose-400' },
+  };
 
   return (
     <div className="mt-6 glass-card rounded-2xl overflow-hidden">
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-colors">
         <div className="flex items-center gap-2">
           <Syringe className="w-5 h-5 text-cyan-500" />
-          <span className="font-bold text-slate-900 dark:text-white text-sm">Kalkulator Inotropik — Dosis ke Rate</span>
+          <span className="font-bold text-slate-900 dark:text-white text-sm">Kalkulator Drip Inotropik & Vasoaktif</span>
         </div>
         <svg className={`w-4 h-4 text-cyan-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <div className="p-4 md:p-5 border-t border-cyan-100 dark:border-cyan-500/20 space-y-5">
-          <p className="text-xs text-slate-500 dark:text-slate-400">Rate (mL/jam) = [Dosis × BB × 60] ÷ Konsentrasi — ANMF 2021 · IDAI NICU</p>
+          {/* Pemilih obat */}
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(INOTROPES) as InotropeId[]).map(id => (
+              <button key={id} onClick={() => selectDrug(id)} className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${drug === id ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>{INOTROPES[id].short}</button>
+            ))}
+          </div>
+          <div className="bg-cyan-50/60 dark:bg-cyan-950/10 border border-cyan-100 dark:border-cyan-900/30 rounded-xl p-3 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+            <strong className="text-cyan-700 dark:text-cyan-300">{d.label}</strong> — {d.effect}
+            <br /><span className="text-slate-500 dark:text-slate-500">{d.note}</span>
+            <br /><span className="font-semibold">Rentang lazim: {d.usual[0]}–{d.usual[1]} mcg/kg/mnt (maks {d.max}).</span>
+          </div>
+
+          {/* Mode */}
+          <div className="flex gap-2">
+            <button onClick={() => setMode('doseToRate')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${mode === 'doseToRate' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>Dosis → Laju (mL/jam)</button>
+            <button onClick={() => setMode('rateToDose')} className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all ${mode === 'rateToDose' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>Laju → Dosis</button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Berat Badan (kg)</label>
-              <input type="number" min="0.3" max="6" step="0.1" value={inoBB} onChange={e => setInoBB(e.target.value)} placeholder="cth: 2.5" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
+              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Berat Badan (kg){autoKg > 0 && !bbKg && <span className="ml-1 text-teal-500 normal-case font-normal">· auto {autoKg.toFixed(2)}</span>}</label>
+              <input type="number" min="0.3" max="6" step="0.1" value={bbKg} onChange={e => setBbKg(e.target.value)} placeholder={autoKg > 0 ? autoKg.toFixed(2) : 'cth: 2.5'} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
             </div>
             <div>
-              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Jenis Obat</label>
-              <div className="flex gap-2">
-                <button onClick={() => setInoDrug('dopamine')} className={`flex-1 py-3 rounded-xl text-xs font-bold border transition-all ${inoDrug === 'dopamine' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>Dopamin</button>
-                <button onClick={() => setInoDrug('dobutamine')} className={`flex-1 py-3 rounded-xl text-xs font-bold border transition-all ${inoDrug === 'dobutamine' ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'}`}>Dobutamin</button>
+              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Konsentrasi (mg/mL)</label>
+              <input type="number" min="0.001" step="0.01" value={conc} onChange={e => setConc(e.target.value)} placeholder={`cth: ${d.typicalConc}`} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
+              {ros && (
+                <button onClick={applyRuleOfSix} className="mt-1.5 text-[10px] font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+                  Isi "Rule of 6": {ros.drugMg.toFixed(ros.drugMg < 10 ? 2 : 1)} mg dalam 50 mL →
+                </button>
+              )}
+            </div>
+
+            {mode === 'doseToRate' ? (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Target Dosis (mcg/kg/mnt)</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {d.presets.map(p => (
+                    <button key={p} onClick={() => setDose(String(p))} className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${dose === String(p) ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>{p}</button>
+                  ))}
+                </div>
+                <input type="number" min="0" step="0.01" value={dose} onChange={e => setDose(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
               </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">{inoDrug === 'dopamine' ? 'Dopamin: renal 2–5, kardiak 5–10, vasopresor 10–20 mcg/kg/mnt' : 'Dobutamin: inotrop 2.5–10 mcg/kg/mnt, maks 20 mcg/kg/mnt'}</p>
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Target Dosis (mcg/kg/mnt)</label>
-              <div className="flex flex-wrap gap-2">
-                {(inoDrug === 'dopamine' ? ['2', '5', '10', '15', '20'] : ['2.5', '5', '7.5', '10', '20']).map(d => (
-                  <button key={d} onClick={() => setInoDose(d)} className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${inoDose === d ? 'bg-cyan-500 text-white border-cyan-400' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'}`}>{d}</button>
-                ))}
+            ) : (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Laju Pompa Aktual (mL/jam)</label>
+                <input type="number" min="0" step="0.01" value={rate} onChange={e => setRate(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Konsentrasi Larutan (mg/mL)</label>
-              <input type="number" min="0.1" max="20" step="0.1" value={inoConc} onChange={e => setInoConc(e.target.value)} placeholder="cth: 1.6" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all" />
-            </div>
+            )}
           </div>
-          {inoRate && (
-            <div className="bg-cyan-50 dark:bg-cyan-950/20 border-2 border-cyan-300 dark:border-cyan-700 rounded-2xl p-5 text-center">
-              <span className="block text-xs font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 mb-1">{inoDrug === 'dopamine' ? 'Dopamin' : 'Dobutamin'} — {inoDose} mcg/kg/mnt</span>
-              <span className="text-4xl font-black text-cyan-600 dark:text-cyan-400">{inoRate} <span className="text-lg">mL/jam</span></span>
-              <span className="block text-xs text-slate-400 mt-2">Formula: ({inoDose} × {inoBB} × 60) ÷ ({inoConc} mg/mL × 1000)</span>
+
+          {wtKg <= 0 || concNum <= 0 ? (
+            <div className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center py-4 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+              <Info className="w-4 h-4 mr-2" /> Isi Berat Badan &amp; Konsentrasi untuk menghitung.
+            </div>
+          ) : (
+            <div className={`rounded-2xl p-5 text-center border-2 ${zone ? zoneStyle[zone].box : 'bg-cyan-50 dark:bg-cyan-950/20 border-cyan-300 dark:border-cyan-700'}`}>
+              {mode === 'doseToRate' && rateResult !== null && (
+                <>
+                  <span className="block text-xs font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 mb-1">{d.short} — {dose} mcg/kg/mnt</span>
+                  <span className="text-4xl font-black text-cyan-600 dark:text-cyan-400">{rateResult.toFixed(2)} <span className="text-lg">mL/jam</span></span>
+                </>
+              )}
+              {mode === 'rateToDose' && doseResult !== null && (
+                <>
+                  <span className="block text-xs font-extrabold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 mb-1">{d.short} @ {rate} mL/jam</span>
+                  <span className="text-4xl font-black text-cyan-600 dark:text-cyan-400">{doseResult.toFixed(2)} <span className="text-lg">mcg/kg/mnt</span></span>
+                </>
+              )}
+              {zone && (
+                <span className={`mt-3 inline-block text-xs font-bold px-3 py-1 rounded-full ${zoneStyle[zone].text} bg-white/70 dark:bg-slate-900/50`}>
+                  {zone === 'over' && '⚠ '}{zoneStyle[zone].label}
+                </span>
+              )}
+              <span className="block text-[10px] text-slate-400 mt-2">BB {wtKg.toFixed(2)} kg · konsentrasi {concNum} mg/mL</span>
             </div>
           )}
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+            Laju = Dosis × BB × 60 ÷ (Konsentrasi × 1000). Ref: Neonatal Formulary 8th Ed. 2020 · NeoFax 2023 · IDAI NICU. Verifikasi ganda sebelum pemberian.
+          </p>
         </div>
       )}
     </div>

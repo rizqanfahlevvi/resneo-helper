@@ -1,9 +1,30 @@
 import { useState } from 'react';
 import {
   BookText, HeartPulse, Target, Activity, Wind, Stethoscope, Gauge, Snowflake,
-  HandHeart, Waves, Scissors, Droplets, Coffee, Syringe, Layers, ChevronsDownUp, ChevronsUpDown,
+  HandHeart, Waves, Scissors, Droplets, Coffee, Syringe, Layers, ChevronsDownUp, ChevronsUpDown, Star,
 } from 'lucide-react';
 import TheorySection, { Cite, TheoryReference } from '../TheorySection';
+import { useStore } from '../../store';
+
+// Judul topik untuk strip favorit (id → judul singkat).
+const TITLES: Record<string, string> = {
+  golden: 'The Golden Minute',
+  transisi: 'Transisi Kardiopulmonal',
+  dcc: 'Delayed Cord Clamping',
+  oksigen: 'Manajemen Oksigen',
+  mekonium: 'Mekonium (MSAF)',
+  intubasi: 'Intubasi ET & LMA',
+  mrsopa: 'MR. SOPA',
+  kompresi: 'Kompresi Dada',
+  farmako: 'Farmakologi Darurat',
+  prematur: 'Resusitasi Prematur',
+  surfaktan: 'Surfaktan & LISA/MIST',
+  kafein: 'Kafein Sitrat',
+  stable: 'S.T.A.B.L.E',
+  hipotermia: 'Hipotermia Terapeutik',
+  hipoglikemia: 'Hipoglikemia Neonatus',
+  neuroproteksi: 'Neuroproteksi Antenatal',
+};
 
 interface SectionMeta {
   id: string;
@@ -90,11 +111,17 @@ const REFS: Record<string, TheoryReference[]> = {
     { n: 1, text: 'Sweet DG, et al. European Consensus Guidelines on the Management of RDS: 2022 Update. Neonatology. 2023;120(1):3–23.', link: 'https://doi.org/10.1159/000528914' },
     { n: 2, text: 'Dargaville PA, et al. Effect of Minimally-Invasive Surfactant Therapy (OPTIMIST-A) on death/BPD in preterm infants 25–28 wk: RCT. JAMA. 2021;326(24):2478–2487.', link: 'https://doi.org/10.1001/jama.2021.21892' },
     { n: 3, text: 'Aldana-Aguirre JC, et al. LISA vs INSURE: systematic review & meta-analysis. Arch Dis Child Fetal Neonatal Ed. 2017;102(1):F17–F23.' },
+    { n: 4, text: 'Singh N, et al. Comparison of animal-derived surfactants (poractant alfa 200 vs 100 mg/kg; poractant vs beractant): systematic review. Cochrane Database Syst Rev. 2015;12:CD010249.' },
+    { n: 5, text: 'Stevens TP, et al. Early surfactant + brief ventilation vs selective surfactant & continued ventilation (INSURE). Cochrane Database Syst Rev. 2007;4:CD003063.' },
+    { n: 6, text: 'Weiner GM, ed. Textbook of Neonatal Resuscitation, 8th Ed. AAP; 2021 (surfaktan intratrakeal peri-resusitasi).' },
   ],
   kafein: [
     { n: 1, text: 'Schmidt B, et al. Caffeine therapy for apnea of prematurity (CAP trial). N Engl J Med. 2006;354(20):2112–2121.', link: 'https://doi.org/10.1056/NEJMoa054065' },
-    { n: 2, text: 'Schmidt B, et al. Long-term effects of caffeine on death or disability at 18 mo. N Engl J Med. 2007;357(19):1893–1902.' },
-    { n: 3, text: 'Dobson NR, Patel RM. The role of caffeine in the development of BPD. Clin Perinatol. 2016;43(4):773–782.' },
+    { n: 2, text: 'Schmidt B, et al. Long-term effects of caffeine on death or disability at 18 mo (CAP). N Engl J Med. 2007;357(19):1893–1902.' },
+    { n: 3, text: 'Schmidt B, et al. Survival without disability to age 5 years after neonatal caffeine (CAP). JAMA. 2012;307(3):275–282.' },
+    { n: 4, text: 'Dobson NR, Patel RM. The role of caffeine in the development of BPD. Clin Perinatol. 2016;43(4):773–782.' },
+    { n: 5, text: 'Henderson-Smart DJ, De Paoli AG. Methylxanthine treatment for apnoea in preterm infants. Cochrane Database Syst Rev. 2010;12:CD000140.' },
+    { n: 6, text: 'Neonatal Formulary 8th Ed. Caffeine citrate: loading 20 mg/kg, maintenance 5–10 mg/kg/day. Wiley-Blackwell; 2020.' },
   ],
   stable: [
     { n: 1, text: 'Karlsen K. The S.T.A.B.L.E. Program: Post-Resuscitation/Pre-Transport Stabilization Care, 6th Edition. 2013.' },
@@ -106,9 +133,12 @@ const REFS: Record<string, TheoryReference[]> = {
     { n: 4, text: 'NICE Interventional Procedures Guidance IPG347: Therapeutic hypothermia with intracorporeal temperature monitoring for HIE.' },
   ],
   hipoglikemia: [
-    { n: 1, text: 'Thornton PS, et al. Pediatric Endocrine Society recommendations for evaluation & management of persistent hypoglycemia in neonates, infants, and children. J Pediatr. 2015;167(2):238–245.' },
+    { n: 1, text: 'Thornton PS, et al. Pediatric Endocrine Society (PES) recommendations for evaluation & management of persistent hypoglycemia in neonates, infants, and children. J Pediatr. 2015;167(2):238–245.' },
     { n: 2, text: 'Adamkin DH; AAP Committee on Fetus and Newborn. Postnatal glucose homeostasis in late-preterm and term infants. Pediatrics. 2011;127(3):575–579.' },
-    { n: 3, text: 'Harris DL, et al. Dextrose gel for neonatal hypoglycaemia (Sugar Babies): randomised trial. Lancet. 2013;382(9910):2077–2083.', link: 'https://doi.org/10.1016/S0140-6736(13)61645-1' },
+    { n: 3, text: 'Harris DL, et al. Dextrose gel for neonatal hypoglycaemia (Sugar Babies): randomised, double-blind, placebo-controlled trial. Lancet. 2013;382(9910):2077–2083.', link: 'https://doi.org/10.1016/S0140-6736(13)61645-1' },
+    { n: 4, text: 'McKinlay CJD, et al. Neonatal glycemia and neurodevelopmental outcomes at 2 years (CHYLD study). N Engl J Med. 2015;373(16):1507–1518.' },
+    { n: 5, text: 'WHO. Hypoglycaemia of the newborn: review of the literature. WHO/CHD/97.1. Geneva; 1997.' },
+    { n: 6, text: 'Ikatan Dokter Anak Indonesia (IDAI). Panduan Praktik Klinis: Hipoglikemia Neonatus. 2022.' },
   ],
   neuroproteksi: [
     { n: 1, text: 'Roberts D, et al. Antenatal corticosteroids for accelerating fetal lung maturation. Cochrane Database Syst Rev. 2017;3:CD004454.' },
@@ -119,6 +149,8 @@ const REFS: Record<string, TheoryReference[]> = {
 
 export default function TabTheory() {
   const [openIds, setOpenIds] = useState<Set<string>>(new Set(['golden']));
+  const favoriteTheory = useStore((s) => s.favoriteTheory);
+  const toggleFavoriteTheory = useStore((s) => s.toggleFavoriteTheory);
 
   const toggle = (id: string) =>
     setOpenIds((prev) => {
@@ -130,14 +162,27 @@ export default function TabTheory() {
   const openAll = () => setOpenIds(new Set(SECTIONS.map((s) => s.id)));
   const closeAll = () => setOpenIds(new Set());
 
+  // Buka bagian & gulir ke sana (dipakai dari strip favorit).
+  const focusSection = (id: string) => {
+    setOpenIds((prev) => new Set(prev).add(id));
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   const isOpen = (id: string) => openIds.has(id);
   const sectionProps = (id: string, extra: { icon: React.ComponentType<{ className?: string }>; accent: string; title: string; badge?: string }) => ({
     id,
     open: isOpen(id),
     onToggle: () => toggle(id),
     refs: REFS[id],
+    favorite: favoriteTheory.includes(id),
+    onToggleFavorite: () => toggleFavoriteTheory(id),
     ...extra,
   });
+
+  // Favorit yang masih valid, urut sesuai urutan bagian.
+  const favs = SECTIONS.map((s) => s.id).filter((id) => favoriteTheory.includes(id));
 
   return (
     <div className="w-full h-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-36">
@@ -172,6 +217,26 @@ export default function TabTheory() {
           </button>
         </div>
       </div>
+
+      {/* Strip Favorit */}
+      {favs.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-950/10 p-4">
+          <span className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2.5">
+            <Star className="w-3.5 h-3.5" fill="currentColor" /> Topik Favorit
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {favs.map((id) => (
+              <button
+                key={id}
+                onClick={() => focusSection(id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/50 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-400 shadow-sm transition-colors"
+              >
+                <Star className="w-3 h-3 text-amber-400" fill="currentColor" /> {TITLES[id]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-8">
         {CATEGORY_ORDER.map((cat) => (
@@ -406,33 +471,107 @@ export default function TabTheory() {
 
                 <TheorySection {...sectionProps('surfaktan', { icon: Droplets, accent: 'teal', title: 'Terapi Surfaktan & LISA / MIST', badge: 'OPTIMIST-A, JAMA 2021 · RDS 2023' })}>
                   <p>
-                    Surfaktan eksogen menggantikan defisiensi surfaktan pada RDS, menurunkan tegangan permukaan alveoli &amp; mencegah kolaps. Guideline RDS Eropa 2023 merekomendasikan surfaktan <strong>terapi selektif dini</strong> pada RDS memburuk, bukan profilaksis rutin.<Cite n={1} />
+                    <strong className="text-slate-800 dark:text-slate-200">Sindrom Distres Respirasi (RDS)</strong> disebabkan defisiensi surfaktan pulmonal — kompleks fosfolipid-protein yang menurunkan tegangan permukaan alveoli. Tanpa surfaktan, alveoli kolaps saat ekspirasi (atelektasis progresif), kerja napas meningkat, dan terjadi hipoksemia. Surfaktan eksogen menggantikan defisiensi ini, menstabilkan alveoli, memperbaiki komplians &amp; oksigenasi, serta menurunkan mortalitas dan pneumotoraks pada prematur.<Cite n={1} />
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-teal-50 dark:bg-teal-950/20 rounded-xl p-4 border border-teal-200/60 dark:border-teal-800/30">
-                      <h4 className="font-extrabold text-teal-800 dark:text-teal-300 text-xs uppercase mb-2">LISA / MIST</h4>
-                      <p className="text-xs text-teal-700 dark:text-teal-400 leading-snug mb-0"><strong>Less/Minimally Invasive Surfactant Therapy</strong>: surfaktan via kateter tipis saat bayi tetap bernapas spontan dengan CPAP — tanpa intubasi/ventilasi mekanik. Menurunkan komposit kematian/BPD.<Cite n={2} /></p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-4 border border-slate-200/60 dark:border-slate-800/30">
-                      <h4 className="font-extrabold text-slate-700 dark:text-slate-300 text-xs uppercase mb-2">Dosis & Ambang</h4>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug mb-0">Poractant alfa <strong>200 mg/kg</strong> dosis awal lebih unggul dari 100 mg/kg. Pertimbangkan bila FiO₂ &gt;0,30 (CPAP ≥6) pada RDS.<Cite n={1} /></p>
-                    </div>
-                  </div>
-                  <p className="text-sm mb-0">Meta-analisis: LISA menurunkan kebutuhan ventilasi mekanik &amp; BPD dibanding INSURE/intubasi.<Cite n={3} /></p>
-                </TheorySection>
 
-                <TheorySection {...sectionProps('kafein', { icon: Coffee, accent: 'violet', title: 'Kafein Sitrat — Apnea Prematuritas', badge: 'CAP Trial, NEJM 2006/2007' })}>
-                  <p>
-                    Kafein sitrat adalah <strong>stimulan pernapasan</strong> pilihan untuk apnea prematuritas. Trial CAP menunjukkan kafein menurunkan BPD, durasi ventilasi, PDA, dan memperbaiki luaran neurodevelopmental jangka panjang.<Cite n={[1, 2]} />
-                  </p>
-                  <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200/60 dark:border-violet-800/30 rounded-xl p-4 text-sm">
-                    <ul className="space-y-1.5 list-disc list-inside text-violet-700 dark:text-violet-400 m-0">
-                      <li><strong>Loading:</strong> kafein sitrat 20 mg/kg IV/PO</li>
-                      <li><strong>Maintenance:</strong> 5–10 mg/kg/hari (mulai 24 jam setelah loading)</li>
-                      <li><strong>Waktu:</strong> inisiasi dini (&lt;72 jam / dalam 24 jam pada &lt;29 mgg) dikaitkan luaran lebih baik.<Cite n={3} /></li>
+                  <div className="bg-teal-50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-800/30 rounded-xl p-4">
+                    <h4 className="font-extrabold text-teal-800 dark:text-teal-300 text-xs uppercase tracking-widest mb-2">Indikasi & Ambang Pemberian (RDS 2023)<Cite n={1} /></h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-teal-700 dark:text-teal-400 m-0">
+                      <li><strong>Terapi selektif dini</strong> (bukan profilaksis rutin) — profilaksis tidak lagi dianjurkan di era CPAP dini &amp; steroid antenatal.</li>
+                      <li>Beri surfaktan bila RDS memburuk: <strong>FiO₂ &gt;0,30</strong> pada CPAP ≥6 cmH₂O.</li>
+                      <li>Semakin dini pada RDS yang jelas memburuk, semakin baik luaran (hindari menunggu gagal napas berat).</li>
                     </ul>
                   </div>
-                  <p className="text-sm mb-0">Kafein juga memfasilitasi keberhasilan ekstubasi &amp; mengurangi kegagalan CPAP pada prematur.<Cite n={1} /></p>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-slate-800">
+                          <th className="text-left p-2 font-extrabold text-slate-700 dark:text-slate-300 rounded-l-lg">Preparat</th>
+                          <th className="text-center p-2 font-extrabold text-slate-700 dark:text-slate-300">Dosis Awal</th>
+                          <th className="text-center p-2 font-extrabold text-slate-700 dark:text-slate-300 rounded-r-lg">Ulangan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          ['Poractant alfa (Curosurf)', '200 mg/kg (2,5 mL/kg)', '100 mg/kg tiap 6–12 jam bila perlu'],
+                          ['Beractant (Survanta)', '100 mg/kg (4 mL/kg)', '100 mg/kg tiap ≥6 jam (maks 4×)'],
+                          ['Calfactant (Infasurf)', '105 mg/kg (3 mL/kg)', '105 mg/kg tiap 12 jam bila perlu'],
+                        ].map(([n, init, rep], i) => (
+                          <tr key={i} className={`border-b border-slate-100 dark:border-slate-800 ${i % 2 === 0 ? 'bg-white/60 dark:bg-slate-900/30' : ''}`}>
+                            <td className="p-2 font-bold text-slate-700 dark:text-slate-300">{n}</td>
+                            <td className="p-2 text-center font-extrabold text-teal-600 dark:text-teal-400">{init}</td>
+                            <td className="p-2 text-center text-slate-600 dark:text-slate-400">{rep}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs italic text-slate-500 dark:text-slate-400">Poractant alfa dosis awal <strong>200 mg/kg lebih unggul dari 100 mg/kg</strong> (menurunkan mortalitas &amp; kebutuhan dosis ulang).<Cite n={4} /></p>
+
+                  <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm mt-2">Teknik Pemberian</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="bg-teal-50 dark:bg-teal-950/20 rounded-xl p-3 border border-teal-200/60 dark:border-teal-800/30">
+                      <h5 className="font-extrabold text-teal-800 dark:text-teal-300 text-[11px] uppercase mb-1">LISA / MIST ⭐</h5>
+                      <p className="text-[11px] text-teal-700 dark:text-teal-400 leading-snug m-0"><strong>Less/Minimally Invasive Surfactant Therapy</strong>: surfaktan via kateter tipis saat bayi tetap bernapas spontan dengan CPAP — tanpa intubasi/ventilasi mekanik.<Cite n={2} /></p>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-3 border border-slate-200/60 dark:border-slate-800/30">
+                      <h5 className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] uppercase mb-1">INSURE</h5>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug m-0"><strong>IN</strong>tubate–<strong>SUR</strong>factant–<strong>E</strong>xtubate ke CPAP. Intubasi singkat lalu ekstubasi dini.<Cite n={5} /></p>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-3 border border-slate-200/60 dark:border-slate-800/30">
+                      <h5 className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] uppercase mb-1">Via ETT</h5>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug m-0">Bila bayi sudah terintubasi &amp; diventilasi. Lanjutkan ventilasi lembut pasca-pemberian.<Cite n={6} /></p>
+                    </div>
+                  </div>
+                  <p className="text-sm">
+                    <strong>Bukti:</strong> trial OPTIMIST-A menunjukkan LISA pada bayi 25–28 minggu menurunkan komposit kematian/BPD.<Cite n={2} /> Meta-analisis: LISA menurunkan kebutuhan ventilasi mekanik, BPD, &amp; komposit kematian/BPD dibanding INSURE/intubasi.<Cite n={3} />
+                  </p>
+                  <p className="border-l-4 border-teal-300 dark:border-teal-700 pl-4 py-1 text-sm font-medium italic bg-teal-50/50 dark:bg-teal-950/10 rounded-r-lg mb-0">
+                    Pasca-pemberian: pantau desaturasi/bradikardia &amp; obstruksi ETT saat instilasi; sesuaikan (turunkan) FiO₂ &amp; PIP cepat mengikuti perbaikan komplians untuk menghindari hiperoksia &amp; volutrauma.<Cite n={1} />
+                  </p>
+                </TheorySection>
+
+                <TheorySection {...sectionProps('kafein', { icon: Coffee, accent: 'violet', title: 'Kafein Sitrat — Apnea Prematuritas', badge: 'CAP Trial, NEJM 2006/2007/2012' })}>
+                  <p>
+                    <strong className="text-slate-800 dark:text-slate-200">Apnea prematuritas</strong> terjadi akibat imaturitas pusat napas batang otak &amp; respons paradoks terhadap hipoksia. Kafein (metilxantin) bekerja sebagai <strong>antagonis reseptor adenosin</strong> — menstimulasi pusat napas, meningkatkan sensitivitas CO₂, tonus diafragma, &amp; ventilasi semenit. Kafein adalah metilxantin pilihan (dibanding teofilin/aminofilin) karena jendela terapeutik lebih lebar, waktu paruh panjang (sekali/hari), &amp; efek samping lebih sedikit.<Cite n={5} />
+                  </p>
+
+                  <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200/60 dark:border-violet-800/30 rounded-xl p-4 text-sm">
+                    <h4 className="font-extrabold text-violet-800 dark:text-violet-300 text-xs uppercase tracking-widest mb-2">Dosis (kafein sitrat)<Cite n={6} /></h4>
+                    <ul className="space-y-1.5 list-disc list-inside text-violet-700 dark:text-violet-400 m-0">
+                      <li><strong>Loading:</strong> 20 mg/kg IV (infus 30 menit) atau PO</li>
+                      <li><strong>Rumatan:</strong> 5–10 mg/kg/hari, mulai 24 jam setelah loading (dosis tunggal harian)</li>
+                      <li><strong>Refrakter:</strong> rumatan dapat dinaikkan hingga 10 mg/kg (sebagian pusat sampai 20 mg/kg loading) dengan pemantauan takikardia</li>
+                      <li><em>Catatan:</em> dosis dinyatakan sebagai <strong>kafein sitrat</strong>; kafein basa = ½ dosis sitrat (20 mg sitrat = 10 mg basa)</li>
+                    </ul>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-violet-50 dark:bg-violet-950/20 rounded-xl p-4 border border-violet-200/60 dark:border-violet-800/30">
+                      <h5 className="font-extrabold text-violet-800 dark:text-violet-300 text-[11px] uppercase mb-1.5">Indikasi</h5>
+                      <ul className="text-[11px] text-violet-700 dark:text-violet-400 leading-snug list-disc list-inside m-0 space-y-1">
+                        <li>Terapi apnea prematuritas</li>
+                        <li>Fasilitasi ekstubasi (mulai sebelum ekstubasi)</li>
+                        <li>Profilaksis pada BBLSR/ELBW berisiko tinggi</li>
+                      </ul>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-4 border border-slate-200/60 dark:border-slate-800/30">
+                      <h5 className="font-extrabold text-slate-700 dark:text-slate-300 text-[11px] uppercase mb-1.5">Pemantauan & Durasi</h5>
+                      <ul className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug list-disc list-inside m-0 space-y-1">
+                        <li>Pantau HR (takikardia), toleransi minum, gelisah</li>
+                        <li>Kadar serum rutin umumnya tidak perlu</li>
+                        <li>Hentikan ~34–36 mgg PMA &amp; bebas apnea 5–7 hari</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <p className="text-sm">
+                    <strong>Bukti (CAP trial):</strong> kafein menurunkan insidens BPD, durasi ventilasi &amp; ketergantungan oksigen, serta PDA yang memerlukan terapi.<Cite n={[1, 4]} /> Pada usia 18–21 bulan menurunkan kematian/disabilitas neurodevelopmental &amp; cerebral palsy.<Cite n={2} /> Manfaat keselamatan bertahan hingga usia 5 tahun.<Cite n={3} />
+                  </p>
+                  <p className="border-l-4 border-violet-300 dark:border-violet-700 pl-4 py-1 text-sm font-medium italic bg-violet-50/50 dark:bg-violet-950/10 rounded-r-lg mb-0">
+                    <strong>Inisiasi dini</strong> (dalam 24–72 jam pertama, khususnya &lt;29 minggu) dikaitkan dengan luaran respirasi lebih baik dibanding inisiasi lambat.<Cite n={4} />
+                  </p>
                 </TheorySection>
               </>
             )}
@@ -477,21 +616,68 @@ export default function TabTheory() {
                   </p>
                 </TheorySection>
 
-                <TheorySection {...sectionProps('hipoglikemia', { icon: Droplets, accent: 'emerald', title: 'Hipoglikemia Neonatus', badge: 'PES 2015 · Sugar Babies, Lancet 2013' })}>
+                <TheorySection {...sectionProps('hipoglikemia', { icon: Droplets, accent: 'emerald', title: 'Hipoglikemia Neonatus', badge: 'PES 2015 · AAP 2011 · Sugar Babies 2013' })}>
                   <p>
-                    Kelompok risiko: prematur, KMK/SGA, BMK/LGA, bayi ibu diabetes. Glukosa otak yang rendah berkepanjangan berisiko cedera neurologis — skrining lebih dini &amp; sering.<Cite n={2} />
+                    Glukosa adalah bahan bakar utama otak neonatus. Hipoglikemia berat/berkepanjangan/berulang dikaitkan cedera neuron (terutama korteks oksipital) &amp; luaran neurodevelopmental buruk. Karena tidak ada ambang tunggal yang aman untuk semua, pendekatan modern memakai <strong>ambang operasional</strong> untuk memulai intervensi, bukan diagnosis penyakit tunggal.<Cite n={2} />
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-4 border border-emerald-200/60 dark:border-emerald-800/30">
-                      <h4 className="font-extrabold text-emerald-800 dark:text-emerald-300 text-xs uppercase mb-2">Ambang Tata Laksana</h4>
-                      <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-snug mb-0">PES: pertahankan GDS &gt;<strong>50 mg/dL</strong> (&lt;48 jam) &amp; &gt;60 mg/dL (&gt;48 jam) pada bayi berisiko. Simtomatik / &lt;40 mg/dL → intervensi segera.<Cite n={1} /></p>
+
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/30 rounded-xl p-4">
+                    <h4 className="font-extrabold text-amber-800 dark:text-amber-300 text-xs uppercase tracking-widest mb-2">Kelompok Risiko — Wajib Skrining</h4>
+                    <ul className="list-disc list-inside space-y-1 text-xs text-amber-700 dark:text-amber-400 m-0">
+                      <li>Prematur &amp; late-preterm; KMK/SGA; BMK/LGA</li>
+                      <li>Bayi ibu diabetes (IDM) — hiperinsulinisme transien</li>
+                      <li>Asfiksia perinatal, hipotermia, sepsis, polisitemia</li>
+                      <li>Gejala: jitteriness, letargi, hipotonia, apnea, kejang, tangis lemah, sulit minum</li>
+                    </ul>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 dark:bg-slate-800">
+                          <th className="text-left p-2 font-extrabold text-slate-700 dark:text-slate-300 rounded-l-lg">Situasi</th>
+                          <th className="text-center p-2 font-extrabold text-slate-700 dark:text-slate-300">Ambang GDS</th>
+                          <th className="text-center p-2 font-extrabold text-slate-700 dark:text-slate-300 rounded-r-lg">Target</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          ['Bayi berisiko, <48 jam (AAP)', 'Intervensi bila <45 mg/dL', '≥45 mg/dL'],
+                          ['PES, ≤48 jam', 'Pertahankan >50 mg/dL', '>50 mg/dL'],
+                          ['PES, >48 jam', 'Pertahankan >60 mg/dL', '>60 mg/dL'],
+                          ['Simtomatik / kejang', 'Terapi segera bila <45–50', '>50 mg/dL'],
+                          ['Curiga hiperinsulinisme', '—', '>70 mg/dL'],
+                        ].map(([sit, amb, tgt], i) => (
+                          <tr key={i} className={`border-b border-slate-100 dark:border-slate-800 ${i % 2 === 0 ? 'bg-white/60 dark:bg-slate-900/30' : ''}`}>
+                            <td className="p-2 font-bold text-slate-700 dark:text-slate-300">{sit}</td>
+                            <td className="p-2 text-center text-slate-600 dark:text-slate-400">{amb}</td>
+                            <td className="p-2 text-center font-extrabold text-emerald-600 dark:text-emerald-400">{tgt}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-xs italic text-slate-500 dark:text-slate-400">Ambang AAP (Adamkin) &amp; PES (Thornton) berbeda karena tujuan berbeda; keduanya sepakat: <strong>simtomatik = terapi IV segera</strong>.<Cite n={[1, 2]} /></p>
+
+                  <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm mt-2">Algoritma Tata Laksana</h4>
+                  <div className="space-y-2">
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-3 border border-emerald-200/60 dark:border-emerald-800/30 text-sm">
+                      <strong className="text-emerald-800 dark:text-emerald-300">1. Asimtomatik, ringan (mis. 25–45 mg/dL):</strong>
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 mb-0">Beri minum (ASI/PASI) segera + <strong>dextrose gel 40% 0,5 mL/kg</strong> (≈200 mg/kg) digosok di mukosa bukal. Ulang GDS 30 menit. Gel + menyusu menurunkan kegagalan terapi &amp; pemisahan ibu–bayi.<Cite n={3} /></p>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-4 border border-slate-200/60 dark:border-slate-800/30">
-                      <h4 className="font-extrabold text-slate-700 dark:text-slate-300 text-xs uppercase mb-2">Terapi</h4>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug mb-0"><strong>Dextrose gel 40%</strong> 0,5 mL/kg bukal (lini pertama asimtomatik ringan). Bila berat: <strong>bolus D10% 2 mL/kg</strong> lalu infus GIR 4–8 mg/kg/menit.<Cite n={[1, 3]} /></p>
+                    <div className="bg-rose-50 dark:bg-rose-950/20 rounded-xl p-3 border border-rose-200/60 dark:border-rose-800/30 text-sm">
+                      <strong className="text-rose-800 dark:text-rose-300">2. Simtomatik, atau GDS sangat rendah (&lt;25 mg/dL), atau gagal langkah 1:</strong>
+                      <p className="text-xs text-rose-700 dark:text-rose-400 mt-1 mb-0"><strong>Bolus D10% 2 mL/kg IV</strong> (≈200 mg/kg) pelan, langsung diikuti <strong>infus glukosa kontinu GIR 4–8 mg/kg/menit</strong>. Hindari bolus hipertonik pekat/berulang tanpa infus rumatan (rebound).<Cite n={1} /></p>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/30 rounded-xl p-3 border border-slate-200/60 dark:border-slate-800/30 text-sm">
+                      <strong className="text-slate-700 dark:text-slate-300">3. Refrakter / GIR meningkat (&gt;8–12 mg/kg/mnt):</strong>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 mb-0">Naikkan GIR bertahap; bila butuh GIR &gt;8–10 curigai <strong>hiperinsulinisme</strong> — periksa insulin, kortisol, GH saat hipoglikemia (critical sample). Pertimbangkan glukagon 0,2 mg/kg (mis. IDM sambil menyiapkan akses) / diazoksid pada hiperinsulinisme persisten. Butuh akses sentral bila dextrose &gt;12,5%.<Cite n={1} /></p>
                     </div>
                   </div>
-                  <p className="text-sm mb-0">Trial Sugar Babies: dextrose gel mengurangi kegagalan tata laksana &amp; pemisahan ibu–bayi dibanding pemberian susu saja.<Cite n={3} /></p>
+
+                  <p className="border-l-4 border-emerald-300 dark:border-emerald-700 pl-4 py-1 text-sm font-medium italic bg-emerald-50/50 dark:bg-emerald-950/10 rounded-r-lg mb-0">
+                    Hindari <strong>overtreatment</strong>: episode hipoglikemia yang dikoreksi hingga euglikemia stabil tidak terbukti memperburuk luaran, tetapi hipoglikemia berulang &amp; instabilitas glikemik (termasuk hiperglikemia) dikaitkan gangguan perkembangan — jaga glukosa dalam target, hindari fluktuasi.<Cite n={4} />
+                  </p>
                 </TheorySection>
 
                 <TheorySection {...sectionProps('neuroproteksi', { icon: HeartPulse, accent: 'indigo', title: 'Neuroproteksi & Persiapan Antenatal', badge: 'BEAM, NEJM 2008 · Cochrane' })}>

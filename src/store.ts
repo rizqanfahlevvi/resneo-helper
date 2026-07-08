@@ -160,6 +160,8 @@ interface ResneoStore {
   selectPatient: (id: string) => void;
   deletePatient: (id: string) => void;
   ensureActivePatient: () => void;
+  favoriteTheory: string[];
+  toggleFavoriteTheory: (id: string) => void;
 }
 
 export const useStore = create<ResneoStore>()(
@@ -263,6 +265,12 @@ export const useStore = create<ResneoStore>()(
           ...(next ? patientFieldsFromRecord(next) : blankActivePatientFields()),
         };
       }),
+      favoriteTheory: [],
+      toggleFavoriteTheory: (id) => set((state) => ({
+        favoriteTheory: state.favoriteTheory.includes(id)
+          ? state.favoriteTheory.filter((f) => f !== id)
+          : [...state.favoriteTheory, id],
+      })),
       ensureActivePatient: () => set((state) => {
         if (state.activePatientId || state.patients.length > 0) return state;
         const hasData = !!(state.patientIdentity.namaIbu || state.anthropometry.bbl || state.gestationalAge);
@@ -308,6 +316,7 @@ export const useStore = create<ResneoStore>()(
         activeTab: state.activeTab,
         patients: state.patients,
         activePatientId: state.activePatientId,
+        favoriteTheory: state.favoriteTheory,
       }),
     }
   )
