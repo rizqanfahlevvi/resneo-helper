@@ -139,7 +139,14 @@ export default function App() {
     } else {
       root.classList.remove('bw-mode');
     }
-  }, [fontFamily, fontScale, fontWeight, bwMode]);
+
+    // Mode kontras tinggi dipasang global agar berefek di semua tab
+    if (readingMode) {
+      root.classList.add('reading-mode');
+    } else {
+      root.classList.remove('reading-mode');
+    }
+  }, [fontFamily, fontScale, fontWeight, bwMode, readingMode]);
 
   // Aktifkan transisi halus setelah initial load agar tidak flicker
   useEffect(() => {
@@ -306,7 +313,7 @@ export default function App() {
                 <Suspense fallback={<TabFallback />}><TabReferences /></Suspense>
               )}
               {visibleTab === 'theory' && (
-                <div className={readingMode ? 'reading-mode' : undefined}>
+                <div className={readingMode ? 'reading-prose' : undefined}>
                   <Suspense fallback={<TabFallback />}><TabTheory /></Suspense>
                 </div>
               )}

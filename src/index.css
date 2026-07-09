@@ -40,27 +40,88 @@ html {
   transition-timing-function: ease-in-out;
 }
 
+/* ============================================================
+   MODE GELAP LEBIH PEKAT
+   Menggeser palet slate gelap ke mendekati hitam agar kartu/panel
+   tidak abu-abu medium. Di-scope ke .dark sehingga tidak mengubah
+   warna teks slate di mode terang.
+   ============================================================ */
+.dark {
+  --color-slate-950: #010308; /* body & latar terdalam — near-black */
+  --color-slate-900: #080b12; /* kartu / panel utama */
+  --color-slate-800: #10141d; /* kartu sekunder / border */
+  --color-slate-700: #1b2130; /* border / hover */
+}
+
 /* Skema Warna Hitam-Putih (Black & White Mode) */
 html.bw-mode,
 .bw-mode {
   filter: grayscale(100%) !important;
 }
 
-/* Reading Mode — kontras tinggi & tipografi serif, dipasang selektif di kontainer materi/teori */
+/* ============================================================
+   MODE KONTRAS TINGGI (High Contrast / Reading Mode)
+   Dipasang GLOBAL di <html> agar berefek di semua tab.
+   Menaikkan kontras teks sekunder (slate-400/500) mendekati teks
+   utama + menebalkan garis & fokus, sehingga perbedaannya jelas.
+   ============================================================ */
 .reading-mode {
-  --font-sans: "Charter", "Georgia", "Merriweather", ui-serif, serif;
-  --font-scale: 1.08;
+  --font-scale: 1.05;
 }
+
+/* Mode terang: teks abu-abu → jauh lebih gelap */
+html.reading-mode.light,
+html.reading-mode:not(.dark) {
+  --color-slate-400: #334155;
+  --color-slate-500: #1e293b;
+  --color-slate-600: #0f172a;
+}
+
+/* Mode gelap: teks abu-abu → jauh lebih terang, latar → hitam penuh */
+html.reading-mode.dark {
+  --color-slate-500: #cbd5e1;
+  --color-slate-400: #e2e8f0;
+  --color-slate-300: #f1f5f9;
+  --color-slate-950: #000000;
+  --color-slate-900: #05070d;
+}
+
+/* Perkuat garis pemisah & border agar batas antar-elemen tegas */
+.reading-mode .glass-card,
+.reading-mode [class*="border-slate-"],
+.reading-mode [class*="border-white"] {
+  border-width: 1.5px;
+}
+
+/* Sedikit tebalkan teks tubuh untuk keterbacaan */
 .reading-mode p,
-.reading-mode li {
+.reading-mode li,
+.reading-mode span,
+.reading-mode label {
+  font-weight: 500;
+}
+
+/* Cincin fokus lebih tebal saat kontras tinggi */
+.reading-mode input:focus,
+.reading-mode textarea:focus,
+.reading-mode select:focus {
+  outline: 3px solid var(--color-indigo-500);
+  outline-offset: 1px;
+}
+
+/* Tipografi serif khusus untuk membaca materi teori (tab Teori) */
+.reading-prose {
+  --font-sans: "Charter", "Georgia", "Merriweather", ui-serif, serif;
+}
+.reading-prose p,
+.reading-prose li {
   line-height: 1.7;
   font-family: var(--font-sans);
 }
-.reading-mode h1,
-.reading-mode h2,
-.reading-mode h3,
-.reading-mode h4,
-.reading-mode .font-bold {
+.reading-prose h1,
+.reading-prose h2,
+.reading-prose h3,
+.reading-prose h4 {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   letter-spacing: -0.01em;
 }

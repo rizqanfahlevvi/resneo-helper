@@ -301,10 +301,10 @@ export default function TabSettings() {
                 <div>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    Reading Mode
+                    Mode Kontras Tinggi
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[260px]">
-                    Mode kontras tinggi dengan tipografi khusus serif dan spasi longgar untuk membaca materi teori di lingkungan yang gelap.
+                    Menaikkan kontras teks &amp; garis di seluruh aplikasi (teks lebih tegas, latar lebih pekat/terang, border lebih tebal). Tab Teori juga memakai tipografi serif untuk membaca.
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer ml-3 shrink-0">
