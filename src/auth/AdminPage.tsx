@@ -152,7 +152,7 @@ export default function AdminPage({ onBack }: AdminPageProps) {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B132B] p-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0A0A0C] p-4">
         <div className="text-center">
           <ShieldAlert className="w-12 h-12 text-red-400 mx-auto mb-3" />
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Akses Ditolak</h2>
@@ -166,9 +166,9 @@ export default function AdminPage({ onBack }: AdminPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B132B] text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0A0C] text-slate-900 dark:text-slate-100">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-900 p-4 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 bg-white/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-900 p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
             <ArrowLeft className="w-4 h-4" />

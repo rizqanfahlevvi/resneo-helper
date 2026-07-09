@@ -120,7 +120,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
   const ettAdrenalinMax = adrenalinEttDose.max;
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0B132B] overflow-hidden text-slate-900 dark:text-slate-100 relative transition-colors duration-300">
+    <div className="flex h-screen w-full bg-slate-50 dark:bg-[#0A0A0C] overflow-hidden text-slate-900 dark:text-slate-100 relative transition-colors duration-300">
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-center text-xs font-bold py-1.5 px-4 flex items-center justify-center gap-2">
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -285,7 +285,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
       {/* Main Content Area */}
       <main className="flex-1 relative flex flex-col overflow-y-auto scroll-smooth">
         {/* Top Bar / Mobile & Desktop Sticky Header */}
-        <header className="bg-white/90 dark:bg-[#0B132B]/90 backdrop-blur-md p-4 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-900/80 flex items-center justify-between transition-all duration-300">
+        <header className="bg-white/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md p-4 sticky top-0 z-40 border-b border-slate-200 dark:border-slate-900/80 flex items-center justify-between transition-all duration-300">
           
           {/* Mobile View Header Content with Hamburger Menu */}
           <div className="md:hidden flex items-center gap-2">
@@ -436,7 +436,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
             <button
               onClick={() => { onTabChange('emergency'); setMoreMenuOpen(false); }}
               title="Mulai Resusitasi"
-              className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0B132B] transition-all z-50 group"
+              className="w-[66px] h-[66px] bg-gradient-to-br from-rose-600 to-red-500 rounded-full flex items-center justify-center text-white shadow-[0_6px_22px_rgba(239,68,68,0.5)] absolute top-[-26px] border-4 border-slate-50 dark:border-[#0A0A0C] transition-all z-50 group"
             >
               <Activity className="w-8 h-8 text-white group-hover:scale-110 transition-transform" />
             </button>

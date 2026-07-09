@@ -98,7 +98,7 @@ export default function LoginPage({ onGoToSignUp, onLoginSuccess }: LoginPagePro
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0B132B] dark:via-slate-950 dark:to-[#0B132B] p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0A0A0C] dark:via-slate-950 dark:to-[#0A0A0C] p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30 mb-4">

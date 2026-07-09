@@ -82,7 +82,7 @@ export default function SignUpPage({ onGoToLogin }: SignUpPageProps) {
 
   if (success) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0B132B] dark:via-slate-950 dark:to-[#0B132B] p-4">
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0A0A0C] dark:via-slate-950 dark:to-[#0A0A0C] p-4">
         <div className="w-full max-w-sm bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl p-6 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/40 mb-4">
             <CheckCircle2 className="w-9 h-9 text-emerald-500" />
@@ -108,7 +108,7 @@ export default function SignUpPage({ onGoToLogin }: SignUpPageProps) {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0B132B] dark:via-slate-950 dark:to-[#0B132B] p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-[#0A0A0C] dark:via-slate-950 dark:to-[#0A0A0C] p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30 mb-4">

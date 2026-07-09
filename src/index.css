@@ -47,10 +47,10 @@ html {
    warna teks slate di mode terang.
    ============================================================ */
 .dark {
-  --color-slate-950: #010308; /* body & latar terdalam — near-black */
-  --color-slate-900: #080b12; /* kartu / panel utama */
-  --color-slate-800: #10141d; /* kartu sekunder / border */
-  --color-slate-700: #1b2130; /* border / hover */
+  --color-slate-950: #060607; /* body & latar terdalam — near-black netral */
+  --color-slate-900: #0e0e10; /* kartu / panel utama */
+  --color-slate-800: #18181b; /* kartu sekunder / border */
+  --color-slate-700: #26262a; /* border / hover */
 }
 
 /* Skema Warna Hitam-Putih (Black & White Mode) */
@@ -83,7 +83,7 @@ html.reading-mode.dark {
   --color-slate-400: #e2e8f0;
   --color-slate-300: #f1f5f9;
   --color-slate-950: #000000;
-  --color-slate-900: #05070d;
+  --color-slate-900: #0a0a0c;
 }
 
 /* Perkuat garis pemisah & border agar batas antar-elemen tegas */
