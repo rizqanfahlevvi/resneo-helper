@@ -47,10 +47,12 @@ html {
    warna teks slate di mode terang.
    ============================================================ */
 .dark {
-  --color-slate-950: #060607; /* body & latar terdalam — near-black netral */
-  --color-slate-900: #0e0e10; /* kartu / panel utama */
-  --color-slate-800: #18181b; /* kartu sekunder / border */
-  --color-slate-700: #26262a; /* border / hover */
+  /* Skala elevasi netral — makin "naik" makin terang agar ada hierarki
+     yang jelas di atas latar hitam. */
+  --color-slate-950: #0a0a0b; /* Level 0 — body / kanvas terdalam */
+  --color-slate-900: #17171a; /* Level 1 — kartu / panel utama */
+  --color-slate-800: #232327; /* Level 2 — kartu sekunder / input / elevasi */
+  --color-slate-700: #323238; /* Border & hover — definisi tepi */
 }
 
 /* Skema Warna Hitam-Putih (Black & White Mode) */
@@ -82,8 +84,9 @@ html.reading-mode.dark {
   --color-slate-500: #cbd5e1;
   --color-slate-400: #e2e8f0;
   --color-slate-300: #f1f5f9;
-  --color-slate-950: #000000;
-  --color-slate-900: #0a0a0c;
+  --color-slate-950: #000000; /* kanvas hitam penuh */
+  --color-slate-900: #1c1c20; /* kartu tetap terangkat di atas hitam */
+  --color-slate-800: #2a2a30;
 }
 
 /* Perkuat garis pemisah & border agar batas antar-elemen tegas */
