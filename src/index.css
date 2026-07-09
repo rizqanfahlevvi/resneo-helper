@@ -30,14 +30,19 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Smooth transitions when Setting App preferences change (tema, skala font, dll) */
-.theme-transition,
-.theme-transition *,
-.theme-transition::before,
-.theme-transition::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow, filter, backdrop-filter, opacity;
-  transition-duration: 300ms;
-  transition-timing-function: ease-in-out;
+/* Transisi warna halus saat preferensi berubah (tema, skala font, dll).
+   Diletakkan di @layer base agar utilitas transition-* Tailwind (layer
+   utilities) tetap menang — sehingga animasi transform/width komponen
+   (buka-tutup sidebar, bottom nav) tidak ikut ditimpa & tetap berjalan. */
+@layer base {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition::before,
+  .theme-transition::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow, filter, backdrop-filter, opacity;
+    transition-duration: 300ms;
+    transition-timing-function: ease-in-out;
+  }
 }
 
 /* ============================================================
