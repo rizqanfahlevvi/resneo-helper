@@ -19,11 +19,16 @@ import { meta as hipoglikemiaMeta, refs as hipoglikemiaRefs } from './topics/hip
 import { meta as neuroproteksiMeta, refs as neuroproteksiRefs } from './topics/neuroproteksi/meta';
 
 // Buku "Ventilator Mekanik — Panduan Lengkap" (materi NICU/PICU, 11 bab).
-// Bab 1-4 sudah tersedia; Bab 5-11 menyusul dengan pola folder yang sama.
+// Bab 1-9 sudah tersedia; Bab 10-11 menyusul dengan pola folder yang sama.
 import { meta as vent01Meta, refs as vent01Refs } from './topics/vent-01/meta';
 import { meta as vent02Meta, refs as vent02Refs } from './topics/vent-02/meta';
 import { meta as vent03Meta, refs as vent03Refs } from './topics/vent-03/meta';
 import { meta as vent04Meta, refs as vent04Refs } from './topics/vent-04/meta';
+import { meta as vent05Meta, refs as vent05Refs } from './topics/vent-05/meta';
+import { meta as vent06Meta, refs as vent06Refs } from './topics/vent-06/meta';
+import { meta as vent07Meta, refs as vent07Refs } from './topics/vent-07/meta';
+import { meta as vent08Meta, refs as vent08Refs } from './topics/vent-08/meta';
+import { meta as vent09Meta, refs as vent09Refs } from './topics/vent-09/meta';
 
 /**
  * Registry pusat semua topik teori. Setiap topik hanya mendaftarkan
@@ -53,6 +58,11 @@ export const TOPICS: TheoryTopicEntry[] = [
   { ...vent02Meta, refs: vent02Refs, Body: lazy(() => import('./topics/vent-02/Body')) },
   { ...vent03Meta, refs: vent03Refs, Body: lazy(() => import('./topics/vent-03/Body')) },
   { ...vent04Meta, refs: vent04Refs, Body: lazy(() => import('./topics/vent-04/Body')) },
+  { ...vent05Meta, refs: vent05Refs, Body: lazy(() => import('./topics/vent-05/Body')) },
+  { ...vent06Meta, refs: vent06Refs, Body: lazy(() => import('./topics/vent-06/Body')) },
+  { ...vent07Meta, refs: vent07Refs, Body: lazy(() => import('./topics/vent-07/Body')) },
+  { ...vent08Meta, refs: vent08Refs, Body: lazy(() => import('./topics/vent-08/Body')) },
+  { ...vent09Meta, refs: vent09Refs, Body: lazy(() => import('./topics/vent-09/Body')) },
 ];
 
 export const CATEGORY_ORDER = [
