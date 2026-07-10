@@ -18,6 +18,13 @@ import { meta as hipotermiaMeta, refs as hipotermiaRefs } from './topics/hipoter
 import { meta as hipoglikemiaMeta, refs as hipoglikemiaRefs } from './topics/hipoglikemia/meta';
 import { meta as neuroproteksiMeta, refs as neuroproteksiRefs } from './topics/neuroproteksi/meta';
 
+// Buku "Ventilator Mekanik — Panduan Lengkap" (materi NICU/PICU, 11 bab).
+// Bab 1-4 sudah tersedia; Bab 5-11 menyusul dengan pola folder yang sama.
+import { meta as vent01Meta, refs as vent01Refs } from './topics/vent-01/meta';
+import { meta as vent02Meta, refs as vent02Refs } from './topics/vent-02/meta';
+import { meta as vent03Meta, refs as vent03Refs } from './topics/vent-03/meta';
+import { meta as vent04Meta, refs as vent04Refs } from './topics/vent-04/meta';
+
 /**
  * Registry pusat semua topik teori. Setiap topik hanya mendaftarkan
  * metadata (ringan, dimuat langsung) + isi lengkap (Body) yang di-lazy-load
@@ -41,6 +48,11 @@ export const TOPICS: TheoryTopicEntry[] = [
   { ...hipotermiaMeta, refs: hipotermiaRefs, Body: lazy(() => import('./topics/hipotermia/Body')) },
   { ...hipoglikemiaMeta, refs: hipoglikemiaRefs, Body: lazy(() => import('./topics/hipoglikemia/Body')) },
   { ...neuroproteksiMeta, refs: neuroproteksiRefs, Body: lazy(() => import('./topics/neuroproteksi/Body')) },
+
+  { ...vent01Meta, refs: vent01Refs, Body: lazy(() => import('./topics/vent-01/Body')) },
+  { ...vent02Meta, refs: vent02Refs, Body: lazy(() => import('./topics/vent-02/Body')) },
+  { ...vent03Meta, refs: vent03Refs, Body: lazy(() => import('./topics/vent-03/Body')) },
+  { ...vent04Meta, refs: vent04Refs, Body: lazy(() => import('./topics/vent-04/Body')) },
 ];
 
 export const CATEGORY_ORDER = [
@@ -49,6 +61,7 @@ export const CATEGORY_ORDER = [
   'Sirkulasi, Obat & Kompresi',
   'Neonatus Prematur',
   'Pasca-Resusitasi & Stabilisasi',
+  'Ventilator Mekanik — Panduan Lengkap',
 ];
 
 export function getTopic(id: string): TheoryTopicEntry | undefined {

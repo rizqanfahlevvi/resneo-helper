@@ -46,7 +46,7 @@ export default function TabTheory() {
 
   const q = query.trim().toLowerCase();
   const filteredTopics = q
-    ? TOPICS.filter((t) => `${t.title} ${t.teaser} ${t.badge}`.toLowerCase().includes(q))
+    ? TOPICS.filter((t) => `${t.title} ${t.teaser} ${t.badge} ${t.category}`.toLowerCase().includes(q))
     : TOPICS;
 
   const favs = TOPICS.filter((t) => favoriteTheory.includes(t.id));
