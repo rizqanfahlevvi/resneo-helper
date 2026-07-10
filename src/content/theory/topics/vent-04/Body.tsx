@@ -13,7 +13,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v4-indikasi" className="scroll-mt-4">4.1 Indikasi Intubasi</h3>
+      <h3 id="v4-indikasi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">4.1 Indikasi Intubasi</h3>
       <p>
         Intubasi endotrakeal diindikasikan ketika dukungan non-invasif (Bab 3) gagal atau tidak sesuai untuk kondisi klinis pasien. Intubasi endotrakeal diindikasikan pada berbagai kondisi klinis, seperti gagal napas yang mengancam (impending respiratory failure) dan kebutuhan untuk melindungi jalan napas pasien.
       </p>
@@ -48,7 +48,7 @@ export default function Body() {
         <li><strong>Pediatrik (di luar neonatal):</strong> spektrum indikasi lebih luas — termasuk trauma, status neurologis, sepsis, gagal napas akibat penyakit jalan napas bawah (bronkiolitis berat, status asmatikus).</li>
       </ul>
 
-      <h3 id="v4-persiapan" className="scroll-mt-4">4.2 Persiapan Alat: Checklist dan Ukuran ETT</h3>
+      <h3 id="v4-persiapan" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">4.2 Persiapan Alat: Checklist dan Ukuran ETT</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">4.2.1 Mnemonic Persiapan: SOAPME</h4>
       <p>
         Sebelum melakukan rapid sequence intubation (RSI), semua monitor, peralatan, personel, dan obat yang diperlukan harus disiapkan dan diorganisasi terlebih dahulu. Mnemonic SOAPME menjadi alat bantu memori untuk lima komponen persiapan alat: (1) Suction, (2) Oxygen, (3) Airway, (4) Pharmacology, dan (5) Monitoring Equipment.
@@ -166,7 +166,7 @@ export default function Body() {
         <strong>Prinsip keselamatan:</strong> formula hanyalah estimasi awal — <strong>verifikasi klinis (auskultasi bilateral, pengembangan dada simetris) dan konfirmasi radiologis/kapnografi tetap wajib</strong>, tidak boleh mengandalkan angka formula semata.
       </p>
 
-      <h3 id="v4-premedikasi" className="scroll-mt-4">4.3 Premedikasi Intubasi — Prinsip Umum</h3>
+      <h3 id="v4-premedikasi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">4.3 Premedikasi Intubasi — Prinsip Umum</h3>
       <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/30 rounded-xl p-4 text-sm">
         <p className="m-0 text-amber-800 dark:text-amber-300"><strong>Catatan penting:</strong> Bagian ini membahas <strong>prinsip dan kategori</strong> obat premedikasi, bukan dosis spesifik. Dosis aktual harus mengikuti kebijakan/formularium institusi Anda dan guideline resmi (PALS/NRP/protokol lokal), karena dosis bergantung pada kondisi klinis individual pasien.</p>
       </div>
@@ -220,7 +220,7 @@ export default function Body() {
         Keamanan dan efikasi manuver Sellick telah dipertanyakan — bila dilakukan tidak tepat (hal yang tidak jarang terjadi), tekanan krikoid dapat mengganggu visualisasi langsung laring; pada kasus berat yang jarang, ruptur esofagus dapat terjadi bila tekanan krikoid diterapkan pada pasien yang sedang aktif muntah. Keputusan penggunaan manuver ini sebaiknya dibuat berdasarkan basis individual, dengan kekuatan lembut yang diterapkan pada kartilago krikoid secara hati-hati.
       </p>
 
-      <h3 id="v4-teknik" className="scroll-mt-4">4.4 Teknik Intubasi dan Konfirmasi Posisi ETT</h3>
+      <h3 id="v4-teknik" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">4.4 Teknik Intubasi dan Konfirmasi Posisi ETT</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">4.4.1 Posisi Pasien</h4>
       <p>
         Secara umum, untuk intubasi endotrakeal, lobus telinga anak dan ujung bahu sebaiknya sejajar — prinsip ini membantu mencapai posisi &quot;sniffing&quot; yang optimal, meski detail teknis bervariasi sesuai usia (bayi vs anak lebih besar memiliki oksiput relatif lebih besar yang memengaruhi posisi optimal kepala).
@@ -242,7 +242,7 @@ export default function Body() {
         Praktik umum adalah memotong ETT pada bayi sehingga tube tidak lebih dari 1–2 cm keluar dari mulut — mengurangi resistensi jalan napas tambahan (sesuai hukum Hagen-Poiseuille, resistensi meningkat seiring panjang tube) dan mengurangi risiko manipulasi pasca-intubasi yang dapat meningkatkan risiko malposisi tube.
       </p>
 
-      <h3 id="v4-komplikasi" className="scroll-mt-4">4.5 Komplikasi Intubasi dan Pencegahannya</h3>
+      <h3 id="v4-komplikasi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">4.5 Komplikasi Intubasi dan Pencegahannya</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>

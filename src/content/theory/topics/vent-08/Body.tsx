@@ -17,7 +17,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v8-klinis" className="scroll-mt-4">8.1 Monitoring Klinis (Inspeksi, Auskultasi, Kerja Napas)</h3>
+      <h3 id="v8-klinis" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.1 Monitoring Klinis (Inspeksi, Auskultasi, Kerja Napas)</h3>
       <p>Monitoring ventilator tidak pernah menggantikan monitoring klinis di ranjang pasien — <strong>angka di layar hanyalah salah satu input</strong>, bukan satu-satunya. Prinsip ABC (Bab 2) harus dievaluasi ulang setiap kali monitoring dilakukan:</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -46,12 +46,12 @@ export default function Body() {
         <strong>Prinsip integrasi:</strong> setiap perubahan pada monitoring numerik (SpO₂ turun, EtCO₂ naik) harus <strong>dikonfirmasi dengan pemeriksaan klinis langsung</strong> sebelum mengambil tindakan — angka bisa salah karena artefak, sensor lepas, atau kalibrasi buruk (8.9 — troubleshooting sensor).
       </p>
 
-      <h3 id="v8-agd" className="scroll-mt-4">8.2 Monitoring Gas Darah: Interpretasi AGD dalam Konteks Ventilator</h3>
+      <h3 id="v8-agd" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.2 Monitoring Gas Darah: Interpretasi AGD dalam Konteks Ventilator</h3>
       <p className="mb-0">
         Analisis gas darah (AGD) tetap menjadi <strong>gold standard</strong> untuk menilai oksigenasi dan ventilasi aktual, melengkapi (bukan digantikan oleh) monitoring non-invasif seperti SpO₂ dan EtCO₂. Interpretasi AGD harus selalu dikaitkan dengan setting ventilator saat itu — misalnya PaCO₂ tinggi pada TInsp yang terlalu singkat mengarahkan evaluasi ke time constant (Bab 1.2.3), bukan otomatis menaikkan rate.
       </p>
 
-      <h3 id="v8-oi" className="scroll-mt-4">8.3 Oxygenation Index, OSI, Rasio PaO2/FiO2, SpO2/FiO2 — PALICC-2</h3>
+      <h3 id="v8-oi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.3 Oxygenation Index, OSI, Rasio PaO2/FiO2, SpO2/FiO2 — PALICC-2</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.3.1 Definisi dan Rumus</h4>
       <p>OI (Oxygenation Index) = Mean Airway Pressure (MAP, cmH₂O) × FiO₂ / PaO₂ (mmHg). OSI (Oxygenation Saturation Index) = MAP (cmH₂O) × FiO₂ / SpO₂.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.3.2 Kapan Menggunakan Indeks Mana</h4>
@@ -61,7 +61,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.3.3 Signifikansi Klinis</h4>
       <p className="mb-0">Indeks-indeks ini digunakan PALICC-2 untuk <strong>stratifikasi keparahan PARDS</strong> — memungkinkan klasifikasi keparahan bahkan pada pasien yang belum diintubasi (menggunakan OSI atau S/F ratio), memperluas cakupan diagnosis PARDS ke pasien dengan dukungan non-invasif termasuk HFNC.</p>
 
-      <h3 id="v8-etco2" className="scroll-mt-4">8.4 Kapnografi (EtCO2) — Nilai Normal, Cara Ukur, Interpretasi Kurva</h3>
+      <h3 id="v8-etco2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.4 Kapnografi (EtCO2) — Nilai Normal, Cara Ukur, Interpretasi Kurva</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.4.1 Nilai Normal dan Korelasi dengan PaCO2</h4>
       <p className="text-xs italic text-slate-500 dark:text-slate-400">(Bab 7.10.) EtCO₂ normal pada napas spontan neonatus/anak berkisar 36–40 mmHg, dengan korelasi baik terhadap PaCO₂ (r≈0,8) pada paru sehat, namun korelasi ini <strong>menurun pada penyakit paru berat</strong>.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.4.2 Interpretasi Bentuk Gelombang (Waveform) Kapnografi</h4>
@@ -82,7 +82,7 @@ export default function Body() {
         Korelasi antara EtCO₂ mainstream dan PaCO₂ secara umum baik; neonatus dengan penyakit paru akan memiliki korelasi lebih rendah. Terapi surfaktan memperbaiki korelasi ini. Monitoring EtCO₂ membantu dalam melihat tren atau skrining nilai PaCO₂ abnormal — bukan menggantikan pengukuran definitif.
       </p>
 
-      <h3 id="v8-spo2" className="scroll-mt-4">8.5 Pulse Oximetry (SpO2) — Target Saturasi per Kondisi</h3>
+      <h3 id="v8-spo2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.5 Pulse Oximetry (SpO2) — Target Saturasi per Kondisi</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -108,7 +108,7 @@ export default function Body() {
       </div>
       <p className="mb-0"><strong>Prinsip umum:</strong> target SpO₂ <strong>bukan angka tunggal universal</strong> — bergantung pada kondisi spesifik (ARDS berat vs RDS neonatal ringan vs kondisi jantung dengan shunt), dan harus mengikuti kebijakan/guideline yang relevan dengan diagnosis pasien.</p>
 
-      <h3 id="v8-waveform" className="scroll-mt-4">8.6 Waveform Monitoring: Mengenali Asinkroni dari Kurva</h3>
+      <h3 id="v8-waveform" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.6 Waveform Monitoring: Mengenali Asinkroni dari Kurva</h3>
       <p className="text-xs italic text-slate-500 dark:text-slate-400">(Detail troubleshooting lengkap ada di Bab 9; bagian ini fokus pada bagaimana asinkroni tampil di monitoring visual.)</p>
       <p>
         Asinkroni pasien-ventilator (PVA) adalah ketidaksesuaian antara kebutuhan pasien — dari segi waktu, flow, volume, atau tekanan — dengan ventilator yang menyuplai kebutuhan tersebut selama ventilasi mekanik. Ini fenomena umum, dengan angka kejadian berkisar 10% hingga 85%. PVA dapat diidentifikasi melalui monitoring grafis ventilator berupa gelombang tekanan dan flow.
@@ -121,7 +121,7 @@ export default function Body() {
         <li><strong>Cycling asynchrony (premature/delayed):</strong> terlihat dari ketidaksesuaian antara akhir usaha inspirasi pasien (terlihat dari flow) dengan waktu ventilator mengakhiri inspirasi.</li>
       </ul>
 
-      <h3 id="v8-compliance" className="scroll-mt-4">8.7 Compliance dan Resistance — Cara Ventilator Menghitung dan Interpretasi Tren</h3>
+      <h3 id="v8-compliance" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.7 Compliance dan Resistance — Cara Ventilator Menghitung dan Interpretasi Tren</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.7.1 Hold Maneuver sebagai Alat Pengukuran</h4>
       <p>Manual Bellavista mendemonstrasikan cara konkret ventilator mengukur mekanika paru menggunakan <strong>Hold Maneuver</strong> — tombol yang menghentikan ventilasi sesaat di akhir inspirasi atau ekspirasi:</p>
       <div className="overflow-x-auto">
@@ -158,7 +158,7 @@ export default function Body() {
         Compliance dan resistensi paling bermakna secara klinis <strong>sebagai tren</strong>, bukan angka absolut tunggal — penurunan compliance progresif dapat menandakan perburukan penyakit paru (ARDS memberat, atelektasis) atau masalah mekanis (ETT tersumbat parsial), sementara peningkatan mendadak dapat menandakan perbaikan klinis nyata atau, sebaliknya, kebocoran sirkuit yang membuat pengukuran tidak valid.
       </p>
 
-      <h3 id="v8-alarm" className="scroll-mt-4">8.8 Alarm Ventilator: Kategori, Penyebab Umum, Respons Klinis</h3>
+      <h3 id="v8-alarm" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.8 Alarm Ventilator: Kategori, Penyebab Umum, Respons Klinis</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.8.1 Tiga Prioritas Alarm (Contoh Konkret: Bellavista)</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -251,7 +251,7 @@ export default function Body() {
         ICU terus menghadapi tantangan alarm fatigue meski sudah bertahun-tahun berupaya mengatasinya. Studi menunjukkan 72% hingga 99% alarm tergolong alarm palsu atau secara klinis tidak relevan. Ini bukan alasan untuk mengabaikan alarm, melainkan <strong>alasan kuat untuk penyesuaian alarm yang tepat dan spesifik-pasien</strong> sejak awal (menggunakan Autoset saat kondisi stabil, menyesuaikan batas sesuai kondisi klinis aktual) — bukan menaikkan ambang secara serampangan.
       </p>
 
-      <h3 id="v8-lanjut" className="scroll-mt-4">8.9 Lung Recruitment Tool dan Esophageal Pressure Monitoring (Fitur Lanjutan)</h3>
+      <h3 id="v8-lanjut" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">8.9 Lung Recruitment Tool dan Esophageal Pressure Monitoring (Fitur Lanjutan)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">8.9.1 Lung Recruitment Tool — Monitoring Selama Maneuver</h4>
       <p>Selama maneuver rekrutmen paru/pengukuran, sebagian besar alarm pasien disupresi sementara — namun beberapa alarm spesifik tetap memonitor maneuver itu sendiri:</p>
       <div className="overflow-x-auto">

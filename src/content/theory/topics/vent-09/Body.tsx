@@ -13,7 +13,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v9-sistematis" className="scroll-mt-4">9.1 Pendekatan Sistematis Pasien Memburuk di Ventilator</h3>
+      <h3 id="v9-sistematis" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">9.1 Pendekatan Sistematis Pasien Memburuk di Ventilator</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.1.1 Mnemonic DOPE(S) — Diagnosis Cepat</h4>
       <p>
         Ketika hipoksia terjadi setelah intubasi dan tidak segera terdeteksi, kondisi dapat berujung fatal dengan cepat tanpa intervensi dini. Pendekatan terstruktur untuk mengidentifikasi dan menangani penyebab dasar secara bersamaan sangat penting. Mnemonic yang membantu adalah &quot;DOPE&quot;: displacement (perpindahan) atau obstruksi ETT, pneumotoraks, dan kegagalan ventilator/peralatan.
@@ -89,7 +89,7 @@ export default function Body() {
         </table>
       </div>
 
-      <h3 id="v9-asinkroni" className="scroll-mt-4">9.2 Asinkroni Pasien-Ventilator: Jenis dan Tata Laksana</h3>
+      <h3 id="v9-asinkroni" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">9.2 Asinkroni Pasien-Ventilator: Jenis dan Tata Laksana</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.2.1 Klasifikasi Berdasarkan Fase Siklus Napas</h4>
       <p>
         Terdapat kesepakatan mengenai keberadaan 7 jenis asinkroni pasien-ventilator: ineffective effort, double trigger, premature cycling, delayed cycling, reverse triggering, flow starvation, dan auto-cycling. Klasifikasi berdasarkan fase siklus napas: asinkroni fase triggering (ineffective effort/delayed triggering, auto-triggering, double triggering, reverse triggering); asinkroni fase penghantaran flow (flow starvation pada ventilasi volume-controlled, dan pressurisasi tidak adekuat — rise time terlalu lambat pada pressure support); asinkroni fase cycling (late cycling dan premature cycling).
@@ -130,7 +130,7 @@ export default function Body() {
       </p>
       <p className="mb-0"><strong>Relevansi khusus untuk Bellavista:</strong> fitur Auto.Sync (tiga kriteria trigger ekspirasi, Bab 6.4.3) dan mekanisme kompensasi volume otomatis pada mode volume-controlled (Bab 6.2.3) adalah <strong>contoh implementasi teknis</strong> untuk mengurangi asinkroni fase cycling dan flow — memahami mekanismenya membantu klinisi menginterpretasi kapan penyesuaian manual masih diperlukan meski fitur otomatis sudah aktif.</p>
 
-      <h3 id="v9-autopeep" className="scroll-mt-4">9.3 Auto-PEEP / Air Trapping</h3>
+      <h3 id="v9-autopeep" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">9.3 Auto-PEEP / Air Trapping</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.3.1 Mekanisme</h4>
       <p>Breath stacking terjadi ketika waktu ekspirasi tidak adekuat sebelum napas berikutnya dimulai (terutama pada penyakit paru obstruktif); breath stacking membangun peningkatan tekanan intratoraks dan mencegah pengisian jantung kanan.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.3.2 Deteksi</h4>
@@ -143,7 +143,7 @@ export default function Body() {
         <li>Kaitkan dengan time constant (Bab 1.2.3) — pasien dengan resistensi tinggi (time constant panjang) membutuhkan waktu ekspirasi proporsional lebih panjang.</li>
       </ul>
 
-      <h3 id="v9-hipoksemia" className="scroll-mt-4">9.4 Penanganan Hipoksemia Refrakter</h3>
+      <h3 id="v9-hipoksemia" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">9.4 Penanganan Hipoksemia Refrakter</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.4.1 Definisi dan Urutan Eskalasi</h4>
       <p>
         Meski jarang terjadi, ketika hipoksemia refrakter menetap meski sudah diterapkan ventilasi lung-protective dengan PEEP sedang hingga tinggi, direkomendasikan pertama-tama menggunakan maneuver rekrutmen paru dan uji PEEP dekremental; bila tidak menyelesaikan masalah, posisi pronasi harus dicoba. Vasodilator pulmoner aerosolized dapat digunakan untuk &quot;membeli waktu&quot; ketika pendekatan ini gagal, sembari pasien ditransisikan ke extracorporeal membrane oxygenation (ECMO). Terdapat bukti cukup untuk merekomendasikan menghindari penggunaan osilasi frekuensi tinggi dalam manajemen hipoksemia refrakter (catatan: ini konteks dewasa/ARDS umum — HFOV tetap memiliki peran spesifik pada neonatal RDS sebagai lini awal, bukan hanya rescue, Bab 6.7).
@@ -164,7 +164,7 @@ export default function Body() {
       </p>
       <p className="mb-0"><strong>Kaitan dengan fitur Bellavista:</strong> Lung Recruitment Tool (Bab 8.9.1) menyediakan monitoring terstruktur untuk maneuver ini — parameter dVMax dan CCursor membantu mengidentifikasi titik PEEP optimal sesuai prinsip R/I ratio di atas.</p>
 
-      <h3 id="v9-hiperkapnia" className="scroll-mt-4">9.5 Penanganan Hiperkapnia/Asidosis Respiratorik</h3>
+      <h3 id="v9-hiperkapnia" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">9.5 Penanganan Hiperkapnia/Asidosis Respiratorik</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.5.1 Prinsip Permissive Hypercapnia</h4>
       <p>Sebagaimana dibahas di Bab 7.6.2, PALICC-2 memperbolehkan permissive hypercapnia hingga pH 7,20 pada PARDS untuk mempertahankan strategi lung-protective. Prinsip ini berlaku sebagai <strong>trade-off yang disengaja</strong>, bukan kegagalan tata laksana — menerima PaCO₂ lebih tinggi demi menghindari volutrauma/barotrauma dari usaha &quot;mengejar&quot; normokapnia dengan tekanan/volume berlebihan.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">9.5.2 Langkah Evaluasi Sistematis Hiperkapnia</h4>

@@ -12,7 +12,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v2-airway" className="scroll-mt-4">2.1 Airway: Assessment dan Anatomi Jalan Napas Neonatus vs Anak</h3>
+      <h3 id="v2-airway" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">2.1 Airway: Assessment dan Anatomi Jalan Napas Neonatus vs Anak</h3>
       <p>
         Sebelum bicara ventilator, klinisi harus memahami bahwa <strong>jalan napas anak bukan versi kecil dari jalan napas dewasa</strong> — perbedaan struktural memengaruhi pemilihan ukuran ETT, teknik intubasi, dan risiko komplikasi. Terdapat perbedaan fundamental antara anatomi dan fisiologi jalan napas neonatus, pediatrik, dan dewasa; bayi bukan sekadar orang dewasa berukuran kecil dalam hal ini — ukuran, luas permukaan, proporsi, resistensi, dan compliance sangat bervariasi antar kelompok usia.
       </p>
@@ -58,7 +58,7 @@ export default function Body() {
         </ul>
       </div>
 
-      <h3 id="v2-breathing" className="scroll-mt-4">2.2 Breathing: Mekanisme Pertukaran Gas dan Kerja Napas</h3>
+      <h3 id="v2-breathing" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">2.2 Breathing: Mekanisme Pertukaran Gas dan Kerja Napas</h3>
       <p>
         Ventilasi efektif membutuhkan rantai utuh: <strong>jalan napas paten → mekanika dinding dada/otot pernapasan adekuat → alveolus fungsional → membran alveolus-kapiler intak → perfusi kapiler paru adekuat</strong>. Kegagalan di titik manapun dalam rantai ini menghasilkan gagal napas, namun dengan mekanisme dan tata laksana yang berbeda:
       </p>
@@ -73,7 +73,7 @@ export default function Body() {
         Kerja napas berlebihan (takipnea, retraksi, napas cuping hidung, grunting) adalah <strong>tanda klinis paling awal dan paling sensitif</strong> dari gagal napas yang akan datang — sering muncul sebelum gas darah abnormal. Pada bayi/anak dengan tanda kerja napas berat namun gas darah &quot;masih oke&quot;, jangan tenang — ini justru situasi peringatan untuk bersiap eskalasi support sebelum terjadi dekompensasi mendadak.
       </p>
 
-      <h3 id="v2-circulation" className="scroll-mt-4">2.3 Circulation: Interaksi Kardiopulmoner — Efek Ventilasi Tekanan Positif</h3>
+      <h3 id="v2-circulation" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">2.3 Circulation: Interaksi Kardiopulmoner — Efek Ventilasi Tekanan Positif</h3>
       <p>Ini adalah salah satu konsep paling sering diremehkan klinisi non-intensivis: <strong>ventilator tidak hanya memengaruhi paru, tapi juga jantung</strong>, melalui perubahan tekanan intratoraks (ITP).</p>
       <p>
         Ventilasi tekanan positif meningkatkan tekanan intratoraks. Efeknya pada sirkulasi bergantung pada <strong>ventrikel mana</strong> dan <strong>status volume pasien</strong>.
@@ -120,7 +120,7 @@ export default function Body() {
         </ol>
       </div>
 
-      <h3 id="v2-redflags" className="scroll-mt-4">2.4 Red Flags Kegagalan Tiap Komponen ABC</h3>
+      <h3 id="v2-redflags" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">2.4 Red Flags Kegagalan Tiap Komponen ABC</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>

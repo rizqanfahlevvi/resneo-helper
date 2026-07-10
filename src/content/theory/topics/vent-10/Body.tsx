@@ -15,7 +15,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v10-kriteria" className="scroll-mt-4">10.1 Kriteria Kesiapan Weaning</h3>
+      <h3 id="v10-kriteria" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.1 Kriteria Kesiapan Weaning</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.1.1 Prinsip Umum</h4>
       <p>Weaning bukan sekadar &quot;menurunkan angka&quot; — merupakan proses evaluasi berkelanjutan terhadap kesiapan fisiologis pasien untuk mengambil alih kembali kerja napas sepenuhnya. Kesiapan weaning idealnya dievaluasi <strong>setiap hari</strong> (bahkan lebih sering pada kasus akut), bukan menunggu &quot;hari tertentu&quot; secara kaku.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.1.2 Indikator Kesiapan Umum</h4>
@@ -52,7 +52,7 @@ export default function Body() {
         <strong>Perbedaan penting neonatal:</strong> akibat fisiologi neonatal, uji napas spontan (spontaneous breathing test) kurang prediktif, karena kegagalan ekstubasi pada neonatus sering dipengaruhi faktor tambahan yang tidak tertangkap SBT konvensional (mis. apnea prematuritas, kelelahan otot napas yang berkembang lebih lambat setelah ekstubasi).
       </p>
 
-      <h3 id="v10-strategi" className="scroll-mt-4">10.2 Strategi Weaning: SIMV Taper vs PSV vs Protokol Terstruktur</h3>
+      <h3 id="v10-strategi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.2 Strategi Weaning: SIMV Taper vs PSV vs Protokol Terstruktur</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.2.1 Pendekatan Klasik</h4>
       <ul className="list-disc list-inside space-y-1.5 text-sm">
         <li><strong>SIMV taper:</strong> menurunkan rate mandatory secara bertahap, memberi ruang lebih besar untuk napas spontan pasien, dengan rate sebagai &quot;jaring pengaman&quot; yang terus dikurangi.</li>
@@ -73,7 +73,7 @@ export default function Body() {
       </p>
       <p className="mb-0"><strong>Prinsip praktis:</strong> protokol terstruktur membantu <strong>konsistensi</strong> proses weaning (mengurangi variasi antar-klinisi), namun <strong>bukan pengganti</strong> penilaian klinis individual — protokol adalah <em>alat bantu keputusan</em>, bukan algoritma otomatis tanpa pengawasan.</p>
 
-      <h3 id="v10-sbt" className="scroll-mt-4">10.3 Spontaneous Breathing Trial (SBT) — Protokol dan Kriteria Lulus</h3>
+      <h3 id="v10-sbt" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.3 Spontaneous Breathing Trial (SBT) — Protokol dan Kriteria Lulus</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.3.1 SBT pada Neonatus</h4>
       <p>
         Uji napas spontan (SBT) menggunakan CPAP endotrakeal (ET-CPAP) selama tiga menit dilakukan sebelum ekstubasi pada neonatus yang terintubasi &gt;24 jam dan dinilai siap ekstubasi. Dalam studi validasi tersebut, 77,5% bayi lulus SBT, dengan 78 dari 83 yang lulus berhasil diekstubasi (positive predictive value 93,97%); sensitivitas dan spesifisitas SBT masing-masing 81,2% dan 54,5%. Angka keberhasilan ekstubasi keseluruhan mencapai 90%.
@@ -85,7 +85,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.3.2 SBT pada Pediatrik (di Luar Neonatal)</h4>
       <p className="mb-0">Berbagai pendekatan klinis telah dijelaskan untuk menentukan waktu terbaik ekstubasi, yang umumnya dapat dicapai dengan melakukan uji napas spontan sebelum ekstubasi. Namun tidak ada bukti jelas mengenai teknik mana yang paling baik memprediksi kegagalan ekstubasi.</p>
 
-      <h3 id="v10-prediktor" className="scroll-mt-4">10.4 Prediktor Keberhasilan Ekstubasi (Neonatus vs Pediatrik)</h3>
+      <h3 id="v10-prediktor" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.4 Prediktor Keberhasilan Ekstubasi (Neonatus vs Pediatrik)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.4.1 Faktor Risiko Kegagalan Ekstubasi Neonatal</h4>
       <p>
         Studi kohort retrospektif pada neonatus ≤32 minggu dengan RDS mengidentifikasi enam faktor risiko independen kegagalan ekstubasi pertama: <strong>berat badan lebih rendah saat ekstubasi, FiO₂ lebih tinggi, patent ductus arteriosus (PDA &gt;1,5 mm), perdarahan intrakranial derajat 3 atau lebih tinggi, infeksi Ureaplasma urealyticum maternal, dan solusio plasenta selama kehamilan</strong>, dengan model nomogram menggabungkan enam faktor ini menunjukkan sensitivitas 91% dan spesifisitas 52% untuk memprediksi kegagalan ekstubasi (AUC 0,77).
@@ -100,7 +100,7 @@ export default function Body() {
         Pada populasi kompleks seperti pasca-prosedur Norwood, kegagalan ekstubasi terjadi pada 10% (31 dari 311) percobaan ekstubasi dalam 48 jam pertama; analisis univariat menemukan angka kegagalan ekstubasi lebih tinggi ketika pasien diekstubasi ke CPAP/BiPAP dibanding ke HFNC atau nasal kanul (16% vs 7,8%) — menunjukkan bahwa pilihan modalitas dukungan pasca-ekstubasi sendiri dapat memengaruhi outcome, tidak selalu &quot;lebih tinggi support = lebih aman&quot; pada populasi tertentu (kemungkinan terkait interaksi kardiopulmoner spesifik pasca-bedah jantung — Bab 2.3).
       </p>
 
-      <h3 id="v10-persiapan" className="scroll-mt-4">10.5 Persiapan dan Teknik Ekstubasi</h3>
+      <h3 id="v10-persiapan" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.5 Persiapan dan Teknik Ekstubasi</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.5.1 Checklist Persiapan (Prinsip Umum)</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -133,7 +133,7 @@ export default function Body() {
         <li>Observasi ketat pada jam-jam pertama pasca-ekstubasi (periode risiko tertinggi kegagalan).</li>
       </ol>
 
-      <h3 id="v10-pascaekstubasi" className="scroll-mt-4">10.6 Dukungan Pasca-Ekstubasi (NIV Post-Extubation, HFNC)</h3>
+      <h3 id="v10-pascaekstubasi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.6 Dukungan Pasca-Ekstubasi (NIV Post-Extubation, HFNC)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.6.1 Prinsip Umum</h4>
       <p>Dukungan pasca-ekstubasi <strong>direncanakan sebelum ekstubasi</strong>, bukan reaksi terhadap distres yang muncul kemudian — filosofi ini konsisten dengan prinsip proaktif troubleshooting (Bab 9) dan human-error-proofing (mencegah lebih baik daripada mengoreksi).</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.6.2 Evidence Efikasi Modalitas Neonatal</h4>
@@ -152,7 +152,7 @@ export default function Body() {
         Non-invasive ventilation memberikan manfaat pada bayi pasca-ekstubasi dan penyakit paru pasca-infeksi, mengurangi risiko gagal napas berulang. NCPAP banyak digunakan sebagai dukungan respirasi pasca bedah jantung, namun 40% bayi dan neonatus dengan NCPAP tidak mencapai perbaikan oksigenasi dan sulit di-wean dari ventilasi invasif — populasi ini memerlukan pertimbangan khusus mengingat kompleksitas interaksi kardiopulmoner (Bab 2.3, Bab 6.7.5).
       </p>
 
-      <h3 id="v10-kegagalan" className="scroll-mt-4">10.7 Kegagalan Ekstubasi: Definisi, Faktor Risiko, Reintubasi</h3>
+      <h3 id="v10-kegagalan" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">10.7 Kegagalan Ekstubasi: Definisi, Faktor Risiko, Reintubasi</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.7.1 Definisi Operasional</h4>
       <p>Definisi kegagalan ekstubasi bervariasi antar-studi namun umumnya merujuk pada <strong>kebutuhan reintubasi dalam jendela waktu tertentu pasca-ekstubasi</strong> (paling umum 48–72 jam, meski beberapa studi menggunakan 7 hari).</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">10.7.2 Ringkasan Faktor Risiko Terintegrasi</h4>

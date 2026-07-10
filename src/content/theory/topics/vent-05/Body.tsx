@@ -12,7 +12,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v5-anatomi" className="scroll-mt-4">5.1 Anatomi Ventilator: Sirkuit, Sensor Flow, Katup Inspirasi/Ekspirasi</h3>
+      <h3 id="v5-anatomi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">5.1 Anatomi Ventilator: Sirkuit, Sensor Flow, Katup Inspirasi/Ekspirasi</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">5.1.1 Komponen Fungsional Universal</h4>
       <p>Terlepas dari merek, semua ventilator modern memiliki komponen fungsional yang sama:</p>
       <ol className="list-decimal list-inside space-y-1.5 text-sm">
@@ -54,7 +54,7 @@ export default function Body() {
         <strong>Catatan human-factors penting:</strong> manual secara eksplisit mewajibkan <strong>quick check</strong> sebelum setiap penggunaan, dan menyatakan bahwa sensor O₂ dan CO₂ yang tidak terkalibrasi dapat menghasilkan pengukuran salah dan alarm yang tidak adekuat — contoh nyata bagaimana kalibrasi rutin bukan sekadar SOP administratif, melainkan pencegahan aktif kesalahan pengukuran klinis yang bisa fatal.
       </p>
 
-      <h3 id="v5-variabel" className="scroll-mt-4">5.2 Variabel Kontrol Ventilator: Tekanan vs Volume vs Waktu</h3>
+      <h3 id="v5-variabel" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">5.2 Variabel Kontrol Ventilator: Tekanan vs Volume vs Waktu</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">5.2.1 Konsep Dasar</h4>
       <p>Variabel kontrol adalah parameter yang <strong>dijaga konstan oleh ventilator</strong> sepanjang fase inspirasi, dan menjadi basis klasifikasi mode ventilasi:</p>
       <ul className="list-disc list-inside space-y-1 text-sm">
@@ -70,7 +70,7 @@ export default function Body() {
         Kebanyakan ventilator modern memungkinkan pengaturan waktu yang dibutuhkan mesin untuk mencapai tekanan limit yang diprogram — parameter ini disebut &quot;rise time&quot;; bila ingin mesin mem-pressurize sistem lebih cepat, rise time harus dipersingkat. Rise time yang terlalu cepat pada neonatus dapat menyebabkan lonjakan tekanan awal berlebihan; terlalu lambat dapat membuat pasien &quot;bekerja&quot; lebih keras di awal inspirasi (asinkroni, Bab 9).
       </p>
 
-      <h3 id="v5-tlc" className="scroll-mt-4">5.3 Trigger, Limit, Cycle — Tiga Pilar Siklus Napas Ventilator</h3>
+      <h3 id="v5-tlc" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">5.3 Trigger, Limit, Cycle — Tiga Pilar Siklus Napas Ventilator</h3>
       <p>Ini adalah kerangka konseptual paling penting untuk memahami <em>bagaimana</em> ventilator &quot;memutuskan&quot; kapan memulai napas, seberapa besar, dan kapan mengakhirinya.</p>
 
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">5.3.1 Trigger — Apa yang Memulai Inspirasi</h4>
@@ -141,7 +141,7 @@ export default function Body() {
         Contoh Volume Control-Assist Control (V-A/C) napas mandatory: trigger variable pada napas terkontrol adalah waktu — setiap kali interval waktu tertentu berlalu (mis. 6 detik untuk rate 10x/menit), napas baru dipicu. Limit variable adalah flow rate yang diset (mis. 60 L/menit) — nilai ini yang akan dicapai selama inspirasi dan tidak akan melebihi itu. Yang meng-cycle napas dari inspirasi ke ekspirasi adalah volume — ketika volume yang diset tercapai, terjadi perpindahan ke ekspirasi. Pada napas assist (dipicu pasien), trigger variable bukan lagi waktu melainkan diinisiasi oleh pasien — ventilator diset untuk mendeteksi flow tertentu (mis. 3 L/menit) atau perubahan tekanan tertentu sebagai sinyal trigger.
       </p>
 
-      <h3 id="v5-waveform" className="scroll-mt-4">5.4 Waveform Dasar: Kurva dan Loop</h3>
+      <h3 id="v5-waveform" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">5.4 Waveform Dasar: Kurva dan Loop</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">5.4.1 Empat Fase Siklus Napas pada Grafik</h4>
       <p>
         Napas yang dihantarkan ventilator mekanik didefinisikan oleh empat fase: fase trigger (bagaimana napas dimulai), fase inspirasi (bagaimana napas dihantarkan), fase cycle (bagaimana inspirasi berakhir dan ekspirasi dimulai), dan fase ekspirasi (tekanan baseline selama periode antar napas). Banyak aspek dari keempat fase ini dapat diubah melalui pengaturan ventilator, dan dengan bantuan waveform, setting optimal dapat dicapai untuk memventilasi pasien dengan baik serta mengurangi asinkroni.

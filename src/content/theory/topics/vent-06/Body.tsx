@@ -18,7 +18,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v6-klas" className="scroll-mt-4">6.1 Klasifikasi Mode: Kontrol vs Support vs Kombinasi</h3>
+      <h3 id="v6-klas" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.1 Klasifikasi Mode: Kontrol vs Support vs Kombinasi</h3>
       <p>Menggunakan kerangka trigger-limit-cycle dari Bab 5, semua mode ventilator dapat dipetakan ke dalam tiga kategori napas dasar. Manual Bellavista secara eksplisit membedakan ketiganya:</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -48,7 +48,7 @@ export default function Body() {
         Klasifikasi mode besar berdasarkan <strong>variabel kontrol</strong> (Bab 5.2): <strong>Pressure-controlled</strong> (tekanan konstan, volume bervariasi), <strong>Volume-controlled</strong> (volume konstan, tekanan bervariasi), <strong>Pressure-supported</strong> (sepenuhnya dipicu dan diakhiri pasien), <strong>Hybrid/adaptive</strong> (target volume — kombinasi keduanya dengan algoritma penyesuaian breath-to-breath).
       </p>
 
-      <h3 id="v6-vc" className="scroll-mt-4">6.2 Volume Control (VCV, V-A/C, VC-SIMV)</h3>
+      <h3 id="v6-vc" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.2 Volume Control (VCV, V-A/C, VC-SIMV)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.2.1 Prinsip Dasar</h4>
       <p>Pada seluruh mode volume-controlled, <strong>tidal volume adalah variabel yang dijaga konstan</strong>; tekanan jalan napas yang dihasilkan bervariasi tergantung compliance dan resistance pasien saat itu.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.2.2 Implementasi di Bellavista</h4>
@@ -69,7 +69,7 @@ export default function Body() {
         <strong>PLV (Pressure Limited Ventilation) selalu aktif</strong> pada mode volume-controlled Bellavista — begitu tekanan inspirasi naik hingga 5 mbar di bawah alarm PPeak yang diset, tekanan dipertahankan pada level tersebut hingga volume tidal tercapai (atau hingga akhir waktu inspirasi yang diset). Ini adalah <strong>contoh konkret pengamanan volutrauma-barotrauma</strong> yang dibangun langsung ke dalam mode volume-controlled — filosofi lung-protective dari Bab 1 diimplementasikan sebagai fitur otomatis perangkat.
       </p>
 
-      <h3 id="v6-pc" className="scroll-mt-4">6.3 Pressure Control (PCV, P-A/C, PC-SIMV)</h3>
+      <h3 id="v6-pc" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.3 Pressure Control (PCV, P-A/C, PC-SIMV)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.3.1 Prinsip Dasar</h4>
       <p>Pada mode pressure-controlled, <strong>tekanan inspirasi adalah variabel yang dijaga konstan</strong>; tidal volume yang dihasilkan bergantung pada tekanan inspirasi serta compliance dan resistance paru pasien.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.3.2 Implementasi di Bellavista</h4>
@@ -106,7 +106,7 @@ export default function Body() {
       </div>
       <p className="mb-0"><strong>Relevansi neonatal:</strong> mengingat time constant neonatus bisa sependek 0,05 detik (Bab 1.2.3), fitur auto-rise yang mengaitkan rise time dengan TInsp sangat relevan — mencegah rise time yang terlalu lambat relatif terhadap TInsp yang sudah sangat singkat pada bayi prematur.</p>
 
-      <h3 id="v6-ps" className="scroll-mt-4">6.4 Pressure Support (PSV, S, S/T)</h3>
+      <h3 id="v6-ps" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.4 Pressure Support (PSV, S, S/T)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.4.1 Prinsip Dasar</h4>
       <p>Pada pressure support, <strong>waktu inspirasi ditentukan oleh pasien</strong>, bukan oleh mesin — ini yang membedakannya secara fundamental dari mode kontrol.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.4.2 Mekanisme Trigger-Cycle pada PSV/S/S-T</h4>
@@ -125,7 +125,7 @@ export default function Body() {
       </ol>
       <p className="text-xs italic text-slate-500 dark:text-slate-400">Ini adalah contoh nyata bagaimana ventilator modern mendeteksi <strong>asinkroni siklus-berakhir (cycling asynchrony)</strong> secara otomatis — dibahas lebih detail sebagai troubleshooting di Bab 9.</p>
 
-      <h3 id="v6-hybrid" className="scroll-mt-4">6.5 Target Volume/Hybrid (PRVC/TargetVent)</h3>
+      <h3 id="v6-hybrid" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.5 Target Volume/Hybrid (PRVC/TargetVent)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.5.1 Konsep dan Terminologi</h4>
       <p>
         Dalam literatur mode ini disebut <strong>Pressure Regulated Volume Controlled (PRVC)</strong> ventilation. Prinsip dasarnya: selama ventilasi PRVC, ventilator akan mengevaluasi volume yang dihantarkan ke pasien dan membandingkannya dengan volume yang diinginkan yang diset oleh klinisi. Jika volume yang dihantarkan kurang dari volume yang diinginkan, tekanan target untuk napas berikutnya akan ditingkatkan secara proporsional; sebaliknya, jika volume yang dihantarkan melebihi volume yang diinginkan, tekanan target akan diturunkan.
@@ -149,13 +149,13 @@ export default function Body() {
       </p>
       <p className="mb-0"><strong>Prinsip praktis:</strong> PRVC/TargetVent menggabungkan keunggulan kepastian volume (mencegah volutrauma) dengan keunggulan tekanan yang self-adjusting (mengurangi risiko klinisi lupa menyesuaikan tekanan manual saat compliance pasien berubah) — mengurangi beban penyesuaian manual berulang oleh klinisi.</p>
 
-      <h3 id="v6-aprv" className="scroll-mt-4">6.6 APRV (Airway Pressure Release Ventilation)</h3>
+      <h3 id="v6-aprv" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.6 APRV (Airway Pressure Release Ventilation)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.6.1 Prinsip Dasar dan Implementasi Bellavista</h4>
       <p>Pasien dapat bernapas tanpa batasan pada dua level tekanan: <strong>PHigh</strong> dan <strong>PLow</strong>. Pressure support dapat diset untuk napas spontan. Untuk ekspirasi, tekanan diturunkan ke PLow. Transisi dari PHigh ke PLow disinkronkan untuk kenyamanan pasien (THigh dapat berubah hingga ±1 detik). Parameter: PHigh, PLow, PSupport High (relatif di atas PHigh), THigh, TLow, trigger, rise time, oksigen.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.6.2 Karakteristik Klinis</h4>
       <p className="mb-0">APRV pada dasarnya adalah &quot;CPAP dengan pelepasan tekanan periodik&quot; — memungkinkan napas spontan hampir sepanjang siklus, kontras dengan mode kontrol konvensional yang lebih membatasi napas spontan pasien. Cocok dipertimbangkan pada kondisi dengan atelektasis difus yang mendapat manfaat dari mean airway pressure tinggi berkelanjutan, namun tetap memerlukan clinical judgment berpengalaman karena kompleksitas monitoring dan potensi risiko auto-PEEP bila TLow tidak tepat (Bab 9).</p>
 
-      <h3 id="v6-hfov" className="scroll-mt-4">6.7 HFOV (High Frequency Oscillatory Ventilation)</h3>
+      <h3 id="v6-hfov" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.7 HFOV (High Frequency Oscillatory Ventilation)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.7.1 Prinsip Fisiologis</h4>
       <p>
         HFOV menghantarkan tidal volume yang lebih kecil dari dead space pada frekuensi supra-fisiologis 5 hingga 15 Hz (300–900 napas/menit). Tidal volume dihasilkan oleh piston osilatori sembari menggunakan tekanan distensi konstan untuk mempertahankan volume paru yang adekuat. Dengan menggunakan tekanan konstan, HFOV menghasilkan inflasi paru yang lebih seragam, sehingga mengurangi kerusakan yang diakibatkan ventilasi konvensional.
@@ -228,7 +228,7 @@ export default function Body() {
         HFOV-VG menggabungkan dua strategi lanjutan: HFOV dan Volume Guarantee, memungkinkan klinisi menetapkan &quot;high frequency tidal volume&quot; (VThf) yang telah ditentukan sebelumnya; klinisi menetapkan ΔP maksimum (amplitude max) yang diset 10–15% di atas amplitude rata-rata yang dibutuhkan untuk mencapai VThf target, dan ventilator akan menyesuaikan ΔP yang dihantarkan sesuai kebutuhan (hingga batas maksimum) untuk mencapai tidal volume yang diset. Untuk memulai HFOV-VG, direkomendasikan memulai VThf pada 2–2,5 ml/kg dengan monitoring ketat nilai CO₂, karena banyak bayi sebenarnya membutuhkan VThf &lt;2 ml/kg.
       </p>
 
-      <h3 id="v6-neonatal" className="scroll-mt-4">6.8 Mode Spesifik Neonatal: nCPAP, nIPPV, beLevel</h3>
+      <h3 id="v6-neonatal" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.8 Mode Spesifik Neonatal: nCPAP, nIPPV, beLevel</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.8.1 nCPAP di Bellavista</h4>
       <p>Mode nCPAP mengasumsikan pasien bernapas spontan; tidak ada kerja napas yang dilakukan oleh ventilator — hanya tekanan positif kontinu (mirip PEEP) yang dihasilkan. Napas manual dapat diset dan dipicu terpisah. Konfigurasi nCPAP tersedia dalam dua cara:</p>
       <ul className="list-disc list-inside space-y-1.5 text-sm">
@@ -245,7 +245,7 @@ export default function Body() {
         Mode ventilasi biphasic di mana tekanan jalan napas beralih antara dua level tekanan, PEEP dan PHigh. Pasien dapat bernapas spontan di kedua level. Pressure support (PSupport) dapat diset terpisah untuk napas spontan — bila PEEP+PSupport melebihi PHigh, pressure support juga dihantarkan di level atas. <strong>beLevel adalah mode sangat fleksibel</strong> yang dapat dikonfigurasi menyerupai CPAP, P-A/C, PC-SIMV, PSV, atau APRV, tergantung aplikasi — menjadikannya mode &quot;serba bisa&quot; yang parameternya disesuaikan sesuai tujuan klinis spesifik.
       </p>
 
-      <h3 id="v6-atc" className="scroll-mt-4">6.9 Automatic Tube Compensation (ATC) dan Sigh</h3>
+      <h3 id="v6-atc" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.9 Automatic Tube Compensation (ATC) dan Sigh</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">6.9.1 ATC</h4>
       <p>ATC mengompensasi resistensi ETT dengan meningkatkan tekanan ventilasi di sirkuit napas selama inspirasi (berbasis flow-dependent), atau menguranginya selama ekspirasi. Kurva PATC terkalkulasi ditumpangkan pada kurva tekanan.</p>
       <div className="overflow-x-auto">
@@ -278,7 +278,7 @@ export default function Body() {
         Fungsi sigh dapat diaktifkan pada sebagian besar mode ventilasi, memberikan napas dengan amplitude lebih besar secara periodik (menyerupai napas dalam spontan manusia) — <strong>tidak tersedia pada CPAP, beLevel, atau APRV</strong>, dan <strong>sigh untuk neonatal tidak tersedia</strong> (hanya untuk ventilasi dewasa pada Bellavista). Peringatan keselamatan eksplisit: tekanan tidak adekuat atau tidal volume berlebihan dapat menyebabkan baro- atau volutrauma — sigh harus selalu disesuaikan mengikuti rekomendasi seperti dari ARDSnet untuk mencegah bahaya pada pasien.
       </p>
 
-      <h3 id="v6-tabel" className="scroll-mt-4">6.10 Tabel Perbandingan Mode: Kapan Pilih Apa</h3>
+      <h3 id="v6-tabel" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">6.10 Tabel Perbandingan Mode: Kapan Pilih Apa</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>

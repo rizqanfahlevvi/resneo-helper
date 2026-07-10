@@ -117,21 +117,12 @@ html.reading-mode.dark {
   outline-offset: 1px;
 }
 
-/* Tipografi serif khusus untuk membaca materi teori (tab Teori) */
-.reading-prose {
-  --font-sans: "Charter", "Georgia", "Merriweather", ui-serif, serif;
-}
+/* Kenyamanan baca materi teori (tab Teori) — HANYA jarak baris, TIDAK
+   mengubah font-family/ukuran: jenis & ukuran font selalu mengikuti
+   preferensi global di Setting App (font family + font scale). */
 .reading-prose p,
 .reading-prose li {
   line-height: 1.7;
-  font-family: var(--font-sans);
-}
-.reading-prose h1,
-.reading-prose h2,
-.reading-prose h3,
-.reading-prose h4 {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  letter-spacing: -0.01em;
 }
 
 body {

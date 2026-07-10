@@ -18,7 +18,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v11-ett" className="scroll-mt-4">11.1 Tabel Ukuran ETT per Usia/Berat</h3>
+      <h3 id="v11-ett" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">11.1 Tabel Ukuran ETT per Usia/Berat</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Formula Usia (Anak di Luar Neonatal)</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -87,7 +87,7 @@ export default function Body() {
         <strong>Wajib:</strong> verifikasi klinis (auskultasi bilateral) + konfirmasi radiologis, terutama pada neonatus &lt;1 kg — formula hanya estimasi awal.
       </p>
 
-      <h3 id="v11-setting" className="scroll-mt-4">11.2 Tabel Setting Awal Ventilator per Kategori Pasien</h3>
+      <h3 id="v11-setting" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">11.2 Tabel Setting Awal Ventilator per Kategori Pasien</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -147,7 +147,7 @@ export default function Body() {
       </div>
       <p className="text-sm mb-0">MAP awal: 2–5 cmH₂O di atas MAP ventilasi konvensional sebelumnya. FiO₂ awal 1,0, titrasi ke SpO₂ 88–92%. Target vibrasi dada: bayi hingga umbilikus, anak hingga pelvis.</p>
 
-      <h3 id="v11-nilai" className="scroll-mt-4">11.3 Tabel Nilai Normal Monitoring per Usia</h3>
+      <h3 id="v11-nilai" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">11.3 Tabel Nilai Normal Monitoring per Usia</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -200,7 +200,7 @@ export default function Body() {
       </div>
       <p className="text-xs italic text-slate-500 dark:text-slate-400 mb-0">Terapi oksigen harus disesuaikan untuk mempertahankan SpO₂ 88–97% sebelum indeks ini dihitung agar valid.</p>
 
-      <h3 id="v11-troubleshoot" className="scroll-mt-4">11.4 Algoritma Troubleshooting Satu Halaman</h3>
+      <h3 id="v11-troubleshoot" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">11.4 Algoritma Troubleshooting Satu Halaman</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Langkah 1: DOPE(S) — Diagnosis Cepat Perburukan Mendadak</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -310,7 +310,7 @@ export default function Body() {
         </table>
       </div>
 
-      <h3 id="v11-checklist" className="scroll-mt-4">11.5 Checklist Intubasi dan Checklist Ekstubasi</h3>
+      <h3 id="v11-checklist" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">11.5 Checklist Intubasi dan Checklist Ekstubasi</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">Checklist Intubasi — SOAPME</h4>
       <div className="bg-violet-50 dark:bg-violet-950/20 border border-violet-200/60 dark:border-violet-800/30 rounded-xl p-4 text-sm">
         <ul className="text-xs text-violet-700 dark:text-violet-400 space-y-1.5 list-none m-0">
@@ -356,7 +356,7 @@ export default function Body() {
         <strong>Tanda kegagalan yang mengindikasikan reintubasi (jangan tunda):</strong> kerja napas tetap berat/memburuk meski support non-invasif maksimal; asidosis respiratorik memburuk progresif; apnea signifikan berulang tak respons terhadap NIV; instabilitas hemodinamik tidak membaik; penurunan kesadaran yang mengancam proteksi jalan napas.
       </p>
 
-      <h3 id="v11-peta" className="scroll-mt-4">Peta Navigasi Materi Lengkap</h3>
+      <h3 id="v11-peta" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">Peta Navigasi Materi Lengkap</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>

@@ -12,7 +12,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v1-definisi" className="scroll-mt-4">1.1 Definisi, Tujuan, dan Filosofi &quot;Lung-Protective Ventilation&quot;</h3>
+      <h3 id="v1-definisi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">1.1 Definisi, Tujuan, dan Filosofi &quot;Lung-Protective Ventilation&quot;</h3>
       <p>
         Ventilasi mekanik adalah dukungan buatan terhadap fungsi ventilasi (pertukaran gas) ketika pasien tidak mampu mempertahankan oksigenasi dan/atau eliminasi CO₂ secara adekuat melalui usaha napas spontan. Tujuannya bukan sekadar &quot;membuat pasien bernapas&quot;, melainkan tiga hal sekaligus:
       </p>
@@ -54,7 +54,7 @@ export default function Body() {
         Pada anak dengan <strong>Pediatric ARDS (PARDS)</strong>, prinsip yang sama berlaku namun dengan target angka yang lebih terdefinisi secara formal.
       </p>
 
-      <h3 id="v1-fisiologi" className="scroll-mt-4">1.2 Fisiologi Respirasi Dasar yang Relevan</h3>
+      <h3 id="v1-fisiologi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">1.2 Fisiologi Respirasi Dasar yang Relevan</h3>
 
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">1.2.1 Compliance (Kelenturan Paru)</h4>
       <p>
@@ -97,7 +97,7 @@ export default function Body() {
         Kerja napas pada neonatus meningkat, bahkan setelah memperhitungkan peningkatan kebutuhan respirasi dan laju metabolik. Diafragma neonatus juga lebih rentan lelah karena pada saat lahir memiliki lebih sedikit serat otot Tipe 1 (tipe serat lambat yang tahan lelah), sehingga diafragma bayi baru lahir dan prematur mudah lelah setelah usaha napas cepat yang berkepanjangan — hal ini berimplikasi pada gagal napas dan proses weaning dari ventilasi mekanik.
       </p>
 
-      <h3 id="v1-perbedaan" className="scroll-mt-4">1.3 Perbedaan Fisiologis Neonatus vs Pediatrik vs Dewasa</h3>
+      <h3 id="v1-perbedaan" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">1.3 Perbedaan Fisiologis Neonatus vs Pediatrik vs Dewasa</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -133,7 +133,7 @@ export default function Body() {
         Peningkatan compliance dinding dada dan penurunan luas permukaan gas exchange paru mengurangi cadangan oksigen pulmoner dibanding kebutuhan oksigen metabolik yang lebih tinggi, menyebabkan desaturasi oksigen lebih cepat ketika ventilasi terganggu — ini alasan fisiologis mengapa neonatus dan anak kecil desaturasi jauh lebih cepat dibanding dewasa saat terjadi apnea atau obstruksi jalan napas, dan mengapa preoksigenasi serta kesiapan alat sebelum tindakan (mis. intubasi) menjadi sangat kritis.
       </p>
 
-      <h3 id="v1-klasifikasi" className="scroll-mt-4">1.4 Klasifikasi Alat Bantu Napas: Spektrum Non-Invasif hingga Invasif</h3>
+      <h3 id="v1-klasifikasi" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">1.4 Klasifikasi Alat Bantu Napas: Spektrum Non-Invasif hingga Invasif</h3>
       <p>Secara umum, dukungan respirasi tersusun sebagai sebuah <strong>spektrum eskalasi</strong>, bukan pilihan biner:</p>
       <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-xl p-4 overflow-x-auto">
         <div className="flex items-center gap-2 text-[11px] font-bold whitespace-nowrap min-w-max">

@@ -23,7 +23,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v7-vt" className="scroll-mt-4">7.1 Tidal Volume (Vt) — Target per Kg BB</h3>
+      <h3 id="v7-vt" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.1 Tidal Volume (Vt) — Target per Kg BB</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.1.1 Neonatus</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -78,7 +78,7 @@ export default function Body() {
       </div>
       <p className="mb-0"><strong>Prinsip PALICC-2:</strong> penggunaan Vt fisiologis 6–8 ml/kg disarankan untuk pasien PARDS yang membutuhkan ventilasi invasif.</p>
 
-      <h3 id="v7-peep" className="scroll-mt-4">7.2 PEEP — Prinsip Titrasi dan Tabel PEEP/FiO2</h3>
+      <h3 id="v7-peep" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.2 PEEP — Prinsip Titrasi dan Tabel PEEP/FiO2</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.2.1 Setting Awal Neonatal</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -106,7 +106,7 @@ export default function Body() {
       </p>
       <p className="mb-0"><strong>Adherence di lapangan (data real-world 2025):</strong> analisis retrospektif menemukan hanya sekitar 38% kepatuhan terhadap tabel PEEP rendah/FiO₂ ARDSnet dan 46% kepatuhan terhadap target tidal volume 6–8 ml/kg — menegaskan bahwa meski guideline jelas, implementasi konsisten di lapangan tetap menjadi tantangan nyata.</p>
 
-      <h3 id="v7-fio2" className="scroll-mt-4">7.3 FiO2 — Target Saturasi</h3>
+      <h3 id="v7-fio2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.3 FiO2 — Target Saturasi</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -131,7 +131,7 @@ export default function Body() {
         </table>
       </div>
 
-      <h3 id="v7-rate" className="scroll-mt-4">7.4 Rate/Frekuensi Napas — per Usia</h3>
+      <h3 id="v7-rate" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.4 Rate/Frekuensi Napas — per Usia</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
@@ -174,7 +174,7 @@ export default function Body() {
         </table>
       </div>
 
-      <h3 id="v7-ie" className="scroll-mt-4">7.5 I:E Ratio, Inspiratory Time</h3>
+      <h3 id="v7-ie" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.5 I:E Ratio, Inspiratory Time</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.5.1 Prinsip Umum</h4>
       <p>Waktu inspirasi (TInsp) berkaitan erat dengan time constant paru (Bab 1.2.3) — pada compliance rendah (time constant pendek), TInsp singkat sudah adekuat; pada resistensi tinggi (time constant panjang), TInsp perlu diperpanjang.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.5.2 Contoh Setting Praktis</h4>
@@ -220,7 +220,7 @@ export default function Body() {
         </table>
       </div>
 
-      <h3 id="v7-pressure" className="scroll-mt-4">7.6 Pressure Limit: PIP, Plateau Pressure, Driving Pressure</h3>
+      <h3 id="v7-pressure" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.6 Pressure Limit: PIP, Plateau Pressure, Driving Pressure</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.6.1 Setting Awal Neonatal (Pressure-Controlled)</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -273,7 +273,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.6.4 Contoh Bundle Ventilasi PARDS (Regional Asia)</h4>
       <p className="mb-0">Contoh bundle ventilasi yang diimplementasikan di kawasan Asia menetapkan target: tidal volume 3–6 ml/kg, tekanan puncak &lt;28–32 cmH₂O, dan tabel titrasi PEEP-FiO₂ — berdasar temuan bahwa mayoritas pasien PARDS di kawasan tersebut sebelumnya diventilasi dengan tidal volume tinggi, tekanan puncak tinggi, dan PEEP akhir-ekspirasi rendah, tidak sesuai rekomendasi PALICC.</p>
 
-      <h3 id="v7-flow" className="scroll-mt-4">7.7 Flow Rate dan Rise Time</h3>
+      <h3 id="v7-flow" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.7 Flow Rate dan Rise Time</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.7.1 Rise Time Otomatis Bellavista (Auto.Rise, dari Bab 6.3.3)</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -298,7 +298,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.7.2 Trigger Sensitivity Flow (Contoh Protokol)</h4>
       <p className="mb-0">Sensitivitas trigger diset pada 0,2 L/menit untuk memungkinkan napas yang dipicu bayi pada protokol VTV-PPV neonatal.</p>
 
-      <h3 id="v7-trigger" className="scroll-mt-4">7.8 Trigger Sensitivity — Ringkasan</h3>
+      <h3 id="v7-trigger" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.8 Trigger Sensitivity — Ringkasan</h3>
       <p>Dibahas mekanismenya di Bab 5.3.1 dan 6; sebagai rangkuman prinsip nilai:</p>
       <ul className="list-disc list-inside space-y-1 text-sm mb-0">
         <li>Trigger terlalu sensitif → risiko auto-triggering, terutama pada NIV dengan kebocoran (Bab 3, Bab 5.3.1).</li>
@@ -306,7 +306,7 @@ export default function Body() {
         <li>Nilai spesifik flow trigger dan pressure trigger bergantung platform ventilator — pada Bellavista, nilai ini dikonfigurasi eksplisit sebagai parameter &quot;Pressure trigger&quot; dan &quot;Flow trigger&quot; per mode (Bab 6).</li>
       </ul>
 
-      <h3 id="v7-hfov" className="scroll-mt-4">7.9 Setting Spesifik HFOV (MAP, Amplitude/Delta P, Frekuensi Hz)</h3>
+      <h3 id="v7-hfov" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.9 Setting Spesifik HFOV (MAP, Amplitude/Delta P, Frekuensi Hz)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.9.1 Setting Awal Berdasarkan Usia</h4>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -401,7 +401,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">7.9.5 Frekuensi Evaluasi Gas Darah Selama Titrasi</h4>
       <p className="mb-0">Periksa gas darah pada 30 menit pertama untuk menilai tren CO₂, dan periksa setiap 15–20 menit hingga PaCO₂ mencapai rentang target (umumnya 40–60 mmHg atau sesuai target individual).</p>
 
-      <h3 id="v7-etco2" className="scroll-mt-4">7.10 Nilai Monitoring Terkait: Kapnografi (EtCO2)</h3>
+      <h3 id="v7-etco2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">7.10 Nilai Monitoring Terkait: Kapnografi (EtCO2)</h3>
       <p className="text-xs italic text-slate-500 dark:text-slate-400">(Pendalaman monitoring lengkap ada di Bab 8; nilai berikut relevan sebagai referensi angka setting/target bersama parameter ventilator.)</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -431,7 +431,7 @@ export default function Body() {
         Korelasi EtCO₂-PaCO₂ dipengaruhi secara negatif oleh keparahan penyakit paru — semakin berat penyakit paru, semakin rendah korelasinya. Ini berarti kapnografi <strong>tidak boleh menggantikan</strong> AGD pada pasien dengan penyakit paru berat — hanya sebagai alat tren, bukan pengganti definitif.
       </p>
 
-      <h3 id="v7-ringkasan" className="scroll-mt-4">Ringkasan Tabel Cepat: Titik Awal Setting per Kategori Pasien</h3>
+      <h3 id="v7-ringkasan" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">Ringkasan Tabel Cepat: Titik Awal Setting per Kategori Pasien</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>

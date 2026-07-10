@@ -15,7 +15,7 @@ export default function Body() {
         ]}
       />
 
-      <h3 id="v3-o2" className="scroll-mt-4">3.1 Oksigen Konvensional (Nasal Kanul, Head Box, Sungkup)</h3>
+      <h3 id="v3-o2" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.1 Oksigen Konvensional (Nasal Kanul, Head Box, Sungkup)</h3>
       <p>Merupakan level support paling dasar, hanya menyediakan tambahan FiO₂ tanpa dukungan tekanan positif signifikan atau dukungan usaha napas.</p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
@@ -45,7 +45,7 @@ export default function Body() {
         <strong>Prinsip umum:</strong> semua modalitas ini tidak memberikan dukungan tekanan positif untuk membuka alveolus kolaps atau menurunkan kerja napas — jika pasien masih menunjukkan tanda kerja napas berat meski FiO₂ dinaikkan, ini indikasi eskalasi ke modalitas berikutnya, bukan menaikkan oksigen lebih tinggi lagi.
       </p>
 
-      <h3 id="v3-hfnc" className="scroll-mt-4">3.2 HFNC (High Flow Nasal Cannula)</h3>
+      <h3 id="v3-hfnc" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.2 HFNC (High Flow Nasal Cannula)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.2.1 Mekanisme Kerja</h4>
       <p>
         HFNC bukan sekadar &quot;nasal kanul dengan flow tinggi&quot; — mekanismenya kompleks dan sering diringkas mnemonic <strong>HIFLOW</strong>: Heated and humidified, meets Inspiratory demands, increases Functional residual capacity (FRC), Lighter (weight of breathing berkurang), minimizes Oxygen dilution, dan Washout of pharyngeal dead space. Gas dipanaskan hingga 37°C dengan kelembapan relatif 100%, dan dapat mengantarkan FiO₂ 0,21 hingga 1,00 pada flow rate hingga 60 L/menit, dengan flow rate dan FiO₂ yang dapat dititrasi secara independen sesuai kebutuhan pasien.
@@ -67,7 +67,7 @@ export default function Body() {
         HFNC memberi kenyamanan lebih dibanding CPAP (tanpa perlu sealing masker/prong ketat) namun <strong>tekanan yang dihasilkan tidak terukur dan tidak konsisten</strong> — jangan menganggapnya setara CPAP dalam hal kepastian PEEP yang diberikan.
       </p>
 
-      <h3 id="v3-cpap" className="scroll-mt-4">3.3 CPAP/nCPAP</h3>
+      <h3 id="v3-cpap" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.3 CPAP/nCPAP</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.3.1 Mekanisme dan Prinsip</h4>
       <p>CPAP memberikan tekanan positif kontinu sepanjang siklus napas (inspirasi dan ekspirasi), mempertahankan alveolus tetap terbuka (mencegah atelektasis siklik) dan meningkatkan FRC — mekanisme inti dari prinsip lung-protective (Bab 1).</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.3.2 Indikasi Umum</h4>
@@ -85,16 +85,16 @@ export default function Body() {
         <li>Distensi abdomen berat/obstruksi usus (risiko aspirasi, distensi lambung).</li>
       </ul>
 
-      <h3 id="v3-nippv" className="scroll-mt-4">3.4 NIPPV/nIPPV (Nasal Intermittent Positive Pressure Ventilation)</h3>
+      <h3 id="v3-nippv" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.4 NIPPV/nIPPV (Nasal Intermittent Positive Pressure Ventilation)</h3>
       <p>NIPPV menambahkan siklus tekanan inspirasi tambahan di atas baseline CPAP — pada dasarnya &quot;CPAP plus breath tambahan periodik&quot; — memberikan dukungan ventilasi tambahan dibanding CPAP murni.</p>
       <p className="mb-0">
         Dibanding NCPAP, NIPPV terbukti menurunkan insidensi intubasi neonatal pada RDS (risk ratio 0,57; 95% CI 0,46–0,71), menurunkan insidensi BPD (RR 0,72; 95% CI 0,57–0,91), dan menurunkan angka mortalitas neonatal pada RDS (RR 0,55; 95% CI 0,31–0,97) berdasarkan meta-analisis 10 studi dengan total 1.104 pasien.
       </p>
 
-      <h3 id="v3-bipap" className="scroll-mt-4">3.5 BiPAP/N-BiPAP</h3>
+      <h3 id="v3-bipap" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.5 BiPAP/N-BiPAP</h3>
       <p className="mb-0">Memberikan dua level tekanan positif (tinggi dan rendah) secara bergantian, mirip prinsip NIPPV namun dengan kontrol level tekanan yang lebih eksplisit di kedua fase. Dalam konteks neonatal disebut <strong>N-BiPAP</strong>.</p>
 
-      <h3 id="v3-nhfov" className="scroll-mt-4">3.6 NHFOV (Non-Invasive High-Frequency Oscillatory Ventilation)</h3>
+      <h3 id="v3-nhfov" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.6 NHFOV (Non-Invasive High-Frequency Oscillatory Ventilation)</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.6.1 Konsep</h4>
       <p>NHFOV adalah pendekatan yang lebih baru yang menggabungkan keunggulan high-frequency oscillatory ventilation (HFOV) dengan nasal CPAP — memberikan osilasi frekuensi tinggi di atas baseline CPAP tanpa memerlukan jalan napas invasif.</p>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.6.2 Evidence Terkini (2024–2025)</h4>
@@ -110,7 +110,7 @@ export default function Body() {
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.6.3 Catatan Praktis</h4>
       <p className="mb-0">NHFOV adalah teknologi yang relatif baru dan tidak tersedia di semua ventilator — ketersediaannya bergantung pada fitur perangkat (Bab 5).</p>
 
-      <h3 id="v3-gagal" className="scroll-mt-4">3.7 Kegagalan NIV — Kapan Harus Intubasi</h3>
+      <h3 id="v3-gagal" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white pt-2 scroll-mt-4">3.7 Kegagalan NIV — Kapan Harus Intubasi</h3>
       <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-sm">3.7.1 Prinsip Umum</h4>
       <p>
         NIV bukan tanpa batas — penundaan intubasi pada pasien yang sesungguhnya sudah gagal NIV berisiko memperburuk outcome (kelelahan otot napas, aspirasi, hipoksia berkepanjangan). Tanda-tanda kegagalan NIV yang menjadi indikasi eskalasi ke ventilasi invasif meliputi:
