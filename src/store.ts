@@ -162,6 +162,9 @@ interface ResneoStore {
   ensureActivePatient: () => void;
   favoriteTheory: string[];
   toggleFavoriteTheory: (id: string) => void;
+  /** Deep-link sekali-pakai dari pencarian global ke topik teori tertentu — dikonsumsi & dikosongkan oleh TabTheory. */
+  theoryDeepLinkId: string | null;
+  setTheoryDeepLinkId: (id: string | null) => void;
 }
 
 export const useStore = create<ResneoStore>()(
@@ -271,6 +274,8 @@ export const useStore = create<ResneoStore>()(
           ? state.favoriteTheory.filter((f) => f !== id)
           : [...state.favoriteTheory, id],
       })),
+      theoryDeepLinkId: null,
+      setTheoryDeepLinkId: (theoryDeepLinkId) => set({ theoryDeepLinkId }),
       ensureActivePatient: () => set((state) => {
         if (state.activePatientId || state.patients.length > 0) return state;
         const hasData = !!(state.patientIdentity.namaIbu || state.anthropometry.bbl || state.gestationalAge);

@@ -59,7 +59,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   
-  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, addLog } = useStore();
+  const { phase, setPhase, isTimerRunning, setIsTimerRunning, elapsedTime, addLog, setTheoryDeepLinkId } = useStore();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
   const [sidebarSearchQuery, setSidebarSearchQuery] = useState('');
@@ -189,7 +189,7 @@ export default function Layout({ children, activeTab, onTabChange, birthWeight, 
                     {sidebarSearchResults.map(item => (
                       <li key={item.id}>
                         <button
-                          onClick={() => { onTabChange(item.tab); setSidebarSearchOpen(false); setMobileSidebarOpen(false); }}
+                          onClick={() => { if (item.tab === 'theory' && item.action) setTheoryDeepLinkId(item.action); onTabChange(item.tab); setSidebarSearchOpen(false); setMobileSidebarOpen(false); }}
                           className="w-full flex items-start gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left"
                         >
                           <div className="flex-1 min-w-0">

@@ -16,6 +16,7 @@ import {
 import { useState, useEffect, useRef, useMemo, TouchEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEARCH_INDEX } from '../searchIndex';
+import { useStore } from '../../store';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
@@ -23,6 +24,7 @@ interface TabHomeProps {
 }
 
 export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
+  const setTheoryDeepLinkId = useStore((s) => s.setTheoryDeepLinkId);
   const [activeSlide, setActiveSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,7 +186,7 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
             {searchResults.map((item, i) => (
               <button
                 key={item.id}
-                onClick={() => { onNavigate(item.tab as any); setSearchQuery(''); }}
+                onClick={() => { if (item.tab === 'theory' && item.action) setTheoryDeepLinkId(item.action); onNavigate(item.tab as any); setSearchQuery(''); }}
                 className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${i !== 0 ? 'border-t border-slate-100 dark:border-slate-800' : ''}`}
               >
                 <div className="flex-1 min-w-0">

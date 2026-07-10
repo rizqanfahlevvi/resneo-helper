@@ -1,11 +1,6 @@
 import React from 'react';
-import { ChevronDown, BookMarked, ExternalLink, Star } from 'lucide-react';
-
-export interface TheoryReference {
-  n: number;
-  text: string;
-  link?: string;
-}
+import { BookMarked, ExternalLink, Star } from 'lucide-react';
+import { TheoryReference } from './types';
 
 interface Accent {
   icon: string;
@@ -38,91 +33,81 @@ export function Cite({ n }: { n: number | number[] }) {
   );
 }
 
-export default function TheorySection({
-  id,
+/**
+ * Tampilan detail satu topik — selalu terbuka penuh (bukan accordion),
+ * dipakai di layar detail TabTheory agar hanya satu topik yang dirender
+ * pada satu waktu (menghindari tumpukan konten yang menutupi layar).
+ */
+export default function TheoryArticle({
   icon: Icon,
   accent = 'indigo',
   title,
   badge,
-  open,
-  onToggle,
-  children,
-  refs,
   favorite,
   onToggleFavorite,
+  children,
+  refs,
 }: {
-  id?: string;
   icon: React.ComponentType<{ className?: string }>;
   accent?: string;
   title: string;
   badge?: string;
-  open: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  refs?: TheoryReference[];
   favorite?: boolean;
   onToggleFavorite?: () => void;
+  children: React.ReactNode;
+  refs?: TheoryReference[];
 }) {
   const a = ACCENTS[accent] ?? ACCENTS.indigo;
   return (
-    <div id={id} className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/30 dark:shadow-none overflow-hidden scroll-mt-24 transition-shadow hover:shadow-xl hover:shadow-slate-200/40 dark:hover:shadow-none">
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        className="w-full flex items-center gap-3 p-4 sm:p-5 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
-      >
+    <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg shadow-slate-200/30 dark:shadow-none overflow-hidden">
+      <div className="flex items-center gap-3 p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800">
         <div className={`p-2.5 rounded-xl shrink-0 ${a.icon}`}>
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">{title}</h3>
+          <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">{title}</h2>
           {badge && <span className={`block text-[10px] font-bold uppercase tracking-widest mt-0.5 ${a.badge}`}>{badge}</span>}
         </div>
         {onToggleFavorite && (
-          <span
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             aria-label={favorite ? 'Hapus dari favorit' : 'Tambah ke favorit'}
-            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); onToggleFavorite(); } }}
-            className={`shrink-0 p-1.5 rounded-lg transition-colors cursor-pointer ${favorite ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'}`}
+            onClick={onToggleFavorite}
+            className={`shrink-0 p-1.5 rounded-lg transition-colors ${favorite ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'}`}
           >
             <Star className="w-5 h-5" fill={favorite ? 'currentColor' : 'none'} />
-          </span>
+          </button>
         )}
-        <ChevronDown className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
 
-      {open && (
-        <div className="px-4 sm:px-6 pb-6 animate-in fade-in slide-in-from-top-1 duration-300">
-          <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
-            {children}
-          </div>
-
-          {refs && refs.length > 0 && (
-            <div className={`mt-5 rounded-xl border p-4 ${a.refBox}`}>
-              <span className="flex items-center gap-1.5 font-bold text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2.5">
-                <BookMarked className="w-3.5 h-3.5" /> Referensi &amp; Evidence
-              </span>
-              <ol className="space-y-2 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed list-none m-0 p-0">
-                {refs.map((r) => (
-                  <li key={r.n} className="flex gap-2">
-                    <span className="font-bold text-slate-400 dark:text-slate-500 shrink-0">[{r.n}]</span>
-                    <span className="min-w-0">
-                      {r.text}
-                      {r.link && (
-                        <a href={r.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 ml-1 text-indigo-500 hover:underline font-semibold">
-                          tautan <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+      <div className="px-4 sm:px-6 py-5">
+        <div className="prose prose-sm dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed space-y-4">
+          {children}
         </div>
-      )}
+
+        {refs && refs.length > 0 && (
+          <div className={`mt-5 rounded-xl border p-4 ${a.refBox}`}>
+            <span className="flex items-center gap-1.5 font-bold text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2.5">
+              <BookMarked className="w-3.5 h-3.5" /> Referensi &amp; Evidence
+            </span>
+            <ol className="space-y-2 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed list-none m-0 p-0">
+              {refs.map((r) => (
+                <li key={r.n} className="flex gap-2">
+                  <span className="font-bold text-slate-400 dark:text-slate-500 shrink-0">[{r.n}]</span>
+                  <span className="min-w-0">
+                    {r.text}
+                    {r.link && (
+                      <a href={r.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 ml-1 text-indigo-500 hover:underline font-semibold">
+                        tautan <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
