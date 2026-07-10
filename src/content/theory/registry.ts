@@ -18,8 +18,7 @@ import { meta as hipotermiaMeta, refs as hipotermiaRefs } from './topics/hipoter
 import { meta as hipoglikemiaMeta, refs as hipoglikemiaRefs } from './topics/hipoglikemia/meta';
 import { meta as neuroproteksiMeta, refs as neuroproteksiRefs } from './topics/neuroproteksi/meta';
 
-// Buku "Ventilator Mekanik — Panduan Lengkap" (materi NICU/PICU, 11 bab).
-// Bab 1-9 sudah tersedia; Bab 10-11 menyusul dengan pola folder yang sama.
+// Buku "Ventilator Mekanik — Panduan Lengkap" (materi NICU/PICU, 11 bab — tuntas).
 import { meta as vent01Meta, refs as vent01Refs } from './topics/vent-01/meta';
 import { meta as vent02Meta, refs as vent02Refs } from './topics/vent-02/meta';
 import { meta as vent03Meta, refs as vent03Refs } from './topics/vent-03/meta';
@@ -29,6 +28,8 @@ import { meta as vent06Meta, refs as vent06Refs } from './topics/vent-06/meta';
 import { meta as vent07Meta, refs as vent07Refs } from './topics/vent-07/meta';
 import { meta as vent08Meta, refs as vent08Refs } from './topics/vent-08/meta';
 import { meta as vent09Meta, refs as vent09Refs } from './topics/vent-09/meta';
+import { meta as vent10Meta, refs as vent10Refs } from './topics/vent-10/meta';
+import { meta as vent11Meta, refs as vent11Refs } from './topics/vent-11/meta';
 
 /**
  * Registry pusat semua topik teori. Setiap topik hanya mendaftarkan
@@ -63,6 +64,8 @@ export const TOPICS: TheoryTopicEntry[] = [
   { ...vent07Meta, refs: vent07Refs, Body: lazy(() => import('./topics/vent-07/Body')) },
   { ...vent08Meta, refs: vent08Refs, Body: lazy(() => import('./topics/vent-08/Body')) },
   { ...vent09Meta, refs: vent09Refs, Body: lazy(() => import('./topics/vent-09/Body')) },
+  { ...vent10Meta, refs: vent10Refs, Body: lazy(() => import('./topics/vent-10/Body')) },
+  { ...vent11Meta, refs: vent11Refs, Body: lazy(() => import('./topics/vent-11/Body')) },
 ];
 
 export const CATEGORY_ORDER = [
