@@ -102,16 +102,6 @@ export function ballardToGestationalAge(totalScore: number): number {
 }
 
 /**
- * Dosis gentamisin berdasarkan usia gestasi (Neofax 2023, usia postnatal 0–7 hari):
- * <30 mgg: 5 mg/kg q48h | 30–34 mgg: 4,5 mg/kg q36h | ≥35 mgg: 4 mg/kg q24h
- */
-export function gentamicinByGA(gaWeek: number): { dosePerKg: number; interval: string } {
-  if (gaWeek < 30) return { dosePerKg: 5, interval: 'q48h' };
-  if (gaWeek <= 34) return { dosePerKg: 4.5, interval: 'q36h' };
-  return { dosePerKg: 4, interval: 'q24h' };
-}
-
-/**
  * Dosis gentamisin berdasarkan usia pasca-menstruasi (PMA = GA lahir + usia postnatal)
  * DAN usia postnatal (PNA) — konvensi Neofax. Interval memendek seiring
  * pematangan klirens ginjal pada PNA lanjut, terlepas dari GA saat lahir.

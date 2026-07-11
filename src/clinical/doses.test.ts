@@ -10,7 +10,6 @@ import {
   umbilicalCatheterDepth,
   glucoseInfusionRate,
   ballardToGestationalAge,
-  gentamicinByGA,
   gentamicinDosing,
   dailyFluidPerKg,
   isValidBirthWeightGram,
@@ -102,19 +101,6 @@ describe('New Ballard → usia gestasi', () => {
   });
   it('linier 2 minggu per 5 poin', () => {
     expect(ballardToGestationalAge(25) - ballardToGestationalAge(20)).toBeCloseTo(2);
-  });
-});
-
-describe('Gentamisin (Neofax 2023, PNA 0–7 hari)', () => {
-  it('<30 mgg: 5 mg/kg q48h', () => {
-    expect(gentamicinByGA(28)).toEqual({ dosePerKg: 5, interval: 'q48h' });
-  });
-  it('30–34 mgg: 4,5 mg/kg q36h', () => {
-    expect(gentamicinByGA(32)).toEqual({ dosePerKg: 4.5, interval: 'q36h' });
-    expect(gentamicinByGA(34)).toEqual({ dosePerKg: 4.5, interval: 'q36h' });
-  });
-  it('≥35 mgg: 4 mg/kg q24h', () => {
-    expect(gentamicinByGA(38)).toEqual({ dosePerKg: 4, interval: 'q24h' });
   });
 });
 

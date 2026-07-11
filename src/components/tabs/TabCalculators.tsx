@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Activity, AlertTriangle, Droplet, FlaskConical, Info, Syringe, CheckCircle2, Calculator } from 'lucide-react';
 import { useStore } from '../../store';
-import { gentamicinDosing, umbilicalCatheterDepth, FLUID_TABLE, ettSizeByWeight, ettDepthAtLip } from '../../clinical/doses';
+import { gentamicinDosing, umbilicalCatheterDepth, FLUID_TABLE, ettSizeByWeight, ettDepthAtLip, glucoseInfusionRate, adrenalinIv, adrenalinEtt, saline10PerKg, dextrose10Bolus, bicarbonate42 } from '../../clinical/doses';
 import {
   phototherapyThreshold,
   exchangeTransfusionThreshold,
@@ -13,6 +13,7 @@ import { postnatalAge } from '../../clinical/pma';
 import { getVentilatorSettings, VENTILATOR_SCENARIOS, getBloodGasTarget, getGaTier, GA_TIER_LABELS, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
 import { INOTROPES, InotropeId, doseToRate, rateToDose, doseZone, ruleOfSix, ruleVariantFor } from '../../clinical/inotropes';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
+import CalcSteps, { CalcDisclaimer } from '../CalcSteps';
 
 interface TabCalculatorsProps {
   gestationalAge: string;
@@ -94,6 +95,11 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
   const wtKg = bwNum / 1000;
   const ettSize = ettSizeByWeight(wtKg);
   const ettDepth = ettDepthAtLip(wtKg);
+  const adrIv = adrenalinIv(wtKg);
+  const adrEtt = adrenalinEtt(wtKg);
+  const naHco3 = bicarbonate42(wtKg);
+  const nacl = saline10PerKg(wtKg);
+  const d10 = dextrose10Bolus(wtKg);
 
   return (
     <div className="mt-6 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
@@ -120,13 +126,13 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
               <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-wide">Konfirmasi dgn auskultasi/rontgen</div>
             </div>
             {[
-              { name: 'Adrenalin IV/IO', desc: '0.1–0.3 mL/kg (1:10.000)', value: `${(0.1 * wtKg).toFixed(2)} – ${(0.3 * wtKg).toFixed(2)} mL`, note: 'IV/IO bolus cepat', color: 'red' },
-              { name: 'Adrenalin via ETT', desc: '0.5–1.0 mL/kg (1:10.000)', value: `${(0.5 * wtKg).toFixed(2)} – ${(1.0 * wtKg).toFixed(2)} mL`, note: 'Intratrakeal', color: 'rose' },
-              { name: 'Bikarbonat Natrium', desc: '1–2 mEq/kg → NaHCO3 4.2%', value: `${(2 * wtKg).toFixed(1)} – ${(4 * wtKg).toFixed(1)} mL`, note: 'IV/IO perlahan (asidosis)', color: 'orange' },
-              { name: 'Nalokson', desc: '0.1 mg/kg (sol. 0.4 mg/mL)', value: `${(0.25 * wtKg).toFixed(2)} mL`, note: 'IM/IV (depresi opioid)', color: 'amber' },
-              { name: 'Glukosa 10%', desc: '2 mL/kg bolus IV', value: `${(2 * wtKg).toFixed(1)} mL`, note: 'Hipoglikemia neonatus', color: 'yellow' },
-              { name: 'NaCl 0.9%', desc: '10 mL/kg selama 5–10 menit', value: `${(10 * wtKg).toFixed(1)} mL`, note: 'Volume ekspander', color: 'blue' },
-              { name: 'Surfaktan (Curosurf)', desc: '200 mg/kg (dosis 1) / 100 mg/kg (berikutnya)', value: `${(200 * wtKg / 80).toFixed(1)} mL / ${(100 * wtKg / 80).toFixed(1)} mL`, note: 'Intratrakeal (80 mg/mL)', color: 'teal' },
+              { name: 'Adrenalin IV/IO', desc: '0.1–0.3 mL/kg (1:10.000)', value: `${adrIv.min} – ${adrIv.max} mL`, note: 'IV/IO bolus cepat', color: 'red' },
+              { name: 'Adrenalin via ETT', desc: '0.5–1.0 mL/kg (1:10.000)', value: `${adrEtt.min} – ${adrEtt.max} mL`, note: 'Intratrakeal', color: 'rose' },
+              { name: 'Bikarbonat Natrium', desc: '1–2 mEq/kg → NaHCO3 4.2%', value: `${naHco3.minMl} – ${naHco3.maxMl} mL`, note: 'IV/IO perlahan (asidosis metabolik terbukti)', color: 'orange' },
+              { name: 'Nalokson', desc: '0.1 mg/kg (sol. 0.4 mg/mL)', value: `${(0.25 * wtKg).toFixed(2)} mL`, note: 'Bukan bagian algoritma NRP — hindari pada ibu pengguna opioid kronis (risiko kejang)', color: 'amber' },
+              { name: 'Glukosa 10%', desc: '2 mL/kg bolus IV', value: `${d10} mL`, note: 'Hipoglikemia neonatus (GDS <45 mg/dL)', color: 'yellow' },
+              { name: 'NaCl 0.9%', desc: '10 mL/kg selama 5–10 menit', value: `${nacl} mL`, note: 'Volume ekspander (dugaan syok hipovolemik)', color: 'blue' },
+              { name: 'Surfaktan (Curosurf)', desc: '200 mg/kg (dosis 1) / 100 mg/kg (berikutnya)', value: `${(200 * wtKg / 80).toFixed(1)} mL / ${(100 * wtKg / 80).toFixed(1)} mL`, note: 'Intratrakeal (konsentrasi 80 mg/mL)', color: 'teal' },
             ].map((drug) => (
               <div key={drug.name} className={`bg-${drug.color}-50 dark:bg-${drug.color}-950/20 border border-${drug.color}-100 dark:border-${drug.color}-900/30 rounded-xl p-3`}>
                 <div className={`text-[10px] font-extrabold uppercase tracking-wider text-${drug.color}-600 dark:text-${drug.color}-400 mb-1`}>{drug.name}</div>
@@ -135,6 +141,30 @@ function DosisDaruratCalculator({ effectiveBW }: { effectiveBW: string }) {
                 <div className={`text-[9px] font-bold text-${drug.color}-600 dark:text-${drug.color}-400 mt-0.5 uppercase tracking-wide`}>{drug.note}</div>
               </div>
             ))}
+            <div className="sm:col-span-2 lg:col-span-3 space-y-3">
+              <CalcSteps
+                steps={[
+                  {
+                    label: 'Adrenalin IV/IO (dosis awal disarankan)',
+                    formula: '0,2 mL/kg × BB (larutan 1:10.000)',
+                    substitution: `0,2 × ${wtKg.toFixed(3)} = ${(0.2 * wtKg).toFixed(2)} mL, rentang aman ${adrIv.min}–${adrIv.max} mL`,
+                    note: 'Setara 0,02 mg/kg. Ulangi tiap 3–5 menit bila LDJ tetap <60x/menit.',
+                  },
+                  {
+                    label: 'Bikarbonat Natrium (konversi mEq → mL)',
+                    formula: 'mEq/kg × BB ÷ 0,5 mEq/mL (NaHCO3 4,2%)',
+                    substitution: `1 × ${wtKg.toFixed(3)} ÷ 0,5 = ${naHco3.minMl} mL (dosis 1 mEq/kg) — 2 × ${wtKg.toFixed(3)} ÷ 0,5 = ${naHco3.maxMl} mL (dosis 2 mEq/kg)`,
+                    note: 'Hanya untuk asidosis metabolik terbukti (AGD) dengan ventilasi sudah adekuat — bukan rutin saat resusitasi.',
+                  },
+                  {
+                    label: 'Surfaktan (dosis awal, konversi mg → mL)',
+                    formula: '200 mg/kg × BB ÷ 80 mg/mL (konsentrasi Curosurf)',
+                    substitution: `200 × ${wtKg.toFixed(3)} ÷ 80 = ${(200 * wtKg / 80).toFixed(2)} mL`,
+                  },
+                ]}
+              />
+              <CalcDisclaimer />
+            </div>
           </div>
         ) : (
           <div className="p-6 text-center text-sm text-slate-400 dark:text-slate-500">
@@ -490,7 +520,10 @@ function GirCalculator() {
   const [girRate, setGirRate] = useState('');
   const [girDextrose, setGirDextrose] = useState('10');
   const [girPreterm, setGirPreterm] = useState(false);
-  const girValue = girBB && girRate ? (parseFloat(girRate) * parseFloat(girDextrose)) / (6 * parseFloat(girBB)) : null;
+  const girBBNum = parseFloat(girBB) || 0;
+  const girRateNum = parseFloat(girRate) || 0;
+  const girDextroseNum = parseFloat(girDextrose) || 0;
+  const girValue = glucoseInfusionRate(girRateNum, girDextroseNum, girBBNum);
 
   return (
     <div className="mt-6 glass-card rounded-2xl overflow-hidden">
@@ -539,6 +572,29 @@ function GirCalculator() {
               <span className="block text-xs text-slate-400 mt-2">Target {girPreterm ? 'prematur' : 'aterm'}: {girPreterm ? '6–8' : '4–6'} mg/kg/mnt</span>
             </div>
           )}
+          {girValue !== null && (
+            <CalcSteps
+              steps={[
+                {
+                  label: 'Massa dekstrosa per jam',
+                  formula: 'Rate (mL/jam) × Konsentrasi (g/100 mL)',
+                  substitution: `${girRateNum} × ${(girDextroseNum / 100).toFixed(3)} = ${(girRateNum * girDextroseNum / 100).toFixed(2)} g/jam`,
+                  note: `D${girDextrose}% = ${girDextroseNum} g dekstrosa per 100 mL cairan.`,
+                },
+                {
+                  label: 'Konversi ke mg/menit',
+                  formula: '(g/jam × 1000) ÷ 60',
+                  substitution: `(${(girRateNum * girDextroseNum / 100).toFixed(2)} × 1000) ÷ 60 = ${(girRateNum * girDextroseNum * 1000 / 100 / 60).toFixed(2)} mg/menit`,
+                },
+                {
+                  label: 'GIR per kg berat badan',
+                  formula: 'mg/menit ÷ BB (kg)',
+                  substitution: `${(girRateNum * girDextroseNum * 1000 / 100 / 60).toFixed(2)} ÷ ${girBBNum} = ${girValue.toFixed(2)} mg/kg/menit`,
+                  note: `Setara rumus ringkas: (Rate × Konsentrasi%) ÷ (6 × BB) = (${girRateNum} × ${girDextroseNum}) ÷ (6 × ${girBBNum}) = ${girValue.toFixed(2)}.`,
+                },
+              ]}
+            />
+          )}
           <ClinicalTheoryAccordion
             title="Teori & Panduan GIR Neonatus"
             content={
@@ -550,6 +606,7 @@ function GirCalculator() {
             }
             references={['Thornton PS et al. Pediatrics. 2015;135(6):1191–1197. (AAP Clinical Report)', 'IDAI. Panduan Hipoglikemia Neonatus. 2022.', 'NRP 8th Edition. AAP. 2021.']}
           />
+          <CalcDisclaimer />
         </div>
       )}
     </div>
