@@ -8,6 +8,7 @@ import {
   classifyBilirubin,
   DEFAULT_BILIRUBIN_RISK,
   BilirubinRiskFactors,
+  hasNeurotoxicityRiskFactor,
 } from '../../clinical/bilirubin';
 import { postnatalAge } from '../../clinical/pma';
 import { getVentilatorSettings, VENTILATOR_SCENARIOS, getBloodGasTarget, getGaTier, GA_TIER_LABELS, WEANING_CRITERIA, VentilatorScenario } from '../../clinical/ventilator';
@@ -1958,10 +1959,42 @@ function BilirubinCalculator({ gestationalAge }: { gestationalAge: string }) {
                   <div className={`text-sm font-semibold ${zoneStyle.color}`}>TSB {tsbNum.toFixed(1)} mg/dL pada GA {gaNum} mgg, usia {ageNum} jam</div>
                 </div>
               )}
+              <CalcSteps
+                steps={gaNum >= 35 ? [
+                  {
+                    label: 'Interpolasi ambang dari kurva jam-spesifik (titik terdekat AAP 2022)',
+                    formula: 'Interpolasi linier antar 2 titik kurva terdekat berdasarkan usia (jam)',
+                    substitution: `Usia ${ageNum} jam, kolom ${gaNum < 38 ? 'late-preterm 35–37 6/7 mgg' : 'aterm ≥38 mgg'} → ambang dasar ${(risk && hasNeurotoxicityRiskFactor(risk) ? photoThreshold + 2 : photoThreshold).toFixed(1)} mg/dL`,
+                    note: 'Titik kurva: 24j/48j/72j/96j/120j. Di luar rentang, nilai di-clamp ke titik ujung terdekat.',
+                  },
+                  {
+                    label: 'Koreksi faktor risiko neurotoksisitas',
+                    formula: hasNeurotoxicityRiskFactor(risk) ? 'Ambang dasar − 2 mg/dL' : 'Tidak ada faktor risiko dicentang → tanpa koreksi',
+                    substitution: hasNeurotoxicityRiskFactor(risk) ? `${(photoThreshold + 2).toFixed(1)} − 2 = ${photoThreshold.toFixed(1)} mg/dL` : `${photoThreshold.toFixed(1)} mg/dL`,
+                  },
+                  {
+                    label: 'Ambang transfusi tukar',
+                    formula: `Ambang fototerapi + offset (${gaNum >= 38 ? 5 : 4} mg/dL untuk GA ini)`,
+                    substitution: `${photoThreshold.toFixed(1)} + ${gaNum >= 38 ? 5 : 4} = ${exchThreshold.toFixed(1)} mg/dL`,
+                  },
+                ] : [
+                  {
+                    label: 'Ambang fototerapi (GA <35 mgg — tabel praktik umum berbasis GA, bukan kurva jam-spesifik)',
+                    formula: 'Lookup tabel: <28→5, 28–29→7, 30–31→9, 32–33→11, 34–34,6→13 mg/dL',
+                    substitution: `GA ${gaNum} mgg → ${photoThreshold.toFixed(1)} mg/dL`,
+                  },
+                  {
+                    label: 'Ambang transfusi tukar',
+                    formula: 'Ambang fototerapi + offset 3 mg/dL (GA <35 mgg)',
+                    substitution: `${photoThreshold.toFixed(1)} + 3 = ${exchThreshold.toFixed(1)} mg/dL`,
+                  },
+                ]}
+              />
             </>
           ) : (
             <div className="text-center text-xs text-slate-400 py-4">Isi usia gestasi dan usia bayi (jam) untuk menghitung ambang.</div>
           )}
+          <CalcDisclaimer text="Ambang di atas adalah aproksimasi kurva AAP 2022 untuk pendukung keputusan cepat bedside — bukan pengganti nomogram/BiliTool resmi atau keputusan DPJP. Selalu korelasikan dengan kurva jam-spesifik asli." />
         </div>
       )}
     </div>
