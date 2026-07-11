@@ -876,9 +876,29 @@ function InotropikDripCalculator({ effectiveBW }: { effectiveBW: string }) {
               <span className="block text-[10px] text-slate-400 mt-2">BB {wtKg.toFixed(2)} kg · konsentrasi {concNum} mg/mL</span>
             </div>
           )}
+          {wtKg > 0 && concNum > 0 && mode === 'doseToRate' && rateResult !== null && (
+            <CalcSteps
+              steps={[{
+                label: 'Laju pompa',
+                formula: 'Dosis (mcg/kg/mnt) × BB (kg) × 60 ÷ (Konsentrasi (mg/mL) × 1000)',
+                substitution: `${dose} × ${wtKg.toFixed(2)} × 60 ÷ (${concNum} × 1000) = ${rateResult.toFixed(2)} mL/jam`,
+                note: '×60 mengonversi menit → jam; ÷1000 mengonversi mcg → mg agar satuan sesuai konsentrasi.',
+              }]}
+            />
+          )}
+          {wtKg > 0 && concNum > 0 && mode === 'rateToDose' && doseResult !== null && (
+            <CalcSteps
+              steps={[{
+                label: 'Dosis efektif',
+                formula: 'Laju (mL/jam) × Konsentrasi (mg/mL) × 1000 ÷ (BB (kg) × 60)',
+                substitution: `${rate} × ${concNum} × 1000 ÷ (${wtKg.toFixed(2)} × 60) = ${doseResult.toFixed(2)} mcg/kg/mnt`,
+              }]}
+            />
+          )}
           <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
             Laju = Dosis × BB × 60 ÷ (Konsentrasi × 1000). Ref: Neonatal Formulary 8th Ed. 2020 · NeoFax 2023 · IDAI NICU. Verifikasi ganda sebelum pemberian.
           </p>
+          <CalcDisclaimer />
         </div>
       )}
     </div>
@@ -943,6 +963,25 @@ function PompaSyringeInotropikCalculator({ effectiveBW }: { effectiveBW: string 
                   Larutkan <strong>{inotropeMg} mg</strong> obat inotropik ke dalam {syringeVol} mL cairan pelarut (D5% / NS). Jalankan syringe pump di kecepatan <strong>{rate} mL/jam</strong> untuk mendapatkan dosis {dose} mcg/kg/menit (BB: {wtKg} kg).
                 </div>
               </div>
+            </div>
+          )}
+          {wtKg > 0 && rateNum > 0 && (
+            <div className="mt-4 space-y-3">
+              <CalcSteps
+                steps={[
+                  {
+                    label: 'Konsentrasi larutan yang dibutuhkan',
+                    formula: 'Dosis (mcg/kg/mnt) × BB (kg) × 60 ÷ (Laju (mL/jam) × 1000)',
+                    substitution: `${doseNum} × ${wtKg.toFixed(3)} × 60 ÷ (${rateNum} × 1000) = ${(doseNum * wtKg * 60 / (rateNum * 1000)).toFixed(4)} mg/mL`,
+                  },
+                  {
+                    label: 'Jumlah obat murni dalam total spuit',
+                    formula: 'Konsentrasi (mg/mL) × Volume total spuit (mL)',
+                    substitution: `${(doseNum * wtKg * 60 / (rateNum * 1000)).toFixed(4)} × ${volNum} = ${inotropeMg} mg`,
+                  },
+                ]}
+              />
+              <CalcDisclaimer />
             </div>
           )}
         </div>
@@ -1053,6 +1092,24 @@ function KebutuhanCairanCalculator() {
             </table>
             <p className="text-[10px] text-slate-400 mt-1.5 text-right">Satuan: mL/kg/hari</p>
           </div>
+          {fluidAbsolute && (
+            <CalcSteps
+              steps={[
+                {
+                  label: 'Volume cairan absolut per hari',
+                  formula: 'Kebutuhan (mL/kg/hari) × BB (kg)',
+                  substitution: `${fluidMlKgDay} × ${fluidBB} = ${fluidAbsolute} mL/hari`,
+                  note: `Kategori: ${fluidType === 'term' ? 'Aterm' : fluidType === 'preterm-1500' ? 'Prematur 1500–2500g' : fluidType === 'bblr' ? 'BBLR <1500g' : 'BBLSR <1000g'}, DOL ${fluidDOL === '7' ? '7+' : fluidDOL}.`,
+                },
+                {
+                  label: 'Laju infus per jam',
+                  formula: 'Volume harian (mL) ÷ 24 jam',
+                  substitution: `${fluidAbsolute} ÷ 24 = ${(parseFloat(fluidAbsolute) / 24).toFixed(1)} mL/jam`,
+                },
+              ]}
+            />
+          )}
+          <CalcDisclaimer />
           <ClinicalTheoryAccordion
             title="Panduan Kebutuhan Cairan Neonatus"
             content={
@@ -1243,7 +1300,35 @@ function TpnCalculator({ effectiveBW }: { effectiveBW: string }) {
           {bwKg <= 0 && (
             <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">Input berat lahir di panel Antropometri untuk melihat kalkulasi TPN.</div>
           )}
+          {bwKg > 0 && (
+            <CalcSteps
+              steps={[
+                {
+                  label: 'Cairan total per hari',
+                  formula: 'Rentang mL/kg/hari (sesuai DOL & status) × BB (kg)',
+                  substitution: `${fluidMin}–${fluidMax} × ${bwKg.toFixed(3)} = ${totalFluidMin}–${totalFluidMax} mL/hari`,
+                  note: 'Rentang naik bertahap per DOL; +20 mL/kg/hari bila prematur (IWL lebih tinggi).',
+                },
+                {
+                  label: 'Glukosa (dari target GIR awal 4–6 mg/kg/mnt)',
+                  formula: 'GIR rerata × BB (kg) × 1440 menit ÷ 1000',
+                  substitution: `5 × ${bwKg.toFixed(3)} × 1440 ÷ 1000 = ${dextroseGStart} g/hari → ÷ 0,1 g/mL (D10%) = ${volD10} mL`,
+                },
+                {
+                  label: 'Protein (Aminosteril 10% = 0,1 g/mL)',
+                  formula: 'Rentang g/kg/hari × BB (kg) ÷ 0,1',
+                  substitution: `${protMin}–${protMax} × ${bwKg.toFixed(3)} ÷ 0,1 = ${protVolMin}–${protVolMax} mL`,
+                },
+                {
+                  label: 'Lipid (Intralipid 20% = 0,2 g/mL)',
+                  formula: 'Rentang g/kg/hari × BB (kg) ÷ 0,2',
+                  substitution: lipMin === 0 && lipMax === 0 ? 'Ditunda pada DOL 1 untuk BB ≥1000 g' : `${lipMin}–${lipMax} × ${bwKg.toFixed(3)} ÷ 0,2 = ${lipVolMin}–${lipVolMax} mL`,
+                },
+              ]}
+            />
+          )}
           <p className="text-[10px] text-slate-400 text-right">ESPGHAN 2018 · IDAI NICU Guidelines · Koletzko B et al. J Pediatr Gastroenterol Nutr. 2018</p>
+          <CalcDisclaimer />
         </div>
       )}
     </div>
