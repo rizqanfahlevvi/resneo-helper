@@ -6,6 +6,7 @@ import { useRipple } from '../Ripple';
 import { ballardToGestationalAge } from '../../clinical/doses';
 import { APGAR_PARAMS, getApgarTotal } from '../../clinical/apgar';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
+import CalcSteps, { CalcDisclaimer } from '../CalcSteps';
 
 interface TabScoresProps {
   gestationalAge?: string;
@@ -623,9 +624,7 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                       <p className="text-xs opacity-90"><span className="font-semibold">Tindakan:</span> {d.action}</p>
                     </div>
                   ))}
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center pt-1">
-                    DDx dihasilkan otomatis berdasarkan skor terisi. Konfirmasi selalu dengan klinis dan pemeriksaan penunjang.
-                  </p>
+                  <CalcDisclaimer text="DDx dihasilkan otomatis dari kombinasi ambang skor yang telah diisi — alat bantu edukasi/referensi cepat, bukan diagnosis final. Selalu konfirmasi dengan pemeriksaan klinis, riwayat, dan penunjang laboratorium/radiologis sebelum keputusan DPJP." />
                 </div>
               </div>
             );
@@ -1267,7 +1266,35 @@ function FlaccScore({ onBack }: { onBack: () => void }) {
               <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0: Nyaman · 1–3: Ringan · 4–6: Sedang · 7–10: Berat</span>
             </div>
           )}
+          {allFilled && (
+            <CalcSteps
+              steps={[
+                ...flaccParams.map(p => ({
+                  label: p.label,
+                  formula: 'Poin dipilih untuk parameter ini',
+                  substitution: `"${p.options[scores[p.key]]}" → ${scores[p.key]} poin`,
+                })),
+                {
+                  label: 'Total skor FLACC',
+                  formula: 'Jumlah poin ke-5 parameter',
+                  substitution: `${flaccParams.map(p => scores[p.key]).join(' + ')} = ${total}`,
+                  note: 'Ambang: 0 nyaman, 1–3 nyeri ringan, 4–6 nyeri sedang, 7–10 nyeri berat.',
+                },
+              ]}
+            />
+          )}
+          <ClinicalTheoryAccordion
+            title="Teori & Panduan Skor FLACC"
+            content={
+              <div className="space-y-3 text-slate-600 dark:text-slate-400">
+                <p>FLACC adalah skala observasional untuk menilai nyeri pada bayi dan anak yang belum bisa melaporkan nyeri secara verbal, termasuk neonatus. Setiap parameter dinilai 0–2 berdasarkan perilaku yang teramati, dijumlahkan menjadi skor 0–10.</p>
+                <p>Skor dipakai untuk memandu kebutuhan analgesia (farmakologis maupun non-farmakologis seperti swaddling, non-nutritive sucking, ASI/sukrosa) dan mengevaluasi respons terhadap terapi.</p>
+              </div>
+            }
+            references={['Merkel SI et al. Pediatr Nurs. 1997;23(3):293–297.', 'Voepel-Lewis T et al. Anesth Analg. 2010;110(6):1723–1729.']}
+          />
           <p className="text-[10px] text-slate-400 text-right">Merkel SI et al. Pediatr Nurs. 1997; Voepel-Lewis T et al. Anesth Analg. 2010</p>
+          <CalcDisclaimer />
         </div>
       </div>
     </div>
@@ -1361,7 +1388,35 @@ function NipsScore({ onBack }: { onBack: () => void }) {
               <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0–2: Minimal · 3–4: Sedang · 5–7: Berat</span>
             </div>
           )}
+          {allFilled && (
+            <CalcSteps
+              steps={[
+                ...nipsParams.map(p => ({
+                  label: p.label,
+                  formula: 'Poin dipilih untuk parameter ini',
+                  substitution: `"${p.options.find(o => o.val === scores[p.key])?.label}" → ${scores[p.key]} poin`,
+                })),
+                {
+                  label: 'Total skor NIPS',
+                  formula: 'Jumlah poin ke-6 parameter',
+                  substitution: `${nipsParams.map(p => scores[p.key]).join(' + ')} = ${total}`,
+                  note: 'Ambang: 0–2 minimal, 3–4 nyeri sedang, 5–7 nyeri berat.',
+                },
+              ]}
+            />
+          )}
+          <ClinicalTheoryAccordion
+            title="Teori & Panduan Skor NIPS"
+            content={
+              <div className="space-y-3 text-slate-600 dark:text-slate-400">
+                <p>NIPS (Neonatal Infant Pain Scale) adalah instrumen observasional untuk menilai nyeri akut pada neonatus prematur maupun aterm, umumnya untuk prosedur singkat (venipuncture, suction, dll). Enam parameter perilaku dijumlahkan menjadi skor 0–7.</p>
+                <p>Skor ≥4 umumnya mengindikasikan perlunya intervensi non-farmakologis (sukrosa oral, non-nutritive sucking) atau farmakologis sesuai kebijakan unit.</p>
+              </div>
+            }
+            references={['Lawrence J et al. Neonatal Netw. 1993;12(6):59–66.', 'Suraseranivongse S et al. J Med Assoc Thai. 2006;89(5):S123–S128.']}
+          />
           <p className="text-[10px] text-slate-400 text-right">Lawrence J et al. Neonatal Netw. 1993; Suraseranivongse S et al. J Med Assoc Thai. 2006</p>
+          <CalcDisclaimer />
         </div>
       </div>
     </div>
