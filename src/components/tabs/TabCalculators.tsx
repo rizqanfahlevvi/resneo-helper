@@ -503,6 +503,42 @@ function TitrasiCairanGirCalculator({ effectiveBW }: { effectiveBW: string }) {
                   </div>
                 </div>
               )}
+              {girNum >= 4 && girNum <= 14 && girResults && (
+                <CalcSteps
+                  steps={[
+                    {
+                      label: 'Volume cairan total per hari',
+                      formula: 'Target cairan (mL/kg/hari) × BB (kg)',
+                      substitution: `${fluidNum} × ${wtKg.toFixed(3)} = ${girResults.totalVolume.toFixed(1)} mL`,
+                    },
+                    {
+                      label: 'Total dekstrosa yang dibutuhkan per hari',
+                      formula: 'GIR (mg/kg/menit) × BB (kg) × 1440 menit ÷ 1000',
+                      substitution: `${girNum} × ${wtKg.toFixed(3)} × 1440 ÷ 1000 = ${girResults.dextroseGrams.toFixed(2)} g`,
+                      note: '1440 = jumlah menit dalam 24 jam; ÷1000 mengonversi mg → g.',
+                    },
+                    {
+                      label: 'Konsentrasi dekstrosa akhir',
+                      formula: '(Total dekstrosa g ÷ Volume total mL) × 100',
+                      substitution: `(${girResults.dextroseGrams.toFixed(2)} ÷ ${girResults.totalVolume.toFixed(1)}) × 100 = ${girResults.concentration.toFixed(1)}%`,
+                    },
+                    girResults.concentration <= 10
+                      ? {
+                          label: 'Racikan D10% + WFI (konsentrasi target ≤10%)',
+                          formula: 'Vol D10% = Total dekstrosa (g) × 10; Vol WFI = Total − Vol D10%',
+                          substitution: `Vol D10% = ${girResults.dextroseGrams.toFixed(2)} × 10 = ${girResults.vD10.toFixed(1)} mL; Vol WFI = ${girResults.totalVolume.toFixed(1)} − ${girResults.vD10.toFixed(1)} = ${girResults.vWFI.toFixed(1)} mL`,
+                          note: 'Faktor ×10 berasal dari D10% = 0,1 g/mL → mL = gram ÷ 0,1.',
+                        }
+                      : {
+                          label: 'Racikan D40% + D10% (alligasi, konsentrasi target >10%)',
+                          formula: 'Vol D40% = (Total dekstrosa g − 0,1×Vol total) ÷ 0,3; Vol D10% = Total − Vol D40%',
+                          substitution: `Vol D40% = (${girResults.dextroseGrams.toFixed(2)} − 0,1×${girResults.totalVolume.toFixed(1)}) ÷ 0,3 = ${girResults.vD40.toFixed(1)} mL; Vol D10% = ${girResults.totalVolume.toFixed(1)} − ${girResults.vD40.toFixed(1)} = ${girResults.vD10.toFixed(1)} mL`,
+                          note: 'Alligasi dua komponen (D40%=0,4 g/mL, D10%=0,1 g/mL) diselesaikan agar campuran mencapai konsentrasi target.',
+                        },
+                  ]}
+                />
+              )}
+              {girNum >= 4 && girNum <= 14 && girResults && <CalcDisclaimer />}
             </div>
           )}
         </div>
@@ -623,8 +659,8 @@ function SurfaktanCalculator() {
   const getSurfactantResult = () => {
     const w = parseFloat(surfBB);
     if (!w || w <= 0) return null;
-    if (surfDrug === 'poractant-initial') return { dose: (200 * w).toFixed(0), vol: (200 * w / 120).toFixed(2), drug: 'Poractant alfa (Curosurf 120 mg/mL)', dosePerKg: '200 mg/kg', note: 'Dosis awal rescue' };
-    if (surfDrug === 'poractant-repeat') return { dose: (100 * w).toFixed(0), vol: (100 * w / 120).toFixed(2), drug: 'Poractant alfa (Curosurf 120 mg/mL)', dosePerKg: '100 mg/kg', note: 'Dosis ulangan (maks 2x)' };
+    if (surfDrug === 'poractant-initial') return { dose: (200 * w).toFixed(0), vol: (200 * w / 80).toFixed(2), drug: 'Poractant alfa (Curosurf 80 mg/mL)', dosePerKg: '200 mg/kg', note: 'Dosis awal rescue' };
+    if (surfDrug === 'poractant-repeat') return { dose: (100 * w).toFixed(0), vol: (100 * w / 80).toFixed(2), drug: 'Poractant alfa (Curosurf 80 mg/mL)', dosePerKg: '100 mg/kg', note: 'Dosis ulangan (maks 2x)' };
     return { dose: (100 * w).toFixed(0), vol: (4 * w).toFixed(2), drug: 'Beractant (Survanta 25 mg/mL)', dosePerKg: '100 mg/kg = 4 mL/kg', note: 'Ulangan tiap 6 jam, maks 4 dosis' };
   };
   const result = getSurfactantResult();
@@ -675,6 +711,23 @@ function SurfaktanCalculator() {
               </div>
             </div>
           )}
+          {result && (
+            <CalcSteps
+              steps={[
+                {
+                  label: 'Total dosis surfaktan',
+                  formula: `${result.dosePerKg.split(' ')[0]} mg/kg × BB (kg)`,
+                  substitution: `${result.dosePerKg.split(' ')[0]} × ${surfBB} = ${result.dose} mg`,
+                },
+                {
+                  label: 'Volume yang diberikan',
+                  formula: surfDrug === 'beractant' ? 'Total dosis (mg) ÷ 25 mg/mL (Survanta)' : 'Total dosis (mg) ÷ 80 mg/mL (Curosurf)',
+                  substitution: `${result.dose} ÷ ${surfDrug === 'beractant' ? '25' : '80'} = ${result.vol} mL`,
+                  note: surfDrug === 'beractant' ? 'Konsentrasi Survanta 25 mg/mL.' : 'Konsentrasi Curosurf 80 mg/mL (label resmi 120 mg/1,5 mL).',
+                },
+              ]}
+            />
+          )}
           <ClinicalTheoryAccordion
             title="Teori & Panduan Terapi Surfaktan"
             content={
@@ -684,6 +737,7 @@ function SurfaktanCalculator() {
             }
             references={['Sweet DG et al. European Consensus Guidelines on RDS. Neonatology. 2023;120(1):3–23.', 'IDAI. Panduan Surfaktan pada RDS Neonatus. 2022.', 'Polin RA et al. Pediatrics. 2014;133(1):156–163.']}
           />
+          <CalcDisclaimer />
         </div>
       )}
     </div>
@@ -1319,9 +1373,36 @@ function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
           ) : (
             <div className="text-center text-xs text-slate-400 py-4">Masukkan BB, GA, dan usia postnatal untuk menghitung dosis.</div>
           )}
+          {drugs.length > 0 && (() => {
+            const pmaNum = gaNum + ageNum / 7;
+            const gent = gentamicinDosing(pmaNum, ageNum);
+            return (
+              <CalcSteps
+                steps={[
+                  {
+                    label: therapyType === 'meningitis' ? 'Ampisilin (dosis meningitis)' : 'Ampisilin (dosis sepsis)',
+                    formula: therapyType === 'meningitis' ? '100 mg/kg × BB, konversi mL @ 100 mg/mL' : '50 mg/kg × BB, konversi mL @ 100 mg/mL',
+                    substitution: `${therapyType === 'meningitis' ? 100 : 50} × ${bwKg.toFixed(3)} = ${drugs[0].dose.split(' ')[0]} mg → ÷100 = ${drugs[0].volume}`,
+                  },
+                  {
+                    label: 'Gentamisin (interval mengikuti PMA & PNA — Neofax)',
+                    formula: 'PMA = GA lahir + (PNA hari ÷ 7); dosis mg/kg × BB, konversi mL @ 10 mg/mL',
+                    substitution: `PMA = ${gaNum} + (${ageNum}÷7) = ${pmaNum.toFixed(1)} mgg → ${gent.dosePerKg} mg/kg ${gent.interval}; ${gent.dosePerKg} × ${bwKg.toFixed(3)} = ${(gent.dosePerKg * bwKg).toFixed(1)} mg → ÷10 = ${drugs[1].volume}`,
+                    note: 'Interval memanjang pada PMA rendah/PNA dini karena klirens ginjal belum matang.',
+                  },
+                  {
+                    label: 'Cefotaxime',
+                    formula: '50 mg/kg × BB, konversi mL @ 100 mg/mL',
+                    substitution: `50 × ${bwKg.toFixed(3)} = ${drugs[2].dose.split(' ')[0]} mg → ÷100 = ${drugs[2].volume}`,
+                  },
+                ]}
+              />
+            );
+          })()}
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Sesuaikan dengan panduan RS dan kultur sensitivitas. Sediaan: Ampisilin 500mg/vial (100mg/mL), Gentamisin 10mg/mL, Cefotaxime 1g/vial (100mg/mL). Ref: Neofax 2023, BNFC.
           </div>
+          <CalcDisclaimer />
         </div>
       )}
     </div>
@@ -1390,9 +1471,32 @@ function UvcUacCalculator({ effectiveBW }: { effectiveBW: string }) {
           ) : (
             <div className="text-center text-xs text-slate-400 py-4">Input berat lahir di panel Antropometri untuk menghitung kedalaman kateter.</div>
           )}
+          {bwKg > 0 && (
+            <CalcSteps
+              steps={[
+                {
+                  label: 'UVC (vena umbilikal)',
+                  formula: '(3 × BB + 9) ÷ 2 + 1',
+                  substitution: `(3 × ${bwKg.toFixed(3)} + 9) ÷ 2 + 1 = ${uvcDepth.toFixed(1)} cm`,
+                },
+                {
+                  label: 'UAC High (arteri, posisi tinggi — disukai)',
+                  formula: '3 × BB + 9',
+                  substitution: `3 × ${bwKg.toFixed(3)} + 9 = ${uacHigh.toFixed(1)} cm`,
+                },
+                {
+                  label: 'UAC Low (arteri, posisi rendah)',
+                  formula: 'BB + 7',
+                  substitution: `${bwKg.toFixed(3)} + 7 = ${uacLow.toFixed(1)} cm`,
+                  note: 'Formula Shukla — berat badan dalam kg.',
+                },
+              ]}
+            />
+          )}
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-300">
             💡 UVC aman untuk akses darurat. UAC high lebih disukai untuk monitoring arterial. Konfirmasi dengan foto rontgen setelah pemasangan.
           </div>
+          <CalcDisclaimer />
         </div>
       )}
     </div>
@@ -1510,6 +1614,7 @@ function SeizureCalculator({ effectiveBW }: { effectiveBW: string }) {
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Pertimbangkan EEG/aEEG. Cari dan tangani penyebab: hipoglikemia, hipokalsemia, infeksi, HIE. Monitor respirasi dan apnea. Ref: Fenichel, NeoFax 2023.
           </div>
+          <CalcDisclaimer />
         </div>
       )}
     </div>
