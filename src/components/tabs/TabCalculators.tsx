@@ -207,6 +207,7 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
             ⚠️ Ini adalah <strong>titik awal</strong> — sesuaikan dengan analisa gas darah, radiologi toraks, dan compliance paru individual pasien. Bukan pengganti judgment klinis dokter yang merawat.
           </div>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500">Rentang PIP/PEEP/RR/Ti/Flow diambil dari tabel skenario × kategori GA (lihat definisi di clinical/ventilator.ts) — bukan formula numerik langsung, sehingga tidak ada substitusi angka untuk itu.</p>
 
           {(bwNum > 0 || gaNum > 0) && (
             <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-2.5">
@@ -271,6 +272,16 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
               </div>
             )}
           </div>
+          {vtLow && vtHigh && setting.targetVt && (
+            <CalcSteps
+              steps={[{
+                label: 'Volume tidal target',
+                formula: 'Rentang VT (mL/kg) × BB (gram) ÷ 1000',
+                substitution: `${setting.targetVt[0]}–${setting.targetVt[1]} × ${bwNum} ÷ 1000 = ${vtLow}–${vtHigh} mL`,
+                note: 'Target VT lung-protective neonatus umumnya 4–6 mL/kg.',
+              }]}
+            />
+          )}
 
           <div className="bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800 rounded-xl p-3">
             <span className="block text-[10px] font-extrabold uppercase text-sky-600 dark:text-sky-400 tracking-wider mb-1">FiO₂</span>
@@ -327,6 +338,7 @@ function VentilatorSettingCalculator({ effectiveBW, gestationalAge }: { effectiv
               'IDAI. Panduan Pelayanan Medis Neonatologi (referensi lokal Indonesia).',
             ]}
           />
+          <CalcDisclaimer text="Setting awal berbasis skenario & kategori usia gestasi — alat bantu edukasi/referensi cepat, bukan pengganti penilaian klinis atau keputusan DPJP. Sesuaikan dengan AGD, radiologi, dan compliance paru pasien." />
         </div>
       )}
     </div>
@@ -343,7 +355,7 @@ function GdsHipoglikemiaCalculator({ effectiveBW }: { effectiveBW: string }) {
   const bwNum = parseInt(effectiveBW) || 0;
   const wtKg = bwNum / 1000;
   const gdsNum = parseInt(gdsValue) || 0;
-  const bolusD10 = wtKg > 0 ? (wtKg * 2).toFixed(1) : '0';
+  const bolusD10 = dextrose10Bolus(wtKg);
 
   return (
     <div className="mt-6 glass-card rounded-2xl overflow-hidden">
@@ -397,6 +409,14 @@ function GdsHipoglikemiaCalculator({ effectiveBW }: { effectiveBW: string }) {
                       Lanjutkan dengan infus Glukosa kontinyu. Target <strong className="text-slate-900 dark:text-white font-bold">GIR awal 4-6 mg/kg/menit</strong>. Cek ulang GDS dalam 30-60 menit.
                     </p>
                   </div>
+                  <CalcSteps
+                    steps={[{
+                      label: 'Bolus Dekstrosa 10%',
+                      formula: '2 mL/kg × BB (kg)',
+                      substitution: `2 × ${wtKg.toFixed(3)} = ${bolusD10} mL`,
+                      note: `GDS ${gdsNum} mg/dL < 45 mg/dL (ambang hipoglikemia neonatus).`,
+                    }]}
+                  />
                 </div>
               )}
               {gdsValue && gdsNum >= 45 && (
@@ -405,6 +425,7 @@ function GdsHipoglikemiaCalculator({ effectiveBW }: { effectiveBW: string }) {
                   <p>GDS terpantau normal (&ge; 45 mg/dL). Pertahankan asupan nutrisi oral/enteral jika dimungkinkan.</p>
                 </div>
               )}
+              <CalcDisclaimer />
             </div>
           )}
         </div>
