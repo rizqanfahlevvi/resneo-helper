@@ -31,7 +31,11 @@ React 19 · Vite 6 · Tailwind CSS v4 (via `@tailwindcss/vite`) · Firebase 12 (
 
 `useSettingsStore` menyimpan `fontScale` (0.5–2.0) dan `fontWeight` (offset -300..400). `App.tsx` men-set `--font-scale` dan `--fw-light`…`--fw-black` di root; `index.css` men-set `:root { font-size: calc(78% * var(--font-scale)) }`, jadi kelas Tailwind berbasis **rem** (`text-xs`, `text-sm`, dst.) otomatis ikut skala.
 
-⚠️ **Beda dengan ICU Helper**: repo ini **tidak** punya sistem override per-kelas untuk `text-[Npx]` arbitrary di `index.css`. Ada 270+ pemakaian `text-[Npx]` di codebase (nilai px eksplisit, bukan rem) — nilai-nilai ini **tidak ikut skala font** karena px tidak relatif terhadap root font-size. Ini gap yang belum diperbaiki, bukan sesuatu yang "sudah benar secara default". Kalau menambah teks baru: **utamakan kelas Tailwind standar** (`text-xs`/`text-sm`/dst, yang otomatis rem & ikut skala) daripada `text-[Npx]` baru. Kalau harus pakai px arbitrary, sadari itu tidak akan berubah saat pengguna menggeser slider Ukuran Font — jangan diam-diam asumsikan sudah benar.
+**Override `text-[Npx]` arbitrary** (mirip pola ICU Helper): nilai literal px TIDAK relatif ke root font-size, jadi tiap ukuran `text-[Npx]` yang dipakai di codebase punya pasangan `.text-\[Npx\] { font-size: calc(Npx * var(--font-scale)) !important; }` di `index.css` (termasuk varian responsif `md:` bila dipakai). Saat ini ada 6 ukuran terdaftar: `8px`, `9px`, `10px`, `10.5px`, `11px`, `40px` (plus varian `md:` untuk `10px`/`40px`).
+
+⚠️ **WAJIB dicek setiap kali menambah `text-[Npx]` BARU** yang belum pernah dipakai di codebase (`grep -roE "text-\[[0-9.]+px\]" src --include=*.tsx | sort -u` untuk cek daftar saat ini) — kalau ukurannya belum ada di `index.css`, tambahkan override-nya di sana juga (termasuk varian `sm:`/`md:`/`lg:` jika dipakai). Kalau tidak, teks itu akan diam saja saat pengguna menggeser slider Ukuran Font, padahal elemen di sekitarnya berubah. **Verifikasi cepat**: `npm run build` lalu `grep "calc(Npx \* var(--font-scale))" dist/assets/*.css` untuk memastikan override baru benar-benar muncul di bundle. Default `--font-scale: 1` → tampilan default tidak berubah; efek hanya terlihat saat slider digeser, jadi jangan simpulkan "sudah benar" hanya dari tampilan default.
+
+Kelas `text-[N%]` (mis. `text-[95%]`) TIDAK perlu override — persentase relatif terhadap font-size parent yang sudah computed, jadi otomatis ikut skala lewat cascade.
 
 ## Warna & tema
 

@@ -30,6 +30,25 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Override text-[Npx] arbitrary agar ikut slider Ukuran Font (--font-scale).
+   Kelas Tailwind rem (text-xs, text-sm, dst.) sudah otomatis ikut lewat
+   font-size html di atas — tapi nilai literal text-[Npx] TIDAK relatif ke
+   root font-size, jadi harus di-override manual per ukuran di sini.
+   WAJIB: setiap kali menambah ukuran text-[Npx] BARU (termasuk varian
+   responsif sm:/md:/lg:) yang belum ada di daftar ini, tambahkan overridenya
+   di sini juga — kalau tidak, teks itu diam saja saat slider digeser. */
+.text-\[8px\] { font-size: calc(8px * var(--font-scale)) !important; }
+.text-\[9px\] { font-size: calc(9px * var(--font-scale)) !important; }
+.text-\[10px\] { font-size: calc(10px * var(--font-scale)) !important; }
+.text-\[10\.5px\] { font-size: calc(10.5px * var(--font-scale)) !important; }
+.text-\[11px\] { font-size: calc(11px * var(--font-scale)) !important; }
+.text-\[40px\] { font-size: calc(40px * var(--font-scale)) !important; }
+
+@media (min-width: 768px) {
+  .md\:text-\[10px\] { font-size: calc(10px * var(--font-scale)) !important; }
+  .md\:text-\[40px\] { font-size: calc(40px * var(--font-scale)) !important; }
+}
+
 /* Transisi warna halus saat preferensi berubah (tema, skala font, dll).
    Diletakkan di @layer base agar utilitas transition-* Tailwind (layer
    utilities) tetap menang — sehingga animasi transform/width komponen
