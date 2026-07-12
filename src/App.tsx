@@ -274,7 +274,7 @@ export default function App() {
         <TabTransition activeTab={activeTab}>
           {(visibleTab) => (
             <>
-              {visibleTab === 'home' && <TabHome onNavigate={navigateTo} />}
+              {visibleTab === 'home' && <TabHome onNavigate={navigateTo} setBirthWeight={setBirthWeight} />}
               {visibleTab === 'emergency' && (
                 <TabEmergency
                   gestationalAge={gestationalAge}

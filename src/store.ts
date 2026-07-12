@@ -50,6 +50,9 @@ export interface DrugAction {
   notes: string;
 }
 
+/** Jawaban per-parameter suatu skor: key parameter -> poin terpilih (null = belum diisi). */
+export type ScoreAnswers = Record<string, number | null>;
+
 // Snapshot bayi tersimpan di database pasien — memungkinkan banyak bayi
 // tersimpan sekaligus, masing-masing dengan identitas & data klinisnya sendiri.
 export interface PatientRecord {
@@ -64,6 +67,13 @@ export interface PatientRecord {
   downeScore: number;
   thomsonScore: number;
   silvermanScore: number;
+  downeAnswers: ScoreAnswers;
+  thomsonAnswers: ScoreAnswers;
+  silvermanAnswers: ScoreAnswers;
+  ballardN: ScoreAnswers;
+  ballardP: ScoreAnswers;
+  flaccAnswers: ScoreAnswers;
+  nipsAnswers: ScoreAnswers;
   clinicalLog: { time: string; message: string }[];
   drugLog: DrugAction[];
   phase: Phase;
@@ -81,7 +91,9 @@ const blankApgarEvals = (): ApgarEval[] => [
 
 type ActivePatientFields = Pick<ResneoStore,
   'patientIdentity' | 'anthropometry' | 'gestationalAge' | 'birthWeight' | 'apgarEvals' |
-  'downeScore' | 'thomsonScore' | 'silvermanScore' | 'clinicalLog' | 'drugLog' | 'phase' | 'elapsedTime'
+  'downeScore' | 'thomsonScore' | 'silvermanScore' |
+  'downeAnswers' | 'thomsonAnswers' | 'silvermanAnswers' | 'ballardN' | 'ballardP' | 'flaccAnswers' | 'nipsAnswers' |
+  'clinicalLog' | 'drugLog' | 'phase' | 'elapsedTime'
 >;
 
 const blankActivePatientFields = (): ActivePatientFields => ({
@@ -93,6 +105,13 @@ const blankActivePatientFields = (): ActivePatientFields => ({
   downeScore: 0,
   thomsonScore: 0,
   silvermanScore: 0,
+  downeAnswers: {},
+  thomsonAnswers: {},
+  silvermanAnswers: {},
+  ballardN: {},
+  ballardP: {},
+  flaccAnswers: {},
+  nipsAnswers: {},
   clinicalLog: [],
   drugLog: [],
   phase: 'preparation',
@@ -108,6 +127,13 @@ const patientFieldsFromRecord = (r: PatientRecord): ActivePatientFields => ({
   downeScore: r.downeScore,
   thomsonScore: r.thomsonScore,
   silvermanScore: r.silvermanScore,
+  downeAnswers: r.downeAnswers ?? {},
+  thomsonAnswers: r.thomsonAnswers ?? {},
+  silvermanAnswers: r.silvermanAnswers ?? {},
+  ballardN: r.ballardN ?? {},
+  ballardP: r.ballardP ?? {},
+  flaccAnswers: r.flaccAnswers ?? {},
+  nipsAnswers: r.nipsAnswers ?? {},
   clinicalLog: r.clinicalLog,
   drugLog: r.drugLog,
   phase: r.phase,
@@ -134,6 +160,26 @@ interface ResneoStore {
   setThomsonScore: (score: number) => void;
   silvermanScore: number;
   setSilvermanScore: (score: number) => void;
+  downeAnswers: ScoreAnswers;
+  setDowneAnswer: (key: string, value: number | null) => void;
+  clearDowneAnswers: () => void;
+  thomsonAnswers: ScoreAnswers;
+  setThomsonAnswer: (key: string, value: number | null) => void;
+  clearThomsonAnswers: () => void;
+  silvermanAnswers: ScoreAnswers;
+  setSilvermanAnswer: (key: string, value: number | null) => void;
+  clearSilvermanAnswers: () => void;
+  ballardN: ScoreAnswers;
+  setBallardN: (key: string, value: number | null) => void;
+  ballardP: ScoreAnswers;
+  setBallardP: (key: string, value: number | null) => void;
+  clearBallard: () => void;
+  flaccAnswers: ScoreAnswers;
+  setFlaccAnswer: (key: string, value: number | null) => void;
+  clearFlaccAnswers: () => void;
+  nipsAnswers: ScoreAnswers;
+  setNipsAnswer: (key: string, value: number | null) => void;
+  clearNipsAnswers: () => void;
   patientIdentity: PatientIdentity;
   setPatientIdentity: (p: Partial<PatientIdentity>) => void;
   anthropometry: Anthropometry;
@@ -198,6 +244,26 @@ export const useStore = create<ResneoStore>()(
       setThomsonScore: (thomsonScore) => set({ thomsonScore }),
       silvermanScore: 0,
       setSilvermanScore: (silvermanScore) => set({ silvermanScore }),
+      downeAnswers: {},
+      setDowneAnswer: (key, value) => set((state) => ({ downeAnswers: { ...state.downeAnswers, [key]: value } })),
+      clearDowneAnswers: () => set({ downeAnswers: {}, downeScore: 0 }),
+      thomsonAnswers: {},
+      setThomsonAnswer: (key, value) => set((state) => ({ thomsonAnswers: { ...state.thomsonAnswers, [key]: value } })),
+      clearThomsonAnswers: () => set({ thomsonAnswers: {}, thomsonScore: 0 }),
+      silvermanAnswers: {},
+      setSilvermanAnswer: (key, value) => set((state) => ({ silvermanAnswers: { ...state.silvermanAnswers, [key]: value } })),
+      clearSilvermanAnswers: () => set({ silvermanAnswers: {}, silvermanScore: 0 }),
+      ballardN: {},
+      setBallardN: (key, value) => set((state) => ({ ballardN: { ...state.ballardN, [key]: value } })),
+      ballardP: {},
+      setBallardP: (key, value) => set((state) => ({ ballardP: { ...state.ballardP, [key]: value } })),
+      clearBallard: () => set({ ballardN: {}, ballardP: {} }),
+      flaccAnswers: {},
+      setFlaccAnswer: (key, value) => set((state) => ({ flaccAnswers: { ...state.flaccAnswers, [key]: value } })),
+      clearFlaccAnswers: () => set({ flaccAnswers: {} }),
+      nipsAnswers: {},
+      setNipsAnswer: (key, value) => set((state) => ({ nipsAnswers: { ...state.nipsAnswers, [key]: value } })),
+      clearNipsAnswers: () => set({ nipsAnswers: {} }),
       patientIdentity: blankPatientIdentity(),
       setPatientIdentity: (p) => set((state) => ({ patientIdentity: { ...state.patientIdentity, ...p } })),
       anthropometry: blankAnthropometry(),
@@ -292,6 +358,13 @@ export const useStore = create<ResneoStore>()(
           downeScore: state.downeScore,
           thomsonScore: state.thomsonScore,
           silvermanScore: state.silvermanScore,
+          downeAnswers: state.downeAnswers,
+          thomsonAnswers: state.thomsonAnswers,
+          silvermanAnswers: state.silvermanAnswers,
+          ballardN: state.ballardN,
+          ballardP: state.ballardP,
+          flaccAnswers: state.flaccAnswers,
+          nipsAnswers: state.nipsAnswers,
           clinicalLog: state.clinicalLog,
           drugLog: state.drugLog,
           phase: state.phase,
@@ -318,6 +391,13 @@ export const useStore = create<ResneoStore>()(
         downeScore: state.downeScore,
         thomsonScore: state.thomsonScore,
         silvermanScore: state.silvermanScore,
+        downeAnswers: state.downeAnswers,
+        thomsonAnswers: state.thomsonAnswers,
+        silvermanAnswers: state.silvermanAnswers,
+        ballardN: state.ballardN,
+        ballardP: state.ballardP,
+        flaccAnswers: state.flaccAnswers,
+        nipsAnswers: state.nipsAnswers,
         activeTab: state.activeTab,
         patients: state.patients,
         activePatientId: state.activePatientId,
@@ -341,6 +421,13 @@ useStore.subscribe((state, prevState) => {
     state.downeScore !== prevState.downeScore ||
     state.thomsonScore !== prevState.thomsonScore ||
     state.silvermanScore !== prevState.silvermanScore ||
+    state.downeAnswers !== prevState.downeAnswers ||
+    state.thomsonAnswers !== prevState.thomsonAnswers ||
+    state.silvermanAnswers !== prevState.silvermanAnswers ||
+    state.ballardN !== prevState.ballardN ||
+    state.ballardP !== prevState.ballardP ||
+    state.flaccAnswers !== prevState.flaccAnswers ||
+    state.nipsAnswers !== prevState.nipsAnswers ||
     state.clinicalLog !== prevState.clinicalLog ||
     state.drugLog !== prevState.drugLog ||
     state.phase !== prevState.phase ||
@@ -361,6 +448,13 @@ useStore.subscribe((state, prevState) => {
     downeScore: state.downeScore,
     thomsonScore: state.thomsonScore,
     silvermanScore: state.silvermanScore,
+    downeAnswers: state.downeAnswers,
+    thomsonAnswers: state.thomsonAnswers,
+    silvermanAnswers: state.silvermanAnswers,
+    ballardN: state.ballardN,
+    ballardP: state.ballardP,
+    flaccAnswers: state.flaccAnswers,
+    nipsAnswers: state.nipsAnswers,
     clinicalLog: state.clinicalLog,
     drugLog: state.drugLog,
     phase: state.phase,

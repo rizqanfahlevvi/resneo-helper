@@ -17,13 +17,15 @@ import { useState, useEffect, useRef, useMemo, TouchEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEARCH_INDEX } from '../searchIndex';
 import { useStore } from '../../store';
+import AnthropoPanel from '../AnthropoPanel';
 
 interface TabHomeProps {
   onNavigate: (tab: 'emergency' | 'scores' | 'advanced' | 'theory' | 'references') => void;
   focusTrigger?: number;
+  setBirthWeight?: (val: string) => void;
 }
 
-export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
+export default function TabHome({ onNavigate, focusTrigger, setBirthWeight }: TabHomeProps) {
   const setTheoryDeepLinkId = useStore((s) => s.setTheoryDeepLinkId);
   const [activeSlide, setActiveSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState(1);
@@ -207,6 +209,11 @@ export default function TabHome({ onNavigate, focusTrigger }: TabHomeProps) {
             Tidak ditemukan hasil untuk "<span className="font-semibold">{searchQuery}</span>"
           </div>
         )}
+      </div>
+
+      {/* Antropometri — berdiri sendiri, tidak perlu masuk Resusitasi untuk mengisi data bayi */}
+      <div className="mt-4">
+        <AnthropoPanel setBirthWeight={setBirthWeight || (() => {})} defaultOpen />
       </div>
 
       {/* Segment Header Bar */}

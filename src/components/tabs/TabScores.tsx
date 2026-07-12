@@ -7,6 +7,7 @@ import { ballardToGestationalAge } from '../../clinical/doses';
 import { APGAR_PARAMS, getApgarTotal } from '../../clinical/apgar';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
 import CalcSteps, { CalcDisclaimer } from '../CalcSteps';
+import CalcTrigger from '../CalcTrigger';
 
 interface TabScoresProps {
   gestationalAge?: string;
@@ -177,15 +178,23 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     setApgarField(minute, field, val);
   };
 
-  // BALLARD State
-  const [ballardN, setBallardN] = useState<Record<string, number | null>>({
-    posture: null, squareWindow: null, armRecoil: null, popliteal: null, scarf: null, heelEar: null
-  });
+  // BALLARD State — disimpan di store global (per pasien aktif), sinkron lintas tab/refresh
+  const ballardN = useStore((s) => s.ballardN);
+  const ballardNStoreSet = useStore((s) => s.setBallardN);
+  const setBallardN = (updater: React.SetStateAction<Record<string, number | null>>) => {
+    const prev = useStore.getState().ballardN;
+    const next = typeof updater === 'function' ? (updater as (p: Record<string, number | null>) => Record<string, number | null>)(prev) : updater;
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) ballardNStoreSet(k, v); });
+  };
   const [openNeuroParam, setOpenNeuroParam] = useState<string | null>(null);
   const [openPhysParam, setOpenPhysParam] = useState<string | null>(null);
-  const [ballardP, setBallardP] = useState<Record<string, number | null>>({
-    skin: null, lanugo: null, plantar: null, breast: null, eyeEar: null, genitals: null
-  });
+  const ballardP = useStore((s) => s.ballardP);
+  const ballardPStoreSet = useStore((s) => s.setBallardP);
+  const setBallardP = (updater: React.SetStateAction<Record<string, number | null>>) => {
+    const prev = useStore.getState().ballardP;
+    const next = typeof updater === 'function' ? (updater as (p: Record<string, number | null>) => Record<string, number | null>)(prev) : updater;
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) ballardPStoreSet(k, v); });
+  };
 
   const getBallardTotal = () => {
     let total = 0;
@@ -209,7 +218,13 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     { id: 'resp', label: 'Respirasi', opts: [{val: 0, desc: 'Reguler'}, {val: 1, desc: 'Irreguler'}, {val: 2, desc: 'Apnea/Butuh Ventilasi'}] },
     { id: 'gag', label: 'Refleks Faring', opts: [{val: 0, desc: 'Normal'}, {val: 1, desc: 'Menurun/Depressed'}] }
   ];
-  const [thomson, setThomson] = useState<Record<string, number | null>>({});
+  const thomson = useStore((s) => s.thomsonAnswers);
+  const thomsonStoreSet = useStore((s) => s.setThomsonAnswer);
+  const setThomson = (updater: React.SetStateAction<Record<string, number | null>>) => {
+    const prev = useStore.getState().thomsonAnswers;
+    const next = typeof updater === 'function' ? (updater as (p: Record<string, number | null>) => Record<string, number | null>)(prev) : updater;
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) thomsonStoreSet(k, v); });
+  };
   
   const getThomsonTotal = () => {
     let t = 0;
@@ -227,7 +242,13 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     { id: 'nares', label: 'Cuping Hidung (Nasal Flaring)', opts: [{val: 0, desc: 'Tidak ada'}, {val: 1, desc: 'Minimal'}, {val: 2, desc: 'Nyata/Jelas'}] },
     { id: 'grunt', label: 'Merintih (Grunting)', opts: [{val: 0, desc: 'Tidak ada'}, {val: 1, desc: 'Hanya dengan stetoskop'}, {val: 2, desc: 'Terdengar jelas'}] },
   ];
-  const [silverman, setSilverman] = useState<Record<string, number | null>>({});
+  const silverman = useStore((s) => s.silvermanAnswers);
+  const silvermanStoreSet = useStore((s) => s.setSilvermanAnswer);
+  const setSilverman = (updater: React.SetStateAction<Record<string, number | null>>) => {
+    const prev = useStore.getState().silvermanAnswers;
+    const next = typeof updater === 'function' ? (updater as (p: Record<string, number | null>) => Record<string, number | null>)(prev) : updater;
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) silvermanStoreSet(k, v); });
+  };
   const getSilvermanTotal = () => {
     let t = 0;
     Object.values(silverman).forEach(v => { if (v !== null) t += Number(v); });
@@ -242,7 +263,13 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     { id: 'airEntry', label: 'Air Entry', opts: [{val: 0, desc: 'Bilateral baik'}, {val: 1, desc: 'Menurun ringan'}, {val: 2, desc: 'Sangat minimal'}] },
     { id: 'grunting', label: 'Merintih', opts: [{val: 0, desc: 'Tidak Ada'}, {val: 1, desc: 'Hanya dgn stetoskop'}, {val: 2, desc: 'Terdengar tanpa alat'}] }
   ];
-  const [downe, setDowne] = useState<Record<string, number | null>>({});
+  const downe = useStore((s) => s.downeAnswers);
+  const downeStoreSet = useStore((s) => s.setDowneAnswer);
+  const setDowne = (updater: React.SetStateAction<Record<string, number | null>>) => {
+    const prev = useStore.getState().downeAnswers;
+    const next = typeof updater === 'function' ? (updater as (p: Record<string, number | null>) => Record<string, number | null>)(prev) : updater;
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) downeStoreSet(k, v); });
+  };
 
   const getDowneTotal = () => {
     let t = 0;
@@ -1218,9 +1245,19 @@ function FlaccScore({ onBack }: { onBack: () => void }) {
     },
   ];
 
-  const [scores, setScores] = useState<Record<string, number>>({});
+  const scores = useStore((s) => s.flaccAnswers) as Record<string, number>;
+  const setFlaccAnswer = useStore((s) => s.setFlaccAnswer);
+  const setScores = (updater: (prev: Record<string, number>) => Record<string, number>) => {
+    const prev = useStore.getState().flaccAnswers as Record<string, number>;
+    const next = updater(prev);
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) setFlaccAnswer(k, v); });
+  };
   const total = flaccParams.reduce((sum, p) => sum + (scores[p.key] ?? 0), 0);
   const allFilled = flaccParams.every(p => p.key in scores);
+
+  const [confirmed, setConfirmed] = useState(false);
+  const [confirmedSnapshot, setConfirmedSnapshot] = useState<Record<string, number>>({});
+  const dirty = confirmed && flaccParams.some(p => confirmedSnapshot[p.key] !== scores[p.key]);
 
   const interp = total === 0 ? { label: 'Nyaman / Tidak Nyeri', color: 'emerald' }
     : total <= 3 ? { label: 'Nyeri Ringan', color: 'yellow' }
@@ -1259,6 +1296,15 @@ function FlaccScore({ onBack }: { onBack: () => void }) {
           ))}
 
           {allFilled && (
+            <CalcTrigger
+              disabled={!allFilled}
+              confirmed={confirmed}
+              dirty={dirty}
+              label="Hitung Skor FLACC"
+              onConfirm={() => { setConfirmed(true); setConfirmedSnapshot(scores); }}
+            />
+          )}
+          {allFilled && confirmed && !dirty && (
             <div className={`rounded-2xl border-2 p-5 text-center ${interp.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : interp.color === 'yellow' ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400' : interp.color === 'orange' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400' : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400'}`}>
               <span className="block text-xs font-extrabold uppercase tracking-widest mb-1">Total Skor FLACC</span>
               <span className="text-5xl font-black">{total}</span>
@@ -1266,7 +1312,7 @@ function FlaccScore({ onBack }: { onBack: () => void }) {
               <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0: Nyaman · 1–3: Ringan · 4–6: Sedang · 7–10: Berat</span>
             </div>
           )}
-          {allFilled && (
+          {allFilled && confirmed && !dirty && (
             <CalcSteps
               steps={[
                 ...flaccParams.map(p => ({
@@ -1338,9 +1384,19 @@ function NipsScore({ onBack }: { onBack: () => void }) {
     },
   ];
 
-  const [scores, setScores] = useState<Record<string, number>>({});
+  const scores = useStore((s) => s.nipsAnswers) as Record<string, number>;
+  const setNipsAnswer = useStore((s) => s.setNipsAnswer);
+  const setScores = (updater: (prev: Record<string, number>) => Record<string, number>) => {
+    const prev = useStore.getState().nipsAnswers as Record<string, number>;
+    const next = updater(prev);
+    Object.entries(next).forEach(([k, v]) => { if (prev[k] !== v) setNipsAnswer(k, v); });
+  };
   const total = nipsParams.reduce((sum, p) => sum + (scores[p.key] ?? 0), 0);
   const allFilled = nipsParams.every(p => p.key in scores);
+
+  const [confirmed, setConfirmed] = useState(false);
+  const [confirmedSnapshot, setConfirmedSnapshot] = useState<Record<string, number>>({});
+  const dirty = confirmed && nipsParams.some(p => confirmedSnapshot[p.key] !== scores[p.key]);
 
   const interp = total <= 2 ? { label: 'Tidak Nyeri / Nyeri Minimal', color: 'emerald' }
     : total <= 4 ? { label: 'Nyeri Sedang', color: 'orange' }
@@ -1381,6 +1437,15 @@ function NipsScore({ onBack }: { onBack: () => void }) {
           ))}
 
           {allFilled && (
+            <CalcTrigger
+              disabled={!allFilled}
+              confirmed={confirmed}
+              dirty={dirty}
+              label="Hitung Skor NIPS"
+              onConfirm={() => { setConfirmed(true); setConfirmedSnapshot(scores); }}
+            />
+          )}
+          {allFilled && confirmed && !dirty && (
             <div className={`rounded-2xl border-2 p-5 text-center ${interp.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400' : interp.color === 'orange' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400' : 'bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400'}`}>
               <span className="block text-xs font-extrabold uppercase tracking-widest mb-1">Total Skor NIPS</span>
               <span className="text-5xl font-black">{total}</span>
@@ -1388,7 +1453,7 @@ function NipsScore({ onBack }: { onBack: () => void }) {
               <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">0–2: Minimal · 3–4: Sedang · 5–7: Berat</span>
             </div>
           )}
-          {allFilled && (
+          {allFilled && confirmed && !dirty && (
             <CalcSteps
               steps={[
                 ...nipsParams.map(p => ({
