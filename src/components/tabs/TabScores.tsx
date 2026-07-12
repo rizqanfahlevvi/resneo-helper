@@ -160,6 +160,8 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   // Navigation & Accordion States
   const [activeScoreView, setActiveScoreView] = useState<'menu' | 'apgar' | 'downe' | 'thomson' | 'ballard' | 'silverman' | 'flacc' | 'nips'>('menu');
   const [expandedMinutes, setExpandedMinutes] = useState<Record<number, boolean>>({ 1: true, 5: true });
+  const [apgarConfirmed, setApgarConfirmed] = useState<Record<number, boolean>>({});
+  const [apgarSnapshot, setApgarSnapshot] = useState<Record<number, ApgarEval>>({});
 
   // APGAR State — dibagikan lewat store agar TabEmergency bisa auto-prompt & simpan ke sesi
   const apgarEvals = useStore((s) => s.apgarEvals);
@@ -696,6 +698,9 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
               {apgarEvals.map((ev) => {
                 const { total, complete } = getApgarTotal(ev);
                 const isExpanded = !!expandedMinutes[ev.minute];
+                const evConfirmed = !!apgarConfirmed[ev.minute];
+                const snapshot = apgarSnapshot[ev.minute];
+                const evDirty = evConfirmed && snapshot && apgarDetails.some(p => snapshot[p.key as keyof ApgarEval] !== ev[p.key as keyof ApgarEval]);
                 return (
                   <div key={ev.minute} className="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm animate-in fade-in transition-all">
                     
@@ -741,13 +746,45 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                             </div>
                           </div>
                         ))}
+                        {/* Skor total di header tetap realtime (vital sign resusitasi).
+                            Tombol ini hanya menampilkan CalcSteps per parameter. */}
+                        {complete && (
+                          <CalcTrigger
+                            disabled={!complete}
+                            confirmed={evConfirmed}
+                            dirty={!!evDirty}
+                            label={`Hitung Rincian APGAR Menit ke-${ev.minute}`}
+                            confirmedLabel="Rincian Terhitung — Ubah untuk Hitung Ulang"
+                            onConfirm={() => {
+                              setApgarConfirmed(prev => ({ ...prev, [ev.minute]: true }));
+                              setApgarSnapshot(prev => ({ ...prev, [ev.minute]: ev }));
+                            }}
+                          />
+                        )}
+                        {complete && evConfirmed && !evDirty && (
+                          <CalcSteps
+                            steps={[
+                              ...apgarDetails.map(p => ({
+                                label: p.name,
+                                formula: 'Poin dipilih untuk parameter ini',
+                                substitution: `"${p.opts.find(o => o.val === ev[p.key as keyof ApgarEval])?.desc}" → ${ev[p.key as keyof ApgarEval]} poin`,
+                              })),
+                              {
+                                label: `Total skor APGAR menit ke-${ev.minute}`,
+                                formula: 'Jumlah poin ke-5 parameter',
+                                substitution: `${apgarDetails.map(p => ev[p.key as keyof ApgarEval]).join(' + ')} = ${total}`,
+                                note: 'Skor 7–10 normal, 4–6 asfiksia sedang, 0–3 asfiksia berat.',
+                              },
+                            ]}
+                          />
+                        )}
                       </div>
                     )}
 
                   </div>
                 );
               })}
-              
+
               {apgarEvals.length < 5 && (
                 <button 
                   onClick={addApgarEval}
