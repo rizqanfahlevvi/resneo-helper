@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useStore, Phase } from '../../store';
-import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, isValidBirthWeightGram, isValidGestationalAgeWeek, BW_MIN_G, BW_MAX_G, GA_MIN_WK, GA_MAX_WK } from '../../clinical/doses';
+import { ettSizeByWeight, ettDepthAtLip, adrenalinIv, adrenalinEtt, saline10PerKg, dextrose10Bolus, bicarbonate42, isValidBirthWeightGram, isValidGestationalAgeWeek, BW_MIN_G, BW_MAX_G, GA_MIN_WK, GA_MAX_WK } from '../../clinical/doses';
 import { APGAR_PARAMS, getApgarTotal, apgarInterpretation } from '../../clinical/apgar';
 import { getVentilatorSettings } from '../../clinical/ventilator';
 import { useAuth } from '../../auth/useAuth';
@@ -647,7 +647,10 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
   const ettSize = ettSizeByWeight(bwKg);
   const ettDepth = ettDepthAtLip(bwKg);
   const { min: adrenalinMin, max: adrenalinMax } = adrenalinIv(bwKg);
-  const volumeExp = bwKg > 0 ? (10 * bwKg).toFixed(1) : '-';
+  const { min: adrenalinEttMin, max: adrenalinEttMax } = adrenalinEtt(bwKg);
+  const volumeExp = saline10PerKg(bwKg);
+  const d10BolusMl = dextrose10Bolus(bwKg);
+  const { minMl: naHco3MinMl, maxMl: naHco3MaxMl } = bicarbonate42(bwKg);
 
   // Determine Master Timer Color based on elapsed time
   const elapsedMin = elapsedTime / 60;
@@ -1009,17 +1012,17 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                           <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase">Adrenalin via ETT</span>
                           <span className="text-[9px] bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 px-1.5 py-0.5 rounded font-extrabold">1:10.000</span>
                         </div>
-                        <span className="font-extrabold text-sm text-rose-600 dark:text-rose-400">{(0.5*bwKg).toFixed(2)} – {(1.0*bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></span>
+                        <span className="font-extrabold text-sm text-rose-600 dark:text-rose-400">{adrenalinEttMin} – {adrenalinEttMax} <span className="text-xs font-normal text-slate-500">mL</span></span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
                           <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">D10% Bolus</span>
-                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{(2*bwKg).toFixed(1)} mL</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{d10BolusMl} mL</span>
                           <span className="block text-[8px] text-slate-400 mt-0.5">2 mL/kg</span>
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-2.5 border border-blue-100 dark:border-blue-900/40">
                           <span className="block text-[9px] text-blue-700 dark:text-blue-400 font-bold uppercase mb-0.5">NaHCO₃ 4.2%</span>
-                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{(2*bwKg).toFixed(1)} mL</span>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-100">{naHco3MinMl}–{naHco3MaxMl} mL</span>
                           <span className="block text-[8px] text-slate-400 mt-0.5">1–2 mEq/kg</span>
                         </div>
                       </div>
@@ -2223,18 +2226,18 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                             <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold uppercase">Adrenalin via ETT</span>
                             <span className="text-[9px] bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 px-1 py-0.5 rounded font-extrabold uppercase">1:10.000 (0.5-1.0 mL)</span>
                          </div>
-                         <div className="font-extrabold text-sm text-rose-600 dark:text-rose-400 tracking-tight">{(0.5 * bwKg).toFixed(2)} - {(1.0 * bwKg).toFixed(1)} <span className="text-xs font-normal text-slate-500">mL</span></div>
+                         <div className="font-extrabold text-sm text-rose-600 dark:text-rose-400 tracking-tight">{adrenalinEttMin} - {adrenalinEttMax} <span className="text-xs font-normal text-slate-500">mL</span></div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
                          <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-2.5 border border-amber-100 dark:border-amber-900/40">
                             <span className="block text-[9px] text-amber-700 dark:text-amber-400 font-bold uppercase mb-0.5">Dextrose 10% Bolus</span>
-                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(2 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{d10BolusMl} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
                             <span className="block text-[8px] text-slate-400 mt-0.5">2 mL/kg (Hipoglikemia)</span>
                          </div>
                          <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-2.5 border border-emerald-100 dark:border-emerald-900/40">
                             <span className="block text-[9px] text-emerald-700 dark:text-emerald-400 font-bold uppercase mb-0.5">Meylon / NaBic 4.2%</span>
-                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{(2 * bwKg).toFixed(1)}–{(4 * bwKg).toFixed(1)} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">{naHco3MinMl}–{naHco3MaxMl} <span className="text-[9px] font-medium text-slate-400">mL</span></span>
                             <span className="block text-[8px] text-slate-400 mt-0.5">1–2 mEq/kg (Asidosis)</span>
                          </div>
                       </div>
@@ -2625,11 +2628,11 @@ ${clinicalLog.map(l => `${l.time} - ${l.message}`).join('\n')}
                     <div className="grid grid-cols-2 gap-2 mb-3">
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
                         <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Dextrose 10% (2 mL/kg)</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(2 * bwKg).toFixed(1)} mL` : '-'}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${d10BolusMl} mL` : '-'}</span>
                       </div>
                       <div className="bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
                         <span className="block text-[8px] text-slate-500 dark:text-slate-400 font-bold mb-0.5 uppercase">Meylon 4.2% (2–4 mL/kg)</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${(2 * bwKg).toFixed(1)}–${(4 * bwKg).toFixed(1)} mL` : '-'}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">{bwKg > 0 ? `${naHco3MinMl}–${naHco3MaxMl} mL` : '-'}</span>
                       </div>
                     </div>
 
