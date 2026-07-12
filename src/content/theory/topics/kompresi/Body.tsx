@@ -25,6 +25,12 @@ export default function Body() {
           <li><strong className="text-slate-800 dark:text-slate-200">Evaluasi LDJ:</strong> tiap 45–60 detik; hentikan kompresi bila LDJ &gt;60.<Cite n={2} /></li>
         </ul>
       </div>
+      <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-4 border border-amber-200/60 dark:border-amber-800/30">
+        <h4 className="font-extrabold text-amber-800 dark:text-amber-300 text-xs uppercase mb-2">Kapan Rasio 3:1 TIDAK Berlaku</h4>
+        <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed mb-0">
+          Rasio 3:1 ini spesifik untuk periode <strong>"newly born"</strong> — resusitasi transisi fetal-neonatal di kamar bersalin/ruang tindakan segera pasca-lahir, di mana etiologi arrest hampir selalu asfiksia/respiratory sehingga strategi menitikberatkan ventilasi.<Cite n={4} /> Untuk neonatus yang sudah stabil pasca-lahir lalu mengalami cardiac arrest di kemudian hari (mis. di NICU akibat sepsis lanjut atau penyebab kardiak), gunakan algoritma PALS infant (15:2 dua penolong / 30:2 satu penolong) — bukan rasio NRP ini. Pembeda utamanya adalah <strong>konteks resusitasi</strong> (transisi kelahiran vs sudah <em>established</em> postnatal), bukan semata usia kronologis.
+        </p>
+      </div>
     </>
   );
 }
