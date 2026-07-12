@@ -205,6 +205,17 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
   
   const ballardTotal = getBallardTotal();
   const estimatedGestationalAge = ballardToGestationalAge(ballardTotal); // 2 minggu per 5 poin
+  const BALLARD_NEURO_KEYS = ['posture', 'squareWindow', 'armRecoil', 'popliteal', 'scarf', 'heelEar'];
+  const BALLARD_PHYS_KEYS = ['skin', 'lanugo', 'plantar', 'breast', 'eyeEar', 'genitals'];
+  const ballardAllFilled =
+    BALLARD_NEURO_KEYS.every(k => ballardN[k] !== null && ballardN[k] !== undefined) &&
+    BALLARD_PHYS_KEYS.every(k => ballardP[k] !== null && ballardP[k] !== undefined);
+  const [ballardConfirmed, setBallardConfirmed] = useState(false);
+  const [ballardSnapshot, setBallardSnapshot] = useState<{ n: Record<string, number | null>; p: Record<string, number | null> }>({ n: {}, p: {} });
+  const ballardDirty = ballardConfirmed && (
+    BALLARD_NEURO_KEYS.some(k => ballardSnapshot.n[k] !== ballardN[k]) ||
+    BALLARD_PHYS_KEYS.some(k => ballardSnapshot.p[k] !== ballardP[k])
+  );
 
   // THOMSON State
   const thomsonDetails = [
@@ -232,6 +243,10 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     return t;
   };
   const thomsonTotal = getThomsonTotal();
+  const thomsonAllFilled = thomsonDetails.every(p => thomson[p.id] !== null && thomson[p.id] !== undefined);
+  const [thomsonConfirmed, setThomsonConfirmed] = useState(false);
+  const [thomsonSnapshot, setThomsonSnapshot] = useState<Record<string, number | null>>({});
+  const thomsonDirty = thomsonConfirmed && thomsonDetails.some(p => thomsonSnapshot[p.id] !== thomson[p.id]);
 
   // DOWNE State
   // SILVERMAN-ANDERSON State
@@ -255,6 +270,10 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     return t;
   };
   const silvermanTotal = getSilvermanTotal();
+  const silvermanAllFilled = silvermanDetails.every(p => silverman[p.id] !== null && silverman[p.id] !== undefined);
+  const [silvermanConfirmed, setSilvermanConfirmed] = useState(false);
+  const [silvermanSnapshot, setSilvermanSnapshot] = useState<Record<string, number | null>>({});
+  const silvermanDirty = silvermanConfirmed && silvermanDetails.some(p => silvermanSnapshot[p.id] !== silverman[p.id]);
 
   const downeDetails = [
     { id: 'freq', label: 'Frekuensi Napas', opts: [{val: 0, desc: '< 60 x/m'}, {val: 1, desc: '60-80 x/m'}, {val: 2, desc: '> 80 x/m'}] },
@@ -277,6 +296,10 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
     return t;
   };
   const downeTotal = getDowneTotal();
+  const downeAllFilled = downeDetails.every(p => downe[p.id] !== null && downe[p.id] !== undefined);
+  const [downeConfirmed, setDowneConfirmed] = useState(false);
+  const [downeSnapshot, setDowneSnapshot] = useState<Record<string, number | null>>({});
+  const downeDirty = downeConfirmed && downeDetails.some(p => downeSnapshot[p.id] !== downe[p.id]);
 
   useEffect(() => {
     useStore.getState().setDowneScore(downeTotal);
@@ -792,10 +815,46 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 </div>
               )}
 
-              <ClinicalTheoryAccordion 
-                title="Teori Medis & Panduan Skor Downe" 
-                content={downeTheoryContent} 
-                references={downeReferences} 
+              {/* Catatan: total & peringatan CPAP di atas SENGAJA tetap realtime (tidak
+                  digerbang tombol Hitung) — ini alarm keselamatan, menyembunyikannya di
+                  balik konfirmasi manual berisiko terlewat. Tombol Hitung di sini hanya
+                  menampilkan rincian langkah (CalcSteps). */}
+              {downeAllFilled && (
+                <div className="mb-4">
+                  <CalcTrigger
+                    disabled={!downeAllFilled}
+                    confirmed={downeConfirmed}
+                    dirty={downeDirty}
+                    label="Hitung Rincian Skor Downe"
+                    confirmedLabel="Rincian Terhitung — Ubah untuk Hitung Ulang"
+                    onConfirm={() => { setDowneConfirmed(true); setDowneSnapshot(downe); }}
+                  />
+                </div>
+              )}
+              {downeAllFilled && downeConfirmed && !downeDirty && (
+                <div className="mb-4">
+                  <CalcSteps
+                    steps={[
+                      ...downeDetails.map(p => ({
+                        label: p.label,
+                        formula: 'Poin dipilih untuk parameter ini',
+                        substitution: `"${p.opts.find(o => o.val === downe[p.id])?.desc}" → ${downe[p.id]} poin`,
+                      })),
+                      {
+                        label: 'Total skor Downe',
+                        formula: 'Jumlah poin ke-5 parameter',
+                        substitution: `${downeDetails.map(p => downe[p.id]).join(' + ')} = ${downeTotal}`,
+                        note: 'Skor >6 = kriteria gagal CPAP (indikasi intubasi + VTP).',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+
+              <ClinicalTheoryAccordion
+                title="Teori Medis & Panduan Skor Downe"
+                content={downeTheoryContent}
+                references={downeReferences}
               />
             </div>
           </div>
@@ -870,10 +929,44 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 </div>
               )}
 
-              <ClinicalTheoryAccordion 
-                title="Teori Medis & Panduan Skor Thomson" 
-                content={thomsonTheoryContent} 
-                references={thomsonReferences} 
+              {/* Total & peringatan HIE di atas tetap realtime — alarm keselamatan tidak
+                  digerbang tombol Hitung. Tombol di sini hanya menampilkan CalcSteps. */}
+              {thomsonAllFilled && (
+                <div className="mb-4">
+                  <CalcTrigger
+                    disabled={!thomsonAllFilled}
+                    confirmed={thomsonConfirmed}
+                    dirty={thomsonDirty}
+                    label="Hitung Rincian Skor Thomson"
+                    confirmedLabel="Rincian Terhitung — Ubah untuk Hitung Ulang"
+                    onConfirm={() => { setThomsonConfirmed(true); setThomsonSnapshot(thomson); }}
+                  />
+                </div>
+              )}
+              {thomsonAllFilled && thomsonConfirmed && !thomsonDirty && (
+                <div className="mb-4">
+                  <CalcSteps
+                    steps={[
+                      ...thomsonDetails.map(p => ({
+                        label: p.label,
+                        formula: 'Poin dipilih untuk parameter ini',
+                        substitution: `"${p.opts.find(o => o.val === thomson[p.id])?.desc}" → ${thomson[p.id]} poin`,
+                      })),
+                      {
+                        label: 'Total skor Thomson',
+                        formula: `Jumlah poin ke-${thomsonDetails.length} parameter`,
+                        substitution: `${thomsonDetails.map(p => thomson[p.id]).join(' + ')} = ${thomsonTotal}`,
+                        note: 'Skor ≥5 = indikasi HIE sedang; ≥11 = berat (pertimbangkan terapi pendinginan).',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+
+              <ClinicalTheoryAccordion
+                title="Teori Medis & Panduan Skor Thomson"
+                content={thomsonTheoryContent}
+                references={thomsonReferences}
               />
             </div>
           </div>
@@ -1115,6 +1208,45 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                 ));
               })()}
 
+              {/* Estimasi GA & alert klinis di atas tetap realtime (dipakai juga oleh DDx
+                  Engine). Tombol di sini hanya menampilkan CalcSteps per parameter. */}
+              {ballardAllFilled && (
+                <div className="mt-4">
+                  <CalcTrigger
+                    disabled={!ballardAllFilled}
+                    confirmed={ballardConfirmed}
+                    dirty={ballardDirty}
+                    label="Hitung Rincian Skor Ballard"
+                    confirmedLabel="Rincian Terhitung — Ubah untuk Hitung Ulang"
+                    onConfirm={() => { setBallardConfirmed(true); setBallardSnapshot({ n: ballardN, p: ballardP }); }}
+                  />
+                </div>
+              )}
+              {ballardAllFilled && ballardConfirmed && !ballardDirty && (
+                <div className="mt-4">
+                  <CalcSteps
+                    steps={[
+                      ...BALLARD_NEURO_KEYS.map(k => ({
+                        label: `Neuromuskular: ${k}`,
+                        formula: 'Poin dipilih untuk parameter ini',
+                        substitution: `${ballardN[k]} poin`,
+                      })),
+                      ...BALLARD_PHYS_KEYS.map(k => ({
+                        label: `Fisik: ${k}`,
+                        formula: 'Poin dipilih untuk parameter ini',
+                        substitution: `${ballardP[k]} poin`,
+                      })),
+                      {
+                        label: 'Total skor Ballard → estimasi usia gestasi',
+                        formula: 'Jumlah 12 poin; GA = 24 + (total × 0,4) minggu',
+                        substitution: `Total = ${ballardTotal} → GA = 24 + (${ballardTotal} × 0,4) = ${estimatedGestationalAge.toFixed(1)} minggu`,
+                        note: 'Skala 2 minggu per 5 poin (New Ballard Score, Ballard et al. 1991).',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+
               <ClinicalTheoryAccordion
                 title="Teori Medis & Panduan Skor New Ballard"
                 content={ballardTheoryContent}
@@ -1157,6 +1289,36 @@ export default function TabScores({ gestationalAge, setGestationalAge, birthWeig
                   {silvermanTotal <= 3 ? 'Tatalaksana: O₂ nasal/hood; observasi ketat' : silvermanTotal <= 6 ? 'Tatalaksana: CPAP diindikasikan segera' : 'Tatalaksana: Intubasi + Ventilasi Mekanik'}
                 </span>
               </div>
+
+              {/* Total & anjuran tatalaksana di atas tetap realtime (alarm keselamatan).
+                  Tombol di sini hanya menampilkan CalcSteps. */}
+              {silvermanAllFilled && (
+                <CalcTrigger
+                  disabled={!silvermanAllFilled}
+                  confirmed={silvermanConfirmed}
+                  dirty={silvermanDirty}
+                  label="Hitung Rincian Skor Silverman"
+                  confirmedLabel="Rincian Terhitung — Ubah untuk Hitung Ulang"
+                  onConfirm={() => { setSilvermanConfirmed(true); setSilvermanSnapshot(silverman); }}
+                />
+              )}
+              {silvermanAllFilled && silvermanConfirmed && !silvermanDirty && (
+                <CalcSteps
+                  steps={[
+                    ...silvermanDetails.map(p => ({
+                      label: p.label,
+                      formula: 'Poin dipilih untuk parameter ini',
+                      substitution: `"${p.opts.find(o => o.val === silverman[p.id])?.desc}" → ${silverman[p.id]} poin`,
+                    })),
+                    {
+                      label: 'Total skor Silverman-Anderson',
+                      formula: 'Jumlah poin ke-5 parameter',
+                      substitution: `${silvermanDetails.map(p => silverman[p.id]).join(' + ')} = ${silvermanTotal}`,
+                      note: 'Skor 0–3 ringan, 4–6 sedang (CPAP), 7–10 berat (intubasi + ventilasi mekanik).',
+                    },
+                  ]}
+                />
+              )}
               <ClinicalTheoryAccordion
                 title="Teori Medis & Panduan Skor Silverman-Anderson"
                 content={
