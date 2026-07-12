@@ -15,6 +15,7 @@ import { getVentilatorSettings, VENTILATOR_SCENARIOS, getBloodGasTarget, getGaTi
 import { INOTROPES, InotropeId, doseToRate, rateToDose, doseZone, ruleOfSix, ruleVariantFor } from '../../clinical/inotropes';
 import ClinicalTheoryAccordion from '../ClinicalTheoryAccordion';
 import CalcSteps, { CalcDisclaimer } from '../CalcSteps';
+import CalcConfirmLog from '../CalcConfirmLog';
 
 interface TabCalculatorsProps {
   gestationalAge: string;
@@ -560,6 +561,9 @@ function TitrasiCairanGirCalculator({ effectiveBW }: { effectiveBW: string }) {
                   ]}
                 />
               )}
+              {girNum >= 4 && girNum <= 14 && girResults && (
+                <CalcConfirmLog summary={`Titrasi cairan/GIR dihitung: konsentrasi ${girResults.concentration.toFixed(1)}%, D10% ${girResults.vD10.toFixed(1)} mL${girResults.vD40 > 0 ? `, D40% ${girResults.vD40.toFixed(1)} mL` : ''} (BB ${wtKg.toFixed(3)} kg, GIR target ${girNum})`} />
+              )}
               {girNum >= 4 && girNum <= 14 && girResults && <CalcDisclaimer />}
             </div>
           )}
@@ -652,6 +656,9 @@ function GirCalculator() {
                 },
               ]}
             />
+          )}
+          {girValue !== null && (
+            <CalcConfirmLog summary={`GIR dihitung: ${girValue.toFixed(2)} mg/kg/menit (Rate ${girRateNum} mL/jam, D${girDextrose}%, BB ${girBBNum} kg)`} />
           )}
           <ClinicalTheoryAccordion
             title="Teori & Panduan GIR Neonatus"
@@ -749,6 +756,9 @@ function SurfaktanCalculator() {
                 },
               ]}
             />
+          )}
+          {result && (
+            <CalcConfirmLog summary={`Surfaktan dihitung: ${result.drug} — ${result.dose} mg (${result.vol} mL), ${result.note}`} />
           )}
           <ClinicalTheoryAccordion
             title="Teori & Panduan Terapi Surfaktan"
@@ -920,6 +930,12 @@ function InotropikDripCalculator({ effectiveBW }: { effectiveBW: string }) {
           <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
             Laju = Dosis × BB × 60 ÷ (Konsentrasi × 1000). Ref: Neonatal Formulary 8th Ed. 2020 · NeoFax 2023 · IDAI NICU. Verifikasi ganda sebelum pemberian.
           </p>
+          {wtKg > 0 && concNum > 0 && mode === 'doseToRate' && rateResult !== null && (
+            <CalcConfirmLog summary={`Drip ${d.short} dihitung: ${dose} mcg/kg/mnt → ${rateResult.toFixed(2)} mL/jam (BB ${wtKg.toFixed(2)} kg, konsentrasi ${concNum} mg/mL)`} />
+          )}
+          {wtKg > 0 && concNum > 0 && mode === 'rateToDose' && doseResult !== null && (
+            <CalcConfirmLog summary={`Drip ${d.short} dihitung: ${rate} mL/jam → ${doseResult.toFixed(2)} mcg/kg/mnt (BB ${wtKg.toFixed(2)} kg, konsentrasi ${concNum} mg/mL)`} />
+          )}
           <CalcDisclaimer />
         </div>
       )}
@@ -1003,6 +1019,7 @@ function PompaSyringeInotropikCalculator({ effectiveBW }: { effectiveBW: string 
                   },
                 ]}
               />
+              <CalcConfirmLog summary={`Oplos syringe pump dihitung: larutkan ${inotropeMg} mg dalam ${syringeVol} mL, jalankan ${rate} mL/jam untuk dosis ${dose} mcg/kg/mnt (BB ${wtKg.toFixed(2)} kg)`} />
               <CalcDisclaimer />
             </div>
           )}
@@ -1130,6 +1147,9 @@ function KebutuhanCairanCalculator() {
                 },
               ]}
             />
+          )}
+          {fluidAbsolute && (
+            <CalcConfirmLog summary={`Kebutuhan cairan dihitung: ${fluidAbsolute} mL/hari (${(parseFloat(fluidAbsolute) / 24).toFixed(1)} mL/jam) — BB ${fluidBB} kg, DOL ${fluidDOL === '7' ? '7+' : fluidDOL}`} />
           )}
           <CalcDisclaimer />
           <ClinicalTheoryAccordion
@@ -1349,6 +1369,9 @@ function TpnCalculator({ effectiveBW }: { effectiveBW: string }) {
               ]}
             />
           )}
+          {bwKg > 0 && (
+            <CalcConfirmLog summary={`TPN dihitung: cairan ${totalFluidMin}–${totalFluidMax} mL/hari, glukosa D10% ${volD10} mL, protein ${protVolMin}–${protVolMax} mL, lipid ${lipMin === 0 && lipMax === 0 ? 'ditunda' : `${lipVolMin}–${lipVolMax} mL`} (BB ${bwKg.toFixed(3)} kg, DOL ${dolNum})`} />
+          )}
           <p className="text-[10px] text-slate-400 text-right">ESPGHAN 2018 · IDAI NICU Guidelines · Koletzko B et al. J Pediatr Gastroenterol Nutr. 2018</p>
           <CalcDisclaimer />
         </div>
@@ -1509,6 +1532,9 @@ function AntibioticCalculator({ effectiveBW }: { effectiveBW: string }) {
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Sesuaikan dengan panduan RS dan kultur sensitivitas. Sediaan: Ampisilin 500mg/vial (100mg/mL), Gentamisin 10mg/mL, Cefotaxime 1g/vial (100mg/mL). Ref: Neofax 2023, BNFC.
           </div>
+          {drugs.length > 0 && (
+            <CalcConfirmLog summary={`Antibiotik dihitung (${therapyType.toUpperCase()}): ${drugs.map(d => `${d.drug} ${d.volume} ${d.interval}`).join(', ')} — BB ${bwKg.toFixed(3)} kg, GA ${gaNum} mgg, PNA ${ageNum} hr`} />
+          )}
           <CalcDisclaimer />
         </div>
       )}
@@ -1721,6 +1747,9 @@ function SeizureCalculator({ effectiveBW }: { effectiveBW: string }) {
           <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Pertimbangkan EEG/aEEG. Cari dan tangani penyebab: hipoglikemia, hipokalsemia, infeksi, HIE. Monitor respirasi dan apnea. Ref: Fenichel, NeoFax 2023.
           </div>
+          {rows.length > 0 && (
+            <CalcConfirmLog summary={`Dosis kejang dihitung (${drugLabels[drug]}): ${rows.map(r => `${r.label} ${r.dose} = ${r.volume}`).join('; ')} — BB ${bwKg.toFixed(3)} kg`} />
+          )}
           <CalcDisclaimer />
         </div>
       )}
@@ -2014,6 +2043,9 @@ function BilirubinCalculator({ gestationalAge }: { gestationalAge: string }) {
             </>
           ) : (
             <div className="text-center text-xs text-slate-400 py-4">Isi usia gestasi dan usia bayi (jam) untuk menghitung ambang.</div>
+          )}
+          {hasInput && (
+            <CalcConfirmLog summary={`Ambang bilirubin dihitung: fototerapi ${photoThreshold.toFixed(1)} mg/dL, transfusi tukar ${exchThreshold.toFixed(1)} mg/dL (GA ${gaNum} mgg, usia ${ageNum} jam${tsbNum > 0 ? `, TSB ${tsbNum} mg/dL → zona ${zone}` : ''})`} />
           )}
           <CalcDisclaimer text="Ambang di atas adalah aproksimasi kurva AAP 2022 untuk pendukung keputusan cepat bedside — bukan pengganti nomogram/BiliTool resmi atau keputusan DPJP. Selalu korelasikan dengan kurva jam-spesifik asli." />
         </div>
